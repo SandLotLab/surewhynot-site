@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>surewhynot.app</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh;
+      display: grid; place-items: center;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background: #0b0f14; color: #e8edf5;
+      padding: 20px;
+    }
+    .card {
+      width: min(920px, 100%);
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+    h1 { margin: 0 0 10px; font-size: 18px; letter-spacing: .5px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+    @media (max-width: 760px){ .row,.row3{ grid-template-columns:1fr; } }
+    label { display:block; font-size: 12px; opacity:.85; margin: 8px 0 6px; }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(0,0,0,0.35);
+      color: #e8edf5;
+      outline: none;
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
+    button {
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.06);
+      color: #e8edf5;
+      cursor: pointer;
+    }
+    button.primary { border-color: rgba(255,200,80,0.35); }
+    button:hover { background: rgba(255,255,255,0.09); }
+    .out {
+      margin-top: 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.10);
+      background: rgba(0,0,0,0.30);
+      padding: 12px;
+      white-space: pre-wrap;
+      min-height: 70px;
+    }
+    .tiny { font-size: 12px; opacity: .7; margin-top: 10px; }
+    .pill {
+      display:inline-block; padding: 3px 8px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
+      font-size: 12px; opacity: .85;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1><span class="pill">surewhynot.app</span> phrase generator</h1>
+
+    <div class="row">
+      <div>
+        <label>Generator</label>
+        <select id="category"></select>
+      </div>
+      <div>
+        <label>Tone</label>
+        <select id="tone">
+          <option value="neutral">neutral</option>
+          <option value="brief">brief</option>
+          <option value="friendly">friendly</option>
+          <option value="formal">formal</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="row3">
+      <div>
+        <label>Name (optional)</label>
+        <input id="name" placeholder="e.g., Mike" />
+      </div>
+      <div>
+        <label>Minutes late (optional)</label>
+        <input id="mins" type="number" min="0" placeholder="e.g., 10" />
+      </div>
+      <div>
+        <label>Time window (optional)</label>
+        <input id="when" placeholder="e.g., this morning / today / right now" />
+      </div>
+    </div>
+
+    <div class="btns">
+      <button class="primary" id="gen">Generate</button>
+      <button id="copy">Copy</button>
+      <button id="reroll">Reroll</button>
+      <button id="add">Add template</button>
+      <button id="reset">Reset defaults</button>
+    </div>
+
+    <div class="out" id="output"></div>
+    <div class="tiny" id="status"></div>
+
+    <div style="margin-top:16px;">
+      <label>Templates (editable JSON, saved to your browser)</label>
+      <textarea id="editor"></textarea>
+      <div class="btns">
+        <button id="save">Save templates</button>
+        <button id="export">Export JSON</button>
+        <button id="import">Import JSON</button>
+      </div>
+      <div class="tiny">Tip: Use variables like {{name}}, {{mins}}, {{when}} in templates.</div>
+    </div>
+  </div>
+
+<script>
+  const LS_KEY = "swn_templates_v1";
+
+  const DEFAULTS = {
+    "Running late (work)": {
+      neutral: [
+        "Running {{mins}} min late due to an overlap. I’ll join ASAP.",
+        "I’m delayed {{when}}. I’ll be on shortly.",
+        "Stuck in a quick conflict—joining as soon as I can."
+      ],
+      brief: [
+        "Running late. Joining ASAP.",
+        "Delayed—be there soon."
+      ],
+      friendly: [
+        "Hey {{name}}, I’m running {{mins}} min behind—jumping in as soon as I can.",
+        "Sorry—got snagged {{when}}. I’ll join in a few."
+      ],
+      formal: [
+        "Apologies, I’m delayed due to a scheduling overlap. I will join as soon as possible.",
+        "I’m running behind {{when}} and will be online shortly."
+      ]
+    },
+
+    "Cancel a meeting": {
+      neutral: [
+        "Something urgent came up and I need to reschedule. Does {{when}} work?",
+        "I have an unexpected conflict. Can we move this to {{when}}?",
+        "I can’t make it today—can we pick a new time?"
+      ],
+      brief: [
+        "Need to reschedule—conflict came up.",
+        "Can’t make it. New time?"
+      ],
+      friendly: [
+        "Hey {{name}}, I got pulled into something urgent—can we shift this to {{when}}?",
+        "Sorry—conflict popped up. Can we reschedule?"
+      ],
+      formal: [
+        "I have an unavoidable conflict and will need to reschedule. Please let me know your availability for {{when}}.",
+        "Regrettably, I’m unable to attend as scheduled. May we reschedule?"
+      ]
+    },
+
+    "Cancel social plans": {
+      neutral: [
+        "I’m not feeling great {{when}} and need to stay in. I’m sorry.",
+        "I need to rain check—low energy today. Can we do another day?",
+        "Something personal came up. I can’t make it tonight."
+      ],
+      brief: [
+        "Need to rain check.",
+        "Can’t make it tonight—sorry."
+      ],
+      friendly: [
+        "Hey {{name}}, I’m feeling wiped {{when}}—I’m going to stay in. I’m really sorry.",
+        "I hate doing this, but I need a rain check. Can we reschedule?"
+      ],
+      formal: [
+        "I’m not able to attend as planned. My apologies—can we reschedule?",
+        "Regrettably I have to cancel. Thank you for understanding."
+      ]
+    }
+  };
+
+  const $ = (id) => document.getElementById(id);
+
+  function loadTemplates(){
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return structuredClone(DEFAULTS);
+    try { return JSON.parse(raw); } catch { return structuredClone(DEFAULTS); }
+  }
+
+  function saveTemplates(obj){
+    localStorage.setItem(LS_KEY, JSON.stringify(obj, null, 2));
+  }
+
+  function fillCategorySelect(templates){
+    const sel = $("category");
+    sel.innerHTML = "";
+    Object.keys(templates).forEach((k) => {
+      const opt = document.createElement("option");
+      opt.value = k;
+      opt.textContent = k;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderEditor(templates){
+    $("editor").value = JSON.stringify(templates, null, 2);
+  }
+
+  function vars(){
+    const name = $("name").value.trim() || "there";
+    const mins = (String($("mins").value).trim() || "a few");
+    const when = $("when").value.trim() || "soon";
+    return { name, mins, when };
+  }
+
+  function applyVars(text, v){
+    return text
+      .replaceAll("{{name}}", v.name)
+      .replaceAll("{{mins}}", v.mins)
+      .replaceAll("{{when}}", v.when);
+  }
+
+  function pick(arr){
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  function generate(templates){
+    const cat = $("category").value;
+    const tone = $("tone").value;
+    const group = templates?.[cat]?.[tone] || [];
+    const fallback = templates?.[cat]?.neutral || [];
+    const pool = group.length ? group : fallback;
+    if (!pool.length) return "No templates found for this category/tone.";
+    return applyVars(pick(pool), vars());
+  }
+
+  function setStatus(msg){
+    $("status").textContent = msg || "";
+  }
+
+  // init
+  let templates = loadTemplates();
+  fillCategorySelect(templates);
+  renderEditor(templates);
+  $("output").textContent = generate(templates);
+
+  $("gen").onclick = () => {
+    $("output").textContent = generate(templates);
+    setStatus("");
+  };
+
+  $("reroll").onclick = () => {
+    $("output").textContent = generate(templates);
+    setStatus("");
+  };
+
+  $("copy").onclick = async () => {
+    const text = $("output").textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("Copied.");
+    } catch {
+      setStatus("Copy failed (browser blocked clipboard).");
+    }
+  };
+
+  $("save").onclick = () => {
+    try {
+      const parsed = JSON.parse($("editor").value);
+      templates = parsed;
+      saveTemplates(templates);
+      fillCategorySelect(templates);
+      setStatus("Saved.");
+    } catch {
+      setStatus("Invalid JSON.");
+    }
+  };
+
+  $("add").onclick = () => {
+    const cat = prompt("New category name?");
+    if (!cat) return;
+    if (!templates[cat]) {
+      templates[cat] = { neutral: ["New template here."] };
+      renderEditor(templates);
+      setStatus("Added. Edit templates and Save.");
+    } else {
+      setStatus("Category already exists.");
+    }
+  };
+
+  $("reset").onclick = () => {
+    templates = structuredClone(DEFAULTS);
+    saveTemplates(templates);
+    fillCategorySelect(templates);
+    renderEditor(templates);
+    $("output").textContent = generate(templates);
+    setStatus("Reset to defaults.");
+  };
+
+  $("export").onclick = async () => {
+    const data = JSON.stringify(templates, null, 2);
+    try {
+      await navigator.clipboard.writeText(data);
+      setStatus("Exported JSON copied to clipboard.");
+    } catch {
+      setStatus("Export failed (clipboard).");
+    }
+  };
+
+  $("import").onclick = () => {
+    const data = prompt("Paste templates JSON:");
+    if (!data) return;
+    try {
+      const parsed = JSON.parse(data);
+      templates = parsed;
+      saveTemplates(templates);
+      fillCategorySelect(templates);
+      renderEditor(templates);
+      setStatus("Imported.");
+    } catch {
+      setStatus("Invalid JSON.");
+    }
+  };
+</script>
+</body>
+</html>
