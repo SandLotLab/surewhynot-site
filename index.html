@@ -1,9 +1,30 @@
 <!doctype html>
 <html lang="en">
 <head>
+async function generateAI(payload) {
+  const res = await fetch("https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  return data.text;
+}
 
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
      crossorigin="anonymous"></script>
+	 
+<script>
+async function generateAI(payload) {
+  const res = await fetch("https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const data = await res.json();
+  return data.text;
+}
+</script>
 
 <link rel="icon" href="/favicon.ico">
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
@@ -261,83 +282,18 @@
   renderEditor(templates);
   $("output").textContent = generate(templates);
 
-  $("gen").onclick = () => {
-    $("output").textContent = generate(templates);
-    setStatus("");
+  $("gen").onclick = async () => {
+  const payload = {
+    category: $("category").value,
+    tone: $("tone").value,
+    prompt: ($("prompt")?.value || "").trim(),
+    vars: collectVars ? collectVars(templates) : {}
   };
 
-  $("reroll").onclick = () => {
-    $("output").textContent = generate(templates);
-    setStatus("");
-  };
+  $("output").textContent = "Thinking…";
+  $("output").textContent = await generateAI(payload);
+};
 
-  $("copy").onclick = async () => {
-    const text = $("output").textContent;
-    try {
-      await navigator.clipboard.writeText(text);
-      setStatus("Copied.");
-    } catch {
-      setStatus("Copy failed (browser blocked clipboard).");
-    }
-  };
-
-  $("save").onclick = () => {
-    try {
-      const parsed = JSON.parse($("editor").value);
-      templates = parsed;
-      saveTemplates(templates);
-      fillCategorySelect(templates);
-      setStatus("Saved.");
-    } catch {
-      setStatus("Invalid JSON.");
-    }
-  };
-
-  $("add").onclick = () => {
-    const cat = prompt("New category name?");
-    if (!cat) return;
-    if (!templates[cat]) {
-      templates[cat] = { neutral: ["New template here."] };
-      renderEditor(templates);
-      setStatus("Added. Edit templates and Save.");
-    } else {
-      setStatus("Category already exists.");
-    }
-  };
-
-  $("reset").onclick = () => {
-    templates = structuredClone(DEFAULTS);
-    saveTemplates(templates);
-    fillCategorySelect(templates);
-    renderEditor(templates);
-    $("output").textContent = generate(templates);
-    setStatus("Reset to defaults.");
-  };
-
-  $("export").onclick = async () => {
-    const data = JSON.stringify(templates, null, 2);
-    try {
-      await navigator.clipboard.writeText(data);
-      setStatus("Exported JSON copied to clipboard.");
-    } catch {
-      setStatus("Export failed (clipboard).");
-    }
-  };
-
-  $("import").onclick = () => {
-    const data = prompt("Paste templates JSON:");
-    if (!data) return;
-    try {
-      const parsed = JSON.parse(data);
-      templates = parsed;
-      saveTemplates(templates);
-      fillCategorySelect(templates);
-      renderEditor(templates);
-      setStatus("Imported.");
-    } catch {
-      setStatus("Invalid JSON.");
-    }
-  };
 </script>
 
 <footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
