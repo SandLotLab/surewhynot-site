@@ -341,10 +341,33 @@
 </script>
 
 <footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
+
   <a href="/about.html">About</a> ·
   <a href="/privacy.html">Privacy</a> ·
   <a href="/contact.html">Contact</a>
 </footer>
+ <div style="text-align:center;margin-top:32px">
+  <h3>Support</h3>
+
+  <div>
+    <a href="https://paypal.me/BigHomieCed" target="_blank">PayPal</a><br>
+    <img src="paypal.png" width="160">
+  </div>
+
+  <br>
+
+  <div>
+    <a href="https://cash.app/$BigHomieCed2515" target="_blank">Cash App</a><br>
+    <img src="cashapp.png" width="160">
+  </div>
+
+  <br>
+
+  <div>
+    Bitcoin: 3DzuLkEVazmA3MUSaXsqx5gaZCbqnHUL78<br>
+    <img src="bitcoin.png" width="160">
+  </div>
+</div>
 
 </body>
 </html>
