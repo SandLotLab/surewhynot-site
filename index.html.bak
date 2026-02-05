@@ -1,39 +1,19 @@
 <!doctype html>
 <html lang="en">
 <head>
-async function generateAI(payload) {
-  const res = await fetch("https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  return data.text;
-}
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
+    crossorigin="anonymous"></script>
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-     crossorigin="anonymous"></script>
-	 
-<script>
-async function generateAI(payload) {
-  const res = await fetch("https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const data = await res.json();
-  return data.text;
-}
-</script>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-<link rel="icon" href="/favicon.ico">
-<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-	 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>surewhynot.app</title>
+
   <style>
     :root { color-scheme: dark; }
     body {
@@ -44,31 +24,31 @@ async function generateAI(payload) {
       padding: 20px;
     }
     .card {
-      width: min(920px, 100%);
+      width: min(736px, 100%); /* ~20% smaller than 920px */
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 16px;
-      padding: 18px;
+      border-radius: 13px;
+      padding: 14px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.35);
     }
-    h1 { margin: 0 0 10px; font-size: 18px; letter-spacing: .5px; }
+    h1 { margin: 0 0 10px; font-size: 14px; letter-spacing: .5px; }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
     @media (max-width: 760px){ .row,.row3{ grid-template-columns:1fr; } }
     label { display:block; font-size: 12px; opacity:.85; margin: 8px 0 6px; }
     input, select, textarea {
       width: 100%;
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.12);
       background: rgba(0,0,0,0.35);
       color: #e8edf5;
       outline: none;
     }
-    textarea { min-height: 120px; resize: vertical; }
+    textarea { min-height: 96px; resize: vertical; }
     .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
     button {
-      padding: 10px 12px;
+      padding: 8px 10px;
       border-radius: 12px;
       border: 1px solid rgba(255,255,255,0.14);
       background: rgba(255,255,255,0.06);
@@ -94,6 +74,7 @@ async function generateAI(payload) {
     }
   </style>
 </head>
+
 <body>
   <div class="card">
     <h1><span class="pill">surewhynot.app</span> phrase generator</h1>
@@ -129,6 +110,11 @@ async function generateAI(payload) {
       </div>
     </div>
 
+    <div style="margin-top:8px;">
+      <label>Reason / Prompt (optional)</label>
+      <input id="prompt" placeholder="e.g., got pulled into a meeting / family thing came up" />
+    </div>
+
     <div class="btns">
       <button class="primary" id="gen">Generate</button>
       <button id="copy">Copy</button>
@@ -148,13 +134,45 @@ async function generateAI(payload) {
         <button id="export">Export JSON</button>
         <button id="import">Import JSON</button>
       </div>
-      <div class="tiny">Tip: Use variables like {{name}}, {{mins}}, {{when}} in templates.</div>
+      <div class="tiny">Tip: Use variables like {{name}}, {{mins}}, {{when}}, {{prompt}} in templates.</div>
     </div>
   </div>
 
-<script>
-  const LS_KEY = "swn_templates_v1";
+  <footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
+    <a href="/about.html">About</a> ·
+    <a href="/privacy.html">Privacy</a> ·
+    <a href="/contact.html">Contact</a>
+  </footer>
 
+<script>
+  // ====== CONFIG ======
+  const WORKER_URL = "https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/";
+
+  // ====== HELPERS ======
+  const LS_KEY = "swn_templates_v1";
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(msg){ $("status").textContent = msg || ""; }
+
+  function vars(){
+    const name = $("name").value.trim() || "there";
+    const mins = (String($("mins").value).trim() || "a few");
+    const when = $("when").value.trim() || "soon";
+    const prompt = $("prompt").value.trim() || "";
+    return { name, mins, when, prompt };
+  }
+
+  function applyVars(text, v){
+    return text
+      .replaceAll("{{name}}", v.name)
+      .replaceAll("{{mins}}", v.mins)
+      .replaceAll("{{when}}", v.when)
+      .replaceAll("{{prompt}}", v.prompt);
+  }
+
+  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  // ====== LOCAL TEMPLATES (FALLBACK) ======
   const DEFAULTS = {
     "Running late (work)": {
       neutral: [
@@ -217,8 +235,6 @@ async function generateAI(payload) {
     }
   };
 
-  const $ = (id) => document.getElementById(id);
-
   function loadTemplates(){
     const raw = localStorage.getItem(LS_KEY);
     if (!raw) return structuredClone(DEFAULTS);
@@ -231,6 +247,7 @@ async function generateAI(payload) {
 
   function fillCategorySelect(templates){
     const sel = $("category");
+    const prev = sel.value;
     sel.innerHTML = "";
     Object.keys(templates).forEach((k) => {
       const opt = document.createElement("option");
@@ -238,31 +255,15 @@ async function generateAI(payload) {
       opt.textContent = k;
       sel.appendChild(opt);
     });
+    if (prev && templates[prev]) sel.value = prev;
+    else if (sel.options.length) sel.selectedIndex = 0;
   }
 
   function renderEditor(templates){
     $("editor").value = JSON.stringify(templates, null, 2);
   }
 
-  function vars(){
-    const name = $("name").value.trim() || "there";
-    const mins = (String($("mins").value).trim() || "a few");
-    const when = $("when").value.trim() || "soon";
-    return { name, mins, when };
-  }
-
-  function applyVars(text, v){
-    return text
-      .replaceAll("{{name}}", v.name)
-      .replaceAll("{{mins}}", v.mins)
-      .replaceAll("{{when}}", v.when);
-  }
-
-  function pick(arr){
-    return arr[Math.floor(Math.random() * arr.length)];
-  }
-
-  function generate(templates){
+  function generateLocal(templates){
     const cat = $("category").value;
     const tone = $("tone").value;
     const group = templates?.[cat]?.[tone] || [];
@@ -272,35 +273,97 @@ async function generateAI(payload) {
     return applyVars(pick(pool), vars());
   }
 
-  function setStatus(msg){
-    $("status").textContent = msg || "";
+  // ====== AI (WORKER) ======
+  async function generateAI(payload) {
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    return data.text;
   }
 
-  // init
+  // ====== INIT ======
   let templates = loadTemplates();
   fillCategorySelect(templates);
   renderEditor(templates);
-  $("output").textContent = generate(templates);
+  $("output").textContent = generateLocal(templates);
 
+  // ====== UI HANDLERS ======
   $("gen").onclick = async () => {
-  const payload = {
-    category: $("category").value,
-    tone: $("tone").value,
-    prompt: ($("prompt")?.value || "").trim(),
-    vars: collectVars ? collectVars(templates) : {}
+    const payload = {
+      category: $("category").value,
+      tone: $("tone").value,
+      prompt: $("prompt").value.trim(),
+      vars: vars()
+    };
+
+    $("output").textContent = "Thinking…";
+
+    try {
+      const text = await generateAI(payload);
+      $("output").textContent = text || generateLocal(templates);
+      setStatus("");
+    } catch (e) {
+      $("output").textContent = generateLocal(templates);
+      setStatus("AI unavailable (using local templates).");
+    }
   };
 
-  $("output").textContent = "Thinking…";
-  $("output").textContent = await generateAI(payload);
-};
+  $("reroll").onclick = () => { $("output").textContent = generateLocal(templates); setStatus(""); };
 
+  $("copy").onclick = async () => {
+    try { await navigator.clipboard.writeText($("output").textContent); setStatus("Copied."); }
+    catch { setStatus("Copy failed (browser blocked clipboard)."); }
+  };
+
+  $("add").onclick = () => {
+    const cat = prompt("New category name?");
+    if (!cat) return;
+    if (!templates[cat]) {
+      templates[cat] = { neutral: ["New template here."] };
+      renderEditor(templates);
+      fillCategorySelect(templates);
+      setStatus("Added. Edit templates and Save.");
+    } else setStatus("Category already exists.");
+  };
+
+  $("reset").onclick = () => {
+    templates = structuredClone(DEFAULTS);
+    saveTemplates(templates);
+    fillCategorySelect(templates);
+    renderEditor(templates);
+    $("output").textContent = generateLocal(templates);
+    setStatus("Reset to defaults.");
+  };
+
+  $("save").onclick = () => {
+    try {
+      templates = JSON.parse($("editor").value);
+      saveTemplates(templates);
+      fillCategorySelect(templates);
+      setStatus("Saved.");
+    } catch { setStatus("Invalid JSON."); }
+  };
+
+  $("export").onclick = async () => {
+    try { await navigator.clipboard.writeText(JSON.stringify(templates, null, 2)); setStatus("Exported JSON copied."); }
+    catch { setStatus("Export failed (clipboard)."); }
+  };
+
+  $("import").onclick = () => {
+    const data = prompt("Paste templates JSON:");
+    if (!data) return;
+    try {
+      templates = JSON.parse(data);
+      saveTemplates(templates);
+      fillCategorySelect(templates);
+      renderEditor(templates);
+      setStatus("Imported.");
+    } catch { setStatus("Invalid JSON."); }
+  };
 </script>
 
-<footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
-  <a href="/about.html">About</a> ·
-  <a href="/privacy.html">Privacy</a> ·
-  <a href="/contact.html">Contact</a>
-</footer>
- 
 </body>
 </html>
