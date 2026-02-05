@@ -49,6 +49,7 @@
     }
     button.primary{ border-color: rgba(255,200,80,0.35); }
     button:hover{ background:rgba(255,255,255,0.09); }
+    button:disabled{ opacity:.55; cursor:not-allowed; }
     .out{
       margin-top:14px;
       border-radius:12px;
@@ -59,6 +60,14 @@
       min-height:64px;
     }
     .tiny{ font-size:12px; opacity:.7; margin-top:8px; }
+    .hint{ font-size:12px; opacity:.7; margin-top:6px; }
+    .micRow{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+    .pill{
+      font-size:12px; opacity:.85;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.25);
+      padding:6px 10px; border-radius:999px;
+    }
   </style>
 </head>
 
@@ -66,8 +75,9 @@
   <div class="card">
     <h1>surewhynot.app — monday generator</h1>
 
-    <label>Generate something…</label>
+    <label>Scenario picker (optional)</label>
     <select id="scenario"></select>
+    <div class="hint">Pick a seed, or ignore it and type/speak instead.</div>
 
     <div class="row">
       <div>
@@ -80,6 +90,16 @@
         <textarea id="details" placeholder="Add ingredients. Names, places, weird nouns, whatever."></textarea>
         <div class="tiny">These are treated like background radiation.</div>
       </div>
+    </div>
+
+    <label>Generator box (optional — type OR voice fills this)</label>
+    <textarea id="prompt" placeholder="Type here… or hit Record and talk."></textarea>
+
+    <div class="micRow">
+      <button id="mic" class="primary">Record</button>
+      <button id="micStop" disabled>Stop</button>
+      <span class="pill" id="micStatus">Mic: idle</span>
+      <span class="tiny" id="micNote"></span>
     </div>
 
     <div class="btns">
@@ -102,7 +122,6 @@
   // Your Cloudflare Worker (AI backend)
   const WORKER_URL = "https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/";
 
-  // Monday GPT tone set
   const TONES = [
     "dry",
     "restrained",
@@ -126,7 +145,6 @@
     "already-processed-this"
   ];
 
-  // Weird-first scenarios (a few “work-ish” ones, still warped)
   const SCENARIOS = [
     ["Explain yourself, poorly", "restrained"],
     ["Respond like this is your fault (it isn’t)", "quietly-judgmental"],
@@ -146,7 +164,7 @@
     ["Message that reads like a warning label", "calmly-ominous"],
     ["Reply like you’re conserving oxygen", "low-effort-authority"],
     ["Say less, but worse", "deadpan"],
-    ["A polite message with a sharp edge", "politel y-detached".replace(" ","")], /* keeps JS valid */
+    ["A polite message with a sharp edge", "politely-detached"],
     ["A calm message that feels threatening", "minimalist-threat"],
     ["Announce something unimportant like it’s a crisis", "matter-of-fact-chaos"],
     ["Deliver a prophecy about something trivial", "calmly-ominous"],
@@ -192,7 +210,6 @@
     ["A text that reads like a resignation (from reality)", "resigned"],
     ["A text that suggests you’ve accepted the consequences", "already-processed-this"],
 
-    // “work-ish” but still wonky
     ["Work message sent from the wrong mental state", "corporate-ghost"],
     ["Corporate tone, personal exhaustion", "tired-smart"],
     ["Professional words, unclear intent", "neutral-but-pointed"],
@@ -204,17 +221,16 @@
   const $ = (id) => document.getElementById(id);
 
   function setStatus(msg){ $("status").textContent = msg || ""; }
+  function setMicStatus(msg){ $("micStatus").textContent = msg || "Mic: idle"; }
+  function setMicNote(msg){ $("micNote").textContent = msg || ""; }
 
   function init(){
-    // scenarios
     for (const [name] of SCENARIOS){
       const o = document.createElement("option");
       o.value = name;
       o.textContent = name;
       $("scenario").appendChild(o);
     }
-
-    // tones
     for (const t of TONES){
       const o = document.createElement("option");
       o.value = t;
@@ -226,31 +242,129 @@
       const found = SCENARIOS.find(s => s[0] === $("scenario").value);
       if (found) $("tone").value = found[1];
       setStatus("");
+      // only auto-fill prompt if empty (do not overwrite typed/transcribed text)
+      if (!$("prompt").value.trim()) {
+        $("prompt").value = $("scenario").value;
+      }
     };
 
-    // set initial
     $("scenario").selectedIndex = 0;
     $("scenario").dispatchEvent(new Event("change"));
+
+    // mic support check
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      $("mic").disabled = true;
+      $("micStop").disabled = true;
+      setMicStatus("Mic: unsupported");
+      setMicNote("Your browser doesn’t support recording here.");
+    }
   }
 
-  async function callWorker(forceReroll){
-    const scenario = $("scenario").value;
+  // ---- Mic recording + multipart upload ----
+  let mediaRecorder = null;
+  let chunks = [];
+  let micStream = null;
+
+  async function startRecording(){
+    setMicNote("");
+    try {
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setMicStatus("Mic: blocked");
+      setMicNote("Mic permission denied.");
+      return;
+    }
+
+    chunks = [];
+    try {
+      mediaRecorder = new MediaRecorder(micStream);
+    } catch {
+      setMicStatus("Mic: error");
+      setMicNote("Recorder failed to start.");
+      return;
+    }
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      try {
+        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
+        await sendAudio(blob);
+      } finally {
+        try { micStream && micStream.getTracks().forEach(t => t.stop()); } catch {}
+        micStream = null;
+        mediaRecorder = null;
+        chunks = [];
+      }
+    };
+
+    mediaRecorder.start();
+    $("mic").disabled = true;
+    $("micStop").disabled = false;
+    setMicStatus("Mic: recording…");
+  }
+
+  async function stopRecording(){
+    if (!mediaRecorder) return;
+    $("micStop").disabled = true;
+    setMicStatus("Mic: processing…");
+    try { mediaRecorder.stop(); } catch {}
+    $("mic").disabled = false;
+  }
+
+  async function sendAudio(blob){
     const tone = $("tone").value;
     const details = $("details").value.trim();
 
-    // Compatibility payload:
-    // - If your Worker expects {scenario,tone,details}, it works.
-    // - If it expects {category,tone,prompt,vars}, it also works:
-    //     category=scenario, prompt=details, vars contains details.
+    // scenario picker stays optional; include it anyway (worker will prefer transcript)
+    const scenarioPick = $("scenario").value;
+
+    const fd = new FormData();
+    fd.append("audio", blob, "voice.webm");
+    fd.append("tone", tone);
+    fd.append("details", details);
+    fd.append("scenario", scenarioPick);
+
+    $("output").textContent = "Transcribing…";
+
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      body: fd
+    });
+
+    const data = await res.json();
+    const text = (data && data.text) ? String(data.text).trim() : "";
+    $("output").textContent = text || "No output.";
+
+    // If your worker returns a transcript in the future, you can populate prompt here.
+    // For now, we just mark success.
+    setMicStatus("Mic: done");
+    setMicNote("Voice sent.");
+  }
+
+  // ---- Text/Picker generation (JSON) with precedence ----
+  function computeScenario(){
+    const typed = $("prompt").value.trim();
+    if (typed) return typed;
+
+    // optional picker value (can be treated as fallback)
+    const pick = $("scenario").value.trim();
+    if (pick) return pick;
+
+    return "Generate something strange";
+  }
+
+  async function callWorker(forceReroll){
+    const scenario = computeScenario();
+    const tone = $("tone").value;
+    const details = $("details").value.trim();
+
     const payload = {
       scenario,
       tone,
       details,
-
-      category: scenario,
-      prompt: details,
-      vars: { details },
-
       nonce: forceReroll ? (Date.now() + ":" + Math.random()) : undefined
     };
 
@@ -266,6 +380,16 @@
     const text = (data && data.text) ? String(data.text).trim() : "";
     $("output").textContent = text || "No output.";
   }
+
+  $("mic").onclick = async () => {
+    try { await startRecording(); }
+    catch { setMicStatus("Mic: error"); setMicNote("Recording failed."); }
+  };
+
+  $("micStop").onclick = async () => {
+    try { await stopRecording(); }
+    catch { setMicStatus("Mic: error"); setMicNote("Stop failed."); }
+  };
 
   $("gen").onclick = async () => {
     try { await callWorker(false); setStatus(""); }
