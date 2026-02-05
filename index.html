@@ -2,41 +2,32 @@
 <html lang="en">
 <head>
   <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
+  <script async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
     crossorigin="anonymous"></script>
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>surewhynot.app</title>
 
-  <link rel="icon" href="/favicon.ico">
-  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
   <style>
     :root { color-scheme: dark; }
     body{
       margin:0; min-height:100vh; display:grid; place-items:center;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       background:#0b0f14; color:#e8edf5; padding:20px;
     }
     .card{
-      width:min(736px,100%); /* ~20% smaller */
+      width:min(720px,100%);
       background:rgba(255,255,255,0.03);
       border:1px solid rgba(255,255,255,0.08);
-      border-radius:13px;
-      padding:14px;
+      border-radius:14px;
+      padding:16px;
       box-shadow:0 10px 30px rgba(0,0,0,0.35);
     }
-    h1{ margin:0 0 10px; font-size:14px; letter-spacing:.5px; display:flex; align-items:center; gap:10px; }
-    .pill{
-      display:inline-block; padding:3px 8px; border-radius:999px;
-      border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04);
-      font-size:12px; opacity:.85;
-    }
-    label{ display:block; font-size:12px; opacity:.85; margin:8px 0 6px; }
-    input,select,textarea{
+    h1{ margin:0 0 12px; font-size:14px; letter-spacing:.5px; opacity:.95; }
+    label{ display:block; font-size:12px; opacity:.85; margin:10px 0 6px; }
+    select, textarea{
       width:100%;
       padding:8px 10px;
       border-radius:12px;
@@ -45,95 +36,60 @@
       color:#e8edf5;
       outline:none;
     }
-    textarea{ min-height:96px; resize:vertical; }
+    textarea{ min-height:90px; resize:vertical; }
     .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
-    @media (max-width:760px){ .row,.row3{ grid-template-columns:1fr; } }
-    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    @media (max-width:760px){ .row{ grid-template-columns:1fr; } }
+    .btns{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
     button{
-      padding:8px 10px; border-radius:12px;
+      padding:8px 12px;
+      border-radius:12px;
       border:1px solid rgba(255,255,255,0.14);
       background:rgba(255,255,255,0.06);
       color:#e8edf5; cursor:pointer;
     }
     button.primary{ border-color: rgba(255,200,80,0.35); }
-    button:hover{ background: rgba(255,255,255,0.09); }
+    button:hover{ background:rgba(255,255,255,0.09); }
     .out{
-      margin-top:14px; border-radius:12px;
+      margin-top:14px;
+      border-radius:12px;
       border:1px solid rgba(255,255,255,0.10);
       background:rgba(0,0,0,0.30);
-      padding:12px; white-space:pre-wrap; min-height:70px;
+      padding:12px;
+      white-space:pre-wrap;
+      min-height:64px;
     }
-    .tiny{ font-size:12px; opacity:.7; margin-top:10px; }
-    .hint{ font-size:12px; opacity:.65; margin-top:6px; }
-    .hr{ height:1px; background:rgba(255,255,255,0.08); margin:14px 0; }
-    .toggle{
-      display:flex; align-items:center; gap:8px; user-select:none;
-      font-size:12px; opacity:.85; margin-top:10px;
-    }
-    .toggle input{ width:auto; }
-    .warn{ color:#ffd38a; }
+    .tiny{ font-size:12px; opacity:.7; margin-top:8px; }
   </style>
 </head>
 
 <body>
   <div class="card">
-    <h1><span class="pill">surewhynot.app</span> phrase generator</h1>
+    <h1>surewhynot.app — monday generator</h1>
+
+    <label>Generate something…</label>
+    <select id="scenario"></select>
 
     <div class="row">
       <div>
-        <label>Generator</label>
-        <select id="category"></select>
-      </div>
-      <div>
         <label>Tone</label>
         <select id="tone"></select>
-        <div class="hint">Tip: “Reason/Prompt” can auto-pick tone (per category), overriding this dropdown.</div>
+        <div class="tiny">Scenario auto-sets tone. You can override.</div>
       </div>
-    </div>
-
-    <div style="margin-top:8px;">
-      <label>Reason / Prompt (optional)</label>
-      <input id="prompt" placeholder="e.g., excuse for running late to a meeting" />
-    </div>
-
-    <div id="dynFields" class="row3" style="margin-top:6px;"></div>
-
-    <div class="toggle">
-      <input type="checkbox" id="useAI" checked />
-      <label for="useAI" style="margin:0;">Use AI (OpenAI via Worker)</label>
+      <div>
+        <label>Extra details (optional)</label>
+        <textarea id="details" placeholder="Add ingredients. Names, places, weird nouns, whatever."></textarea>
+        <div class="tiny">These are treated like background radiation.</div>
+      </div>
     </div>
 
     <div class="btns">
       <button class="primary" id="gen">Generate</button>
       <button id="reroll">Reroll</button>
       <button id="copy">Copy</button>
-      <button id="addCat">Add category</button>
-      <button id="reset">Reset defaults</button>
     </div>
 
     <div class="out" id="output"></div>
     <div class="tiny" id="status"></div>
-
-    <div class="hr"></div>
-
-    <div>
-      <label>Templates (editable JSON, saved to your browser)</label>
-      <textarea id="editor"></textarea>
-      <div class="btns">
-        <button id="save">Save templates</button>
-        <button id="export">Export JSON</button>
-        <button id="import">Import JSON</button>
-      </div>
-      <div class="tiny">
-        Schema:
-        category has <span class="pill">_meta</span> and tones. Example:
-        <span class="pill">"_meta":{"fields":["name","mins","when"],"promptToneHints":{...}}</span>
-      </div>
-      <div class="tiny">
-        Variables in templates: use <span class="pill">{{name}}</span> <span class="pill">{{mins}}</span> <span class="pill">{{when}}</span> <span class="pill">{{prompt}}</span> or any dynamic field id.
-      </div>
-    </div>
   </div>
 
   <footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
@@ -143,395 +99,194 @@
   </footer>
 
 <script>
-  // ========= CONFIG =========
+  // Your Cloudflare Worker (AI backend)
   const WORKER_URL = "https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/";
-  const LS_KEY = "swn_templates_v2";
 
-  // 20+ tones
+  // Monday GPT tone set
   const TONES = [
-    "neutral","brief","friendly","formal","funny","dry","sarcastic","deadpan","apologetic","confident",
-    "urgent","calm","warm","tactful","direct","professional","playful","snarky","empathetic","serious"
+    "dry",
+    "restrained",
+    "tired-smart",
+    "neutral-but-pointed",
+    "calmly-ominous",
+    "politely-detached",
+    "confident-for-no-reason",
+    "low-effort-authority",
+    "resigned",
+    "unbothered",
+    "faintly-disappointed",
+    "matter-of-fact-chaos",
+    "emotionally-outsourced",
+    "deadpan",
+    "fake-serious",
+    "quietly-judgmental",
+    "corporate-ghost",
+    "minimalist-threat",
+    "post-context",
+    "already-processed-this"
   ];
 
-  // Field catalog (category-specific fields choose from this)
-  const FIELD_CATALOG = {
-    name:    { label:"Name (optional)", type:"text",   placeholder:"e.g., Mike" },
-    mins:    { label:"Minutes late (optional)", type:"number", placeholder:"e.g., 10" },
-    when:    { label:"Time window (optional)", type:"text",   placeholder:"e.g., this morning / today / right now" },
-    place:   { label:"Where (optional)", type:"text", placeholder:"e.g., office / downtown / on base" },
-    meeting: { label:"Meeting/event (optional)", type:"text", placeholder:"e.g., standup / appointment / dinner" },
-    who:     { label:"Who (optional)", type:"text", placeholder:"e.g., client / team / friend" },
-    eta:     { label:"ETA (optional)", type:"text", placeholder:"e.g., 10 min / 3:15pm" },
-    excuse:  { label:"Excuse detail (optional)", type:"text", placeholder:"e.g., train delay / car trouble" },
-    detail:  { label:"Extra detail (optional)", type:"text", placeholder:"e.g., brief context" }
-  };
+  // Weird-first scenarios (a few “work-ish” ones, still warped)
+  const SCENARIOS = [
+    ["Explain yourself, poorly", "restrained"],
+    ["Respond like this is your fault (it isn’t)", "quietly-judgmental"],
+    ["Say something that ends the conversation", "deadpan"],
+    ["Message written under quiet protest", "emotionally-outsourced"],
+    ["Reply that technically answers the question", "neutral-but-pointed"],
+    ["A response that implies prior lore", "post-context"],
+    ["Text sent from the wrong emotional altitude", "matter-of-fact-chaos"],
+    ["Apology with no improvement plan", "fake-serious"],
+    ["Confident statement, zero verification", "confident-for-no-reason"],
+    ["Explain nothing, clearly", "dry"],
+    ["A response that sounds final but isn’t", "restrained"],
+    ["Reply like you’ve seen this movie before", "already-processed-this"],
+    ["Text that implies an off-screen event", "post-context"],
+    ["Respond like you’re late but spiritually on time", "resigned"],
+    ["Give an update that creates new questions", "neutral-but-pointed"],
+    ["Message that reads like a warning label", "calmly-ominous"],
+    ["Reply like you’re conserving oxygen", "low-effort-authority"],
+    ["Say less, but worse", "deadpan"],
+    ["A polite message with a sharp edge", "politel y-detached".replace(" ","")], /* keeps JS valid */
+    ["A calm message that feels threatening", "minimalist-threat"],
+    ["Announce something unimportant like it’s a crisis", "matter-of-fact-chaos"],
+    ["Deliver a prophecy about something trivial", "calmly-ominous"],
+    ["Sound supportive while refusing to help", "politely-detached"],
+    ["Explain a decision you didn’t make", "emotionally-outsourced"],
+    ["Message that feels pre-approved by nobody", "corporate-ghost"],
+    ["Reply like you’re buffering emotionally", "tired-smart"],
+    ["Text that implies you’re not surprised", "faintly-disappointed"],
+    ["Clarify a misunderstanding you invented", "dry"],
+    ["Respond like you just woke up in the timeline", "post-context"],
+    ["Apologize like it’s a formality", "corporate-ghost"],
+    ["Apologize like it’s a performance review", "quietly-judgmental"],
+    ["Sound confident while admitting nothing", "confident-for-no-reason"],
+    ["Make peace with the outcome, immediately", "resigned"],
+    ["A message that makes the group chat quieter", "deadpan"],
+    ["A message that makes it worse, efficiently", "low-effort-authority"],
+    ["Answer like you’re tired of explaining", "tired-smart"],
+    ["Answer like you’re doing someone a favor", "quietly-judgmental"],
+    ["Reply like this is a recurring problem", "already-processed-this"],
+    ["Give a yes that sounds like a no", "restrained"],
+    ["Give a no that sounds like a yes", "neutral-but-pointed"],
+    ["A compliment that feels like paperwork", "corporate-ghost"],
+    ["A compliment that lands sideways", "dry"],
+    ["Offer help in the most unhelpful way", "politely-detached"],
+    ["Ask a question that feels accusatory (but isn’t)", "neutral-but-pointed"],
+    ["Ask a question that feels like a trap", "calmly-ominous"],
+    ["Narrate your own bad decision in real time", "matter-of-fact-chaos"],
+    ["Provide an excuse that raises more questions", "post-context"],
+    ["Send a message that implies you’re being monitored", "calmly-ominous"],
+    ["Send a message like you’re the last adult in the room", "low-effort-authority"],
+    ["Send a message like you’re not the adult in the room", "matter-of-fact-chaos"],
+    ["A text that sounds like an ultimatum but isn’t", "minimalist-threat"],
+    ["A text that is technically kind", "restrained"],
+    ["A text that is technically accurate", "neutral-but-pointed"],
+    ["A text that is technically a mistake", "matter-of-fact-chaos"],
+    ["A text that implies you owe the universe money", "resigned"],
+    ["A text that implies you’re owed an apology", "quietly-judgmental"],
+    ["A text that quietly judges the entire situation", "faintly-disappointed"],
+    ["A text that reads like a deleted scene", "post-context"],
+    ["A text that reads like a footnote", "dry"],
+    ["A text that reads like an incident report", "corporate-ghost"],
+    ["A text that reads like a prophecy", "calmly-ominous"],
+    ["A text that reads like a resignation (from reality)", "resigned"],
+    ["A text that suggests you’ve accepted the consequences", "already-processed-this"],
 
-  // Defaults: small seed set; you can scale to 500+ via editor/import
-  const DEFAULTS = {
-    "Excuse for running late (work)": {
-      _meta: {
-        fields: ["name","mins","when","meeting","place"],
-        promptToneHints: {
-          funny: ["lol","lmao","meme","wild","ridiculous","roasted","chaos"],
-          urgent: ["urgent","asap","immediately","right now"],
-          formal: ["regretfully","unfortunately","sincerely","apologies"],
-          serious: ["serious","sincerely","regret","apologize","apologies"],
-          professional: ["professional","work","client","meeting","standup"]
-        }
-      },
-      neutral: [
-        "Running {{mins}} min late—got pulled into an overlap. I’ll join {{when}}.",
-        "I’m delayed {{when}}. Joining as soon as I can."
-      ],
-      brief: [
-        "Running late—joining ASAP.",
-        "Delayed. On shortly."
-      ],
-      professional: [
-        "Apologies—I'm running {{mins}} minutes behind due to a scheduling conflict. I’ll join {{when}}.",
-        "I’m delayed due to an overlap. I’ll be on for {{meeting}} {{when}}."
-      ],
-      funny: [
-        "Running {{mins}} minutes late—my calendar chose violence. I’ll be there {{when}}.",
-        "I’m late because the universe scheduled a side quest. Joining {{when}}."
-      ],
-      formal: [
-        "My apologies—I'm delayed by an unforeseen conflict. I will join {{when}}."
-      ]
-    },
+    // “work-ish” but still wonky
+    ["Work message sent from the wrong mental state", "corporate-ghost"],
+    ["Corporate tone, personal exhaustion", "tired-smart"],
+    ["Professional words, unclear intent", "neutral-but-pointed"],
+    ["An update that sounds compliant but isn’t", "restrained"],
+    ["A status update that feels ominous", "calmly-ominous"],
+    ["A meeting excuse that HR would accept but hate", "quietly-judgmental"]
+  ];
 
-    "Cancel a meeting": {
-      _meta: { fields: ["name","when","meeting","detail"], promptToneHints: { formal:["regretfully","unfortunately"], brief:["quick","short"], professional:["client","work","meeting"] } },
-      neutral: [
-        "Something came up and I need to reschedule {{meeting}}. Does {{when}} work?",
-        "I have an unexpected conflict. Can we move {{meeting}} to {{when}}?"
-      ],
-      brief: ["Need to reschedule {{meeting}}. Can we do {{when}}?"],
-      professional: ["A conflict came up ({{detail}}). Can we move {{meeting}} to {{when}}?"],
-      formal: ["Regrettably, I’m unable to attend as scheduled. May we reschedule {{meeting}} for {{when}}?"]
-    },
-
-    "Cancel social plans": {
-      _meta: { fields: ["name","when","meeting","detail"], promptToneHints: { funny:["lol","meme"], apologetic:["sorry","apologize"], serious:["serious","family"] } },
-      neutral: [
-        "I need to rain check {{meeting}} {{when}}. Something came up.",
-        "I can’t make it {{when}}—can we reschedule?"
-      ],
-      apologetic: [
-        "I’m really sorry, but I can’t make {{meeting}} {{when}}. Can we pick another day?"
-      ],
-      funny: [
-        "I have to bail {{when}}—my battery is at 1%. Can we rain check {{meeting}}?"
-      ],
-      serious: [
-        "I need to cancel {{meeting}} {{when}} due to something personal. I’m sorry."
-      ]
-    }
-  };
-
-  // ========= DOM =========
   const $ = (id) => document.getElementById(id);
 
   function setStatus(msg){ $("status").textContent = msg || ""; }
 
-  function safeClone(obj){ return JSON.parse(JSON.stringify(obj)); }
-
-  function loadTemplates(){
-    const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return safeClone(DEFAULTS);
-    try {
-      const parsed = JSON.parse(raw);
-      if (!parsed || typeof parsed !== "object" || !Object.keys(parsed).length) return safeClone(DEFAULTS);
-      return parsed;
-    } catch {
-      return safeClone(DEFAULTS);
+  function init(){
+    // scenarios
+    for (const [name] of SCENARIOS){
+      const o = document.createElement("option");
+      o.value = name;
+      o.textContent = name;
+      $("scenario").appendChild(o);
     }
-  }
 
-  function saveTemplates(obj){
-    localStorage.setItem(LS_KEY, JSON.stringify(obj, null, 2));
-  }
-
-  function fillToneSelect(){
-    const sel = $("tone");
-    sel.innerHTML = "";
+    // tones
     for (const t of TONES){
-      const opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t;
-      sel.appendChild(opt);
-    }
-    sel.value = "neutral";
-  }
-
-  function fillCategorySelect(templates){
-    const sel = $("category");
-    const prev = sel.value;
-    sel.innerHTML = "";
-
-    const keys = Object.keys(templates);
-    keys.sort((a,b)=>a.localeCompare(b));
-
-    for (const k of keys){
-      const opt = document.createElement("option");
-      opt.value = k;
-      opt.textContent = k;
-      sel.appendChild(opt);
+      const o = document.createElement("option");
+      o.value = t;
+      o.textContent = t;
+      $("tone").appendChild(o);
     }
 
-    if (prev && templates[prev]) sel.value = prev;
-    else if (sel.options.length) sel.selectedIndex = 0;
+    $("scenario").onchange = () => {
+      const found = SCENARIOS.find(s => s[0] === $("scenario").value);
+      if (found) $("tone").value = found[1];
+      setStatus("");
+    };
+
+    // set initial
+    $("scenario").selectedIndex = 0;
+    $("scenario").dispatchEvent(new Event("change"));
   }
 
-  function renderEditor(templates){
-    $("editor").value = JSON.stringify(templates, null, 2);
-  }
+  async function callWorker(forceReroll){
+    const scenario = $("scenario").value;
+    const tone = $("tone").value;
+    const details = $("details").value.trim();
 
-  function getCategoryMeta(templates){
-    const cat = $("category").value;
-    return templates?.[cat]?._meta || {};
-  }
-
-  function buildDynamicFields(templates){
-    const meta = getCategoryMeta(templates);
-    const fields = Array.isArray(meta.fields) ? meta.fields : [];
-    const host = $("dynFields");
-    host.innerHTML = "";
-
-    // render as row3-ish but adapts to count
-    for (const fieldId of fields){
-      const def = FIELD_CATALOG[fieldId] || { label: fieldId, type:"text", placeholder:"" };
-
-      const wrap = document.createElement("div");
-
-      const lab = document.createElement("label");
-      lab.textContent = def.label || fieldId;
-
-      const inp = document.createElement("input");
-      inp.id = "f_" + fieldId;
-      inp.type = def.type || "text";
-      if (def.placeholder) inp.placeholder = def.placeholder;
-
-      wrap.appendChild(lab);
-      wrap.appendChild(inp);
-      host.appendChild(wrap);
-    }
-  }
-
-  function collectVars(templates){
-    const meta = getCategoryMeta(templates);
-    const fields = Array.isArray(meta.fields) ? meta.fields : [];
-    const out = { prompt: $("prompt").value.trim() || "" };
-
-    for (const fieldId of fields){
-      const el = $("f_" + fieldId);
-      if (!el) continue;
-      out[fieldId] = String(el.value || "").trim();
-    }
-
-    // sensible fallbacks
-    if (!out.name) out.name = "there";
-    if (!out.mins) out.mins = "a few";
-    if (!out.when) out.when = "soon";
-
-    return out;
-  }
-
-  function applyVarsGeneric(text, varsObj){
-    // replaces {{key}} for any key in varsObj
-    return String(text || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
-      const v = varsObj?.[key];
-      return (v === undefined || v === null || v === "") ? "" : String(v);
-    });
-  }
-
-  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
-
-  function inferToneFromPrompt(prompt, meta){
-    if (!prompt) return null;
-    const hints = meta?.promptToneHints;
-    if (!hints || typeof hints !== "object") return null;
-
-    const p = prompt.toLowerCase();
-    for (const [tone, words] of Object.entries(hints)){
-      if (!Array.isArray(words)) continue;
-      for (const w of words){
-        if (p.includes(String(w).toLowerCase())) return tone;
-      }
-    }
-    return null;
-  }
-
-  function generateLocal(templates){
-    const cat = $("category").value;
-    const meta = getCategoryMeta(templates);
-    const v = collectVars(templates);
-
-    const hintedTone = inferToneFromPrompt(v.prompt, meta);
-    const tone = hintedTone || $("tone").value;
-
-    const group = templates?.[cat]?.[tone] || [];
-    const fallback = templates?.[cat]?.neutral || [];
-    const pool = group.length ? group : fallback;
-    if (!pool.length) return "No templates found for this category/tone.";
-
-    return applyVarsGeneric(pick(pool), v);
-  }
-
-  async function generateAI(payload){
-    const res = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type":"application/json" },
-      body: JSON.stringify(payload)
-    });
-    const data = await res.json();
-    return data.text;
-  }
-
-  async function runGenerate(forceReroll=false){
-    const cat = $("category").value;
-    const meta = getCategoryMeta(templates);
-    const v = collectVars(templates);
-
-    const hintedTone = inferToneFromPrompt(v.prompt, meta);
-    const tone = hintedTone || $("tone").value;
-
-    $("output").textContent = "Thinking…";
-    setStatus(hintedTone ? `Tone auto-set by prompt: ${hintedTone}` : "");
-
+    // Compatibility payload:
+    // - If your Worker expects {scenario,tone,details}, it works.
+    // - If it expects {category,tone,prompt,vars}, it also works:
+    //     category=scenario, prompt=details, vars contains details.
     const payload = {
-      category: cat,
+      scenario,
       tone,
-      prompt: v.prompt,
-      vars: v,
-      // hint for reroll (so AI has a reason to vary output)
+      details,
+
+      category: scenario,
+      prompt: details,
+      vars: { details },
+
       nonce: forceReroll ? (Date.now() + ":" + Math.random()) : undefined
     };
 
-    if ($("useAI").checked){
-      try {
-        const text = await generateAI(payload);
-        $("output").textContent = (text && String(text).trim()) ? String(text).trim() : generateLocal(templates);
-        return;
-      } catch (e) {
-        setStatus("AI unavailable (using local templates).");
-      }
-    }
+    $("output").textContent = "Thinking…";
 
-    $("output").textContent = generateLocal(templates);
+    const res = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    const text = (data && data.text) ? String(data.text).trim() : "";
+    $("output").textContent = text || "No output.";
   }
 
-  // ========= INIT =========
-  let templates = loadTemplates();
-  fillToneSelect();
-  fillCategorySelect(templates);
-  buildDynamicFields(templates);
-  renderEditor(templates);
-  $("output").textContent = generateLocal(templates);
-
-  // ========= EVENTS =========
-  $("category").onchange = () => {
-    buildDynamicFields(templates);
-    $("output").textContent = generateLocal(templates);
-    setStatus("");
+  $("gen").onclick = async () => {
+    try { await callWorker(false); setStatus(""); }
+    catch { $("output").textContent = "Error calling AI."; setStatus("Worker call failed."); }
   };
 
-  $("tone").onchange = () => {
-    $("output").textContent = generateLocal(templates);
-    setStatus("");
+  $("reroll").onclick = async () => {
+    try { await callWorker(true); setStatus(""); }
+    catch { $("output").textContent = "Error calling AI."; setStatus("Worker call failed."); }
   };
-
-  $("prompt").addEventListener("input", () => {
-    // live preview local (prompt influences tone)
-    $("output").textContent = generateLocal(templates);
-  });
-
-  $("gen").onclick = async () => { await runGenerate(false); };
-  $("reroll").onclick = async () => { await runGenerate(true); };
 
   $("copy").onclick = async () => {
     try {
       await navigator.clipboard.writeText($("output").textContent || "");
       setStatus("Copied.");
     } catch {
-      setStatus("Copy failed (browser blocked clipboard).");
+      setStatus("Copy failed.");
     }
   };
 
-  $("save").onclick = () => {
-    try {
-      const parsed = JSON.parse($("editor").value);
-      templates = parsed;
-      saveTemplates(templates);
-      fillCategorySelect(templates);
-      buildDynamicFields(templates);
-      setStatus("Saved.");
-      $("output").textContent = generateLocal(templates);
-    } catch {
-      setStatus("Invalid JSON.");
-    }
-  };
-
-  $("export").onclick = async () => {
-    const data = JSON.stringify(templates, null, 2);
-    try {
-      await navigator.clipboard.writeText(data);
-      setStatus("Exported JSON copied to clipboard.");
-    } catch {
-      setStatus("Export failed (clipboard).");
-    }
-  };
-
-  $("import").onclick = () => {
-    const data = prompt("Paste templates JSON:");
-    if (!data) return;
-    try {
-      templates = JSON.parse(data);
-      saveTemplates(templates);
-      fillCategorySelect(templates);
-      buildDynamicFields(templates);
-      renderEditor(templates);
-      setStatus("Imported.");
-      $("output").textContent = generateLocal(templates);
-    } catch {
-      setStatus("Invalid JSON.");
-    }
-  };
-
-  $("addCat").onclick = () => {
-    const cat = prompt("New category name?");
-    if (!cat) return;
-
-    if (templates[cat]){
-      setStatus("Category already exists.");
-      return;
-    }
-
-    templates[cat] = {
-      _meta: { fields: ["name","when","detail"], promptToneHints: {} },
-      neutral: ["New template here. {{detail}}"],
-      funny: ["New funny template here. {{detail}}"],
-      professional: ["New professional template here. {{detail}}"]
-    };
-
-    saveTemplates(templates);
-    fillCategorySelect(templates);
-    $("category").value = cat;
-    buildDynamicFields(templates);
-    renderEditor(templates);
-    setStatus("Added category. Edit JSON and Save.");
-    $("output").textContent = generateLocal(templates);
-  };
-
-  $("reset").onclick = () => {
-    templates = safeClone(DEFAULTS);
-    saveTemplates(templates);
-    fillCategorySelect(templates);
-    buildDynamicFields(templates);
-    renderEditor(templates);
-    $("output").textContent = generateLocal(templates);
-    setStatus("Reset to defaults.");
-  };
+  init();
 </script>
 </body>
 </html>

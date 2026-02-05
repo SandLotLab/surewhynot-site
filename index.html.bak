@@ -5,73 +5,74 @@
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
     crossorigin="anonymous"></script>
 
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>surewhynot.app</title>
+
   <link rel="icon" href="/favicon.ico">
   <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>surewhynot.app</title>
-
   <style>
     :root { color-scheme: dark; }
-    body {
-      margin: 0; min-height: 100vh;
-      display: grid; place-items: center;
+    body{
+      margin:0; min-height:100vh; display:grid; place-items:center;
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-      background: #0b0f14; color: #e8edf5;
-      padding: 20px;
+      background:#0b0f14; color:#e8edf5; padding:20px;
     }
-    .card {
-      width: min(736px, 100%); /* ~20% smaller than 920px */
-      background: rgba(255,255,255,0.03);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 13px;
-      padding: 14px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    .card{
+      width:min(736px,100%); /* ~20% smaller */
+      background:rgba(255,255,255,0.03);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:13px;
+      padding:14px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
     }
-    h1 { margin: 0 0 10px; font-size: 14px; letter-spacing: .5px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-    @media (max-width: 760px){ .row,.row3{ grid-template-columns:1fr; } }
-    label { display:block; font-size: 12px; opacity:.85; margin: 8px 0 6px; }
-    input, select, textarea {
-      width: 100%;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.35);
-      color: #e8edf5;
-      outline: none;
+    h1{ margin:0 0 10px; font-size:14px; letter-spacing:.5px; display:flex; align-items:center; gap:10px; }
+    .pill{
+      display:inline-block; padding:3px 8px; border-radius:999px;
+      border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.04);
+      font-size:12px; opacity:.85;
     }
-    textarea { min-height: 96px; resize: vertical; }
-    .btns { display:flex; flex-wrap:wrap; gap:10px; margin-top: 12px; }
-    button {
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.14);
-      background: rgba(255,255,255,0.06);
-      color: #e8edf5;
-      cursor: pointer;
+    label{ display:block; font-size:12px; opacity:.85; margin:8px 0 6px; }
+    input,select,textarea{
+      width:100%;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,0.12);
+      background:rgba(0,0,0,0.35);
+      color:#e8edf5;
+      outline:none;
     }
-    button.primary { border-color: rgba(255,200,80,0.35); }
-    button:hover { background: rgba(255,255,255,0.09); }
-    .out {
-      margin-top: 14px;
-      border-radius: 12px;
-      border: 1px solid rgba(255,255,255,0.10);
-      background: rgba(0,0,0,0.30);
-      padding: 12px;
-      white-space: pre-wrap;
-      min-height: 70px;
+    textarea{ min-height:96px; resize:vertical; }
+    .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    @media (max-width:760px){ .row,.row3{ grid-template-columns:1fr; } }
+    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    button{
+      padding:8px 10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,0.14);
+      background:rgba(255,255,255,0.06);
+      color:#e8edf5; cursor:pointer;
     }
-    .tiny { font-size: 12px; opacity: .7; margin-top: 10px; }
-    .pill {
-      display:inline-block; padding: 3px 8px; border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.04);
-      font-size: 12px; opacity: .85;
+    button.primary{ border-color: rgba(255,200,80,0.35); }
+    button:hover{ background: rgba(255,255,255,0.09); }
+    .out{
+      margin-top:14px; border-radius:12px;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.30);
+      padding:12px; white-space:pre-wrap; min-height:70px;
     }
+    .tiny{ font-size:12px; opacity:.7; margin-top:10px; }
+    .hint{ font-size:12px; opacity:.65; margin-top:6px; }
+    .hr{ height:1px; background:rgba(255,255,255,0.08); margin:14px 0; }
+    .toggle{
+      display:flex; align-items:center; gap:8px; user-select:none;
+      font-size:12px; opacity:.85; margin-top:10px;
+    }
+    .toggle input{ width:auto; }
+    .warn{ color:#ffd38a; }
   </style>
 </head>
 
@@ -86,47 +87,37 @@
       </div>
       <div>
         <label>Tone</label>
-        <select id="tone">
-          <option value="neutral">neutral</option>
-          <option value="brief">brief</option>
-          <option value="friendly">friendly</option>
-          <option value="formal">formal</option>
-        </select>
-      </div>
-    </div>
-
-    <div class="row3">
-      <div>
-        <label>Name (optional)</label>
-        <input id="name" placeholder="e.g., Mike" />
-      </div>
-      <div>
-        <label>Minutes late (optional)</label>
-        <input id="mins" type="number" min="0" placeholder="e.g., 10" />
-      </div>
-      <div>
-        <label>Time window (optional)</label>
-        <input id="when" placeholder="e.g., this morning / today / right now" />
+        <select id="tone"></select>
+        <div class="hint">Tip: “Reason/Prompt” can auto-pick tone (per category), overriding this dropdown.</div>
       </div>
     </div>
 
     <div style="margin-top:8px;">
       <label>Reason / Prompt (optional)</label>
-      <input id="prompt" placeholder="e.g., got pulled into a meeting / family thing came up" />
+      <input id="prompt" placeholder="e.g., excuse for running late to a meeting" />
+    </div>
+
+    <div id="dynFields" class="row3" style="margin-top:6px;"></div>
+
+    <div class="toggle">
+      <input type="checkbox" id="useAI" checked />
+      <label for="useAI" style="margin:0;">Use AI (OpenAI via Worker)</label>
     </div>
 
     <div class="btns">
       <button class="primary" id="gen">Generate</button>
-      <button id="copy">Copy</button>
       <button id="reroll">Reroll</button>
-      <button id="add">Add template</button>
+      <button id="copy">Copy</button>
+      <button id="addCat">Add category</button>
       <button id="reset">Reset defaults</button>
     </div>
 
     <div class="out" id="output"></div>
     <div class="tiny" id="status"></div>
 
-    <div style="margin-top:16px;">
+    <div class="hr"></div>
+
+    <div>
       <label>Templates (editable JSON, saved to your browser)</label>
       <textarea id="editor"></textarea>
       <div class="btns">
@@ -134,7 +125,14 @@
         <button id="export">Export JSON</button>
         <button id="import">Import JSON</button>
       </div>
-      <div class="tiny">Tip: Use variables like {{name}}, {{mins}}, {{when}}, {{prompt}} in templates.</div>
+      <div class="tiny">
+        Schema:
+        category has <span class="pill">_meta</span> and tones. Example:
+        <span class="pill">"_meta":{"fields":["name","mins","when"],"promptToneHints":{...}}</span>
+      </div>
+      <div class="tiny">
+        Variables in templates: use <span class="pill">{{name}}</span> <span class="pill">{{mins}}</span> <span class="pill">{{when}}</span> <span class="pill">{{prompt}}</span> or any dynamic field id.
+      </div>
     </div>
   </div>
 
@@ -145,116 +143,142 @@
   </footer>
 
 <script>
-  // ====== CONFIG ======
+  // ========= CONFIG =========
   const WORKER_URL = "https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/";
+  const LS_KEY = "swn_templates_v2";
 
-  // ====== HELPERS ======
-  const LS_KEY = "swn_templates_v1";
-  const $ = (id) => document.getElementById(id);
+  // 20+ tones
+  const TONES = [
+    "neutral","brief","friendly","formal","funny","dry","sarcastic","deadpan","apologetic","confident",
+    "urgent","calm","warm","tactful","direct","professional","playful","snarky","empathetic","serious"
+  ];
 
-  function setStatus(msg){ $("status").textContent = msg || ""; }
+  // Field catalog (category-specific fields choose from this)
+  const FIELD_CATALOG = {
+    name:    { label:"Name (optional)", type:"text",   placeholder:"e.g., Mike" },
+    mins:    { label:"Minutes late (optional)", type:"number", placeholder:"e.g., 10" },
+    when:    { label:"Time window (optional)", type:"text",   placeholder:"e.g., this morning / today / right now" },
+    place:   { label:"Where (optional)", type:"text", placeholder:"e.g., office / downtown / on base" },
+    meeting: { label:"Meeting/event (optional)", type:"text", placeholder:"e.g., standup / appointment / dinner" },
+    who:     { label:"Who (optional)", type:"text", placeholder:"e.g., client / team / friend" },
+    eta:     { label:"ETA (optional)", type:"text", placeholder:"e.g., 10 min / 3:15pm" },
+    excuse:  { label:"Excuse detail (optional)", type:"text", placeholder:"e.g., train delay / car trouble" },
+    detail:  { label:"Extra detail (optional)", type:"text", placeholder:"e.g., brief context" }
+  };
 
-  function vars(){
-    const name = $("name").value.trim() || "there";
-    const mins = (String($("mins").value).trim() || "a few");
-    const when = $("when").value.trim() || "soon";
-    const prompt = $("prompt").value.trim() || "";
-    return { name, mins, when, prompt };
-  }
-
-  function applyVars(text, v){
-    return text
-      .replaceAll("{{name}}", v.name)
-      .replaceAll("{{mins}}", v.mins)
-      .replaceAll("{{when}}", v.when)
-      .replaceAll("{{prompt}}", v.prompt);
-  }
-
-  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
-
-  // ====== LOCAL TEMPLATES (FALLBACK) ======
+  // Defaults: small seed set; you can scale to 500+ via editor/import
   const DEFAULTS = {
-    "Running late (work)": {
+    "Excuse for running late (work)": {
+      _meta: {
+        fields: ["name","mins","when","meeting","place"],
+        promptToneHints: {
+          funny: ["lol","lmao","meme","wild","ridiculous","roasted","chaos"],
+          urgent: ["urgent","asap","immediately","right now"],
+          formal: ["regretfully","unfortunately","sincerely","apologies"],
+          serious: ["serious","sincerely","regret","apologize","apologies"],
+          professional: ["professional","work","client","meeting","standup"]
+        }
+      },
       neutral: [
-        "Running {{mins}} min late due to an overlap. I’ll join ASAP.",
-        "I’m delayed {{when}}. I’ll be on shortly.",
-        "Stuck in a quick conflict—joining as soon as I can."
+        "Running {{mins}} min late—got pulled into an overlap. I’ll join {{when}}.",
+        "I’m delayed {{when}}. Joining as soon as I can."
       ],
       brief: [
-        "Running late. Joining ASAP.",
-        "Delayed—be there soon."
+        "Running late—joining ASAP.",
+        "Delayed. On shortly."
       ],
-      friendly: [
-        "Hey {{name}}, I’m running {{mins}} min behind—jumping in as soon as I can.",
-        "Sorry—got snagged {{when}}. I’ll join in a few."
+      professional: [
+        "Apologies—I'm running {{mins}} minutes behind due to a scheduling conflict. I’ll join {{when}}.",
+        "I’m delayed due to an overlap. I’ll be on for {{meeting}} {{when}}."
+      ],
+      funny: [
+        "Running {{mins}} minutes late—my calendar chose violence. I’ll be there {{when}}.",
+        "I’m late because the universe scheduled a side quest. Joining {{when}}."
       ],
       formal: [
-        "Apologies, I’m delayed due to a scheduling overlap. I will join as soon as possible.",
-        "I’m running behind {{when}} and will be online shortly."
+        "My apologies—I'm delayed by an unforeseen conflict. I will join {{when}}."
       ]
     },
 
     "Cancel a meeting": {
+      _meta: { fields: ["name","when","meeting","detail"], promptToneHints: { formal:["regretfully","unfortunately"], brief:["quick","short"], professional:["client","work","meeting"] } },
       neutral: [
-        "Something urgent came up and I need to reschedule. Does {{when}} work?",
-        "I have an unexpected conflict. Can we move this to {{when}}?",
-        "I can’t make it today—can we pick a new time?"
+        "Something came up and I need to reschedule {{meeting}}. Does {{when}} work?",
+        "I have an unexpected conflict. Can we move {{meeting}} to {{when}}?"
       ],
-      brief: [
-        "Need to reschedule—conflict came up.",
-        "Can’t make it. New time?"
-      ],
-      friendly: [
-        "Hey {{name}}, I got pulled into something urgent—can we shift this to {{when}}?",
-        "Sorry—conflict popped up. Can we reschedule?"
-      ],
-      formal: [
-        "I have an unavoidable conflict and will need to reschedule. Please let me know your availability for {{when}}.",
-        "Regrettably, I’m unable to attend as scheduled. May we reschedule?"
-      ]
+      brief: ["Need to reschedule {{meeting}}. Can we do {{when}}?"],
+      professional: ["A conflict came up ({{detail}}). Can we move {{meeting}} to {{when}}?"],
+      formal: ["Regrettably, I’m unable to attend as scheduled. May we reschedule {{meeting}} for {{when}}?"]
     },
 
     "Cancel social plans": {
+      _meta: { fields: ["name","when","meeting","detail"], promptToneHints: { funny:["lol","meme"], apologetic:["sorry","apologize"], serious:["serious","family"] } },
       neutral: [
-        "I’m not feeling great {{when}} and need to stay in. I’m sorry.",
-        "I need to rain check—low energy today. Can we do another day?",
-        "Something personal came up. I can’t make it tonight."
+        "I need to rain check {{meeting}} {{when}}. Something came up.",
+        "I can’t make it {{when}}—can we reschedule?"
       ],
-      brief: [
-        "Need to rain check.",
-        "Can’t make it tonight—sorry."
+      apologetic: [
+        "I’m really sorry, but I can’t make {{meeting}} {{when}}. Can we pick another day?"
       ],
-      friendly: [
-        "Hey {{name}}, I’m feeling wiped {{when}}—I’m going to stay in. I’m really sorry.",
-        "I hate doing this, but I need a rain check. Can we reschedule?"
+      funny: [
+        "I have to bail {{when}}—my battery is at 1%. Can we rain check {{meeting}}?"
       ],
-      formal: [
-        "I’m not able to attend as planned. My apologies—can we reschedule?",
-        "Regrettably I have to cancel. Thank you for understanding."
+      serious: [
+        "I need to cancel {{meeting}} {{when}} due to something personal. I’m sorry."
       ]
     }
   };
 
+  // ========= DOM =========
+  const $ = (id) => document.getElementById(id);
+
+  function setStatus(msg){ $("status").textContent = msg || ""; }
+
+  function safeClone(obj){ return JSON.parse(JSON.stringify(obj)); }
+
   function loadTemplates(){
     const raw = localStorage.getItem(LS_KEY);
-    if (!raw) return structuredClone(DEFAULTS);
-    try { return JSON.parse(raw); } catch { return structuredClone(DEFAULTS); }
+    if (!raw) return safeClone(DEFAULTS);
+    try {
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object" || !Object.keys(parsed).length) return safeClone(DEFAULTS);
+      return parsed;
+    } catch {
+      return safeClone(DEFAULTS);
+    }
   }
 
   function saveTemplates(obj){
     localStorage.setItem(LS_KEY, JSON.stringify(obj, null, 2));
   }
 
+  function fillToneSelect(){
+    const sel = $("tone");
+    sel.innerHTML = "";
+    for (const t of TONES){
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      sel.appendChild(opt);
+    }
+    sel.value = "neutral";
+  }
+
   function fillCategorySelect(templates){
     const sel = $("category");
     const prev = sel.value;
     sel.innerHTML = "";
-    Object.keys(templates).forEach((k) => {
+
+    const keys = Object.keys(templates);
+    keys.sort((a,b)=>a.localeCompare(b));
+
+    for (const k of keys){
       const opt = document.createElement("option");
       opt.value = k;
       opt.textContent = k;
       sel.appendChild(opt);
-    });
+    }
+
     if (prev && templates[prev]) sel.value = prev;
     else if (sel.options.length) sel.selectedIndex = 0;
   }
@@ -263,93 +287,199 @@
     $("editor").value = JSON.stringify(templates, null, 2);
   }
 
+  function getCategoryMeta(templates){
+    const cat = $("category").value;
+    return templates?.[cat]?._meta || {};
+  }
+
+  function buildDynamicFields(templates){
+    const meta = getCategoryMeta(templates);
+    const fields = Array.isArray(meta.fields) ? meta.fields : [];
+    const host = $("dynFields");
+    host.innerHTML = "";
+
+    // render as row3-ish but adapts to count
+    for (const fieldId of fields){
+      const def = FIELD_CATALOG[fieldId] || { label: fieldId, type:"text", placeholder:"" };
+
+      const wrap = document.createElement("div");
+
+      const lab = document.createElement("label");
+      lab.textContent = def.label || fieldId;
+
+      const inp = document.createElement("input");
+      inp.id = "f_" + fieldId;
+      inp.type = def.type || "text";
+      if (def.placeholder) inp.placeholder = def.placeholder;
+
+      wrap.appendChild(lab);
+      wrap.appendChild(inp);
+      host.appendChild(wrap);
+    }
+  }
+
+  function collectVars(templates){
+    const meta = getCategoryMeta(templates);
+    const fields = Array.isArray(meta.fields) ? meta.fields : [];
+    const out = { prompt: $("prompt").value.trim() || "" };
+
+    for (const fieldId of fields){
+      const el = $("f_" + fieldId);
+      if (!el) continue;
+      out[fieldId] = String(el.value || "").trim();
+    }
+
+    // sensible fallbacks
+    if (!out.name) out.name = "there";
+    if (!out.mins) out.mins = "a few";
+    if (!out.when) out.when = "soon";
+
+    return out;
+  }
+
+  function applyVarsGeneric(text, varsObj){
+    // replaces {{key}} for any key in varsObj
+    return String(text || "").replace(/\{\{(\w+)\}\}/g, (_, key) => {
+      const v = varsObj?.[key];
+      return (v === undefined || v === null || v === "") ? "" : String(v);
+    });
+  }
+
+  function pick(arr){ return arr[Math.floor(Math.random() * arr.length)]; }
+
+  function inferToneFromPrompt(prompt, meta){
+    if (!prompt) return null;
+    const hints = meta?.promptToneHints;
+    if (!hints || typeof hints !== "object") return null;
+
+    const p = prompt.toLowerCase();
+    for (const [tone, words] of Object.entries(hints)){
+      if (!Array.isArray(words)) continue;
+      for (const w of words){
+        if (p.includes(String(w).toLowerCase())) return tone;
+      }
+    }
+    return null;
+  }
+
   function generateLocal(templates){
     const cat = $("category").value;
-    const tone = $("tone").value;
+    const meta = getCategoryMeta(templates);
+    const v = collectVars(templates);
+
+    const hintedTone = inferToneFromPrompt(v.prompt, meta);
+    const tone = hintedTone || $("tone").value;
+
     const group = templates?.[cat]?.[tone] || [];
     const fallback = templates?.[cat]?.neutral || [];
     const pool = group.length ? group : fallback;
     if (!pool.length) return "No templates found for this category/tone.";
-    return applyVars(pick(pool), vars());
+
+    return applyVarsGeneric(pick(pool), v);
   }
 
-  // ====== AI (WORKER) ======
-  async function generateAI(payload) {
+  async function generateAI(payload){
     const res = await fetch(WORKER_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type":"application/json" },
       body: JSON.stringify(payload)
     });
     const data = await res.json();
     return data.text;
   }
 
-  // ====== INIT ======
+  async function runGenerate(forceReroll=false){
+    const cat = $("category").value;
+    const meta = getCategoryMeta(templates);
+    const v = collectVars(templates);
+
+    const hintedTone = inferToneFromPrompt(v.prompt, meta);
+    const tone = hintedTone || $("tone").value;
+
+    $("output").textContent = "Thinking…";
+    setStatus(hintedTone ? `Tone auto-set by prompt: ${hintedTone}` : "");
+
+    const payload = {
+      category: cat,
+      tone,
+      prompt: v.prompt,
+      vars: v,
+      // hint for reroll (so AI has a reason to vary output)
+      nonce: forceReroll ? (Date.now() + ":" + Math.random()) : undefined
+    };
+
+    if ($("useAI").checked){
+      try {
+        const text = await generateAI(payload);
+        $("output").textContent = (text && String(text).trim()) ? String(text).trim() : generateLocal(templates);
+        return;
+      } catch (e) {
+        setStatus("AI unavailable (using local templates).");
+      }
+    }
+
+    $("output").textContent = generateLocal(templates);
+  }
+
+  // ========= INIT =========
   let templates = loadTemplates();
+  fillToneSelect();
   fillCategorySelect(templates);
+  buildDynamicFields(templates);
   renderEditor(templates);
   $("output").textContent = generateLocal(templates);
 
-  // ====== UI HANDLERS ======
-  $("gen").onclick = async () => {
-    const payload = {
-      category: $("category").value,
-      tone: $("tone").value,
-      prompt: $("prompt").value.trim(),
-      vars: vars()
-    };
-
-    $("output").textContent = "Thinking…";
-
-    try {
-      const text = await generateAI(payload);
-      $("output").textContent = text || generateLocal(templates);
-      setStatus("");
-    } catch (e) {
-      $("output").textContent = generateLocal(templates);
-      setStatus("AI unavailable (using local templates).");
-    }
+  // ========= EVENTS =========
+  $("category").onchange = () => {
+    buildDynamicFields(templates);
+    $("output").textContent = generateLocal(templates);
+    setStatus("");
   };
 
-  $("reroll").onclick = () => { $("output").textContent = generateLocal(templates); setStatus(""); };
+  $("tone").onchange = () => {
+    $("output").textContent = generateLocal(templates);
+    setStatus("");
+  };
+
+  $("prompt").addEventListener("input", () => {
+    // live preview local (prompt influences tone)
+    $("output").textContent = generateLocal(templates);
+  });
+
+  $("gen").onclick = async () => { await runGenerate(false); };
+  $("reroll").onclick = async () => { await runGenerate(true); };
 
   $("copy").onclick = async () => {
-    try { await navigator.clipboard.writeText($("output").textContent); setStatus("Copied."); }
-    catch { setStatus("Copy failed (browser blocked clipboard)."); }
-  };
-
-  $("add").onclick = () => {
-    const cat = prompt("New category name?");
-    if (!cat) return;
-    if (!templates[cat]) {
-      templates[cat] = { neutral: ["New template here."] };
-      renderEditor(templates);
-      fillCategorySelect(templates);
-      setStatus("Added. Edit templates and Save.");
-    } else setStatus("Category already exists.");
-  };
-
-  $("reset").onclick = () => {
-    templates = structuredClone(DEFAULTS);
-    saveTemplates(templates);
-    fillCategorySelect(templates);
-    renderEditor(templates);
-    $("output").textContent = generateLocal(templates);
-    setStatus("Reset to defaults.");
+    try {
+      await navigator.clipboard.writeText($("output").textContent || "");
+      setStatus("Copied.");
+    } catch {
+      setStatus("Copy failed (browser blocked clipboard).");
+    }
   };
 
   $("save").onclick = () => {
     try {
-      templates = JSON.parse($("editor").value);
+      const parsed = JSON.parse($("editor").value);
+      templates = parsed;
       saveTemplates(templates);
       fillCategorySelect(templates);
+      buildDynamicFields(templates);
       setStatus("Saved.");
-    } catch { setStatus("Invalid JSON."); }
+      $("output").textContent = generateLocal(templates);
+    } catch {
+      setStatus("Invalid JSON.");
+    }
   };
 
   $("export").onclick = async () => {
-    try { await navigator.clipboard.writeText(JSON.stringify(templates, null, 2)); setStatus("Exported JSON copied."); }
-    catch { setStatus("Export failed (clipboard)."); }
+    const data = JSON.stringify(templates, null, 2);
+    try {
+      await navigator.clipboard.writeText(data);
+      setStatus("Exported JSON copied to clipboard.");
+    } catch {
+      setStatus("Export failed (clipboard).");
+    }
   };
 
   $("import").onclick = () => {
@@ -359,11 +489,49 @@
       templates = JSON.parse(data);
       saveTemplates(templates);
       fillCategorySelect(templates);
+      buildDynamicFields(templates);
       renderEditor(templates);
       setStatus("Imported.");
-    } catch { setStatus("Invalid JSON."); }
+      $("output").textContent = generateLocal(templates);
+    } catch {
+      setStatus("Invalid JSON.");
+    }
+  };
+
+  $("addCat").onclick = () => {
+    const cat = prompt("New category name?");
+    if (!cat) return;
+
+    if (templates[cat]){
+      setStatus("Category already exists.");
+      return;
+    }
+
+    templates[cat] = {
+      _meta: { fields: ["name","when","detail"], promptToneHints: {} },
+      neutral: ["New template here. {{detail}}"],
+      funny: ["New funny template here. {{detail}}"],
+      professional: ["New professional template here. {{detail}}"]
+    };
+
+    saveTemplates(templates);
+    fillCategorySelect(templates);
+    $("category").value = cat;
+    buildDynamicFields(templates);
+    renderEditor(templates);
+    setStatus("Added category. Edit JSON and Save.");
+    $("output").textContent = generateLocal(templates);
+  };
+
+  $("reset").onclick = () => {
+    templates = safeClone(DEFAULTS);
+    saveTemplates(templates);
+    fillCategorySelect(templates);
+    buildDynamicFields(templates);
+    renderEditor(templates);
+    $("output").textContent = generateLocal(templates);
+    setStatus("Reset to defaults.");
   };
 </script>
-
 </body>
 </html>
