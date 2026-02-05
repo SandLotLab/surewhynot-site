@@ -266,55 +266,100 @@
   let micStream = null;
 
   async function startRecording(){
-    setMicNote("");
+  setMicNote("");
+  try {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  } catch {
+    setMicStatus("Mic: blocked");
+    setMicNote("Mic permission denied.");
+    return;
+  }
+
+  chunks = [];
+
+  const candidates = [
+    "audio/webm;codecs=opus",
+    "audio/ogg;codecs=opus",
+    "audio/webm",
+    "audio/ogg"
+  ];
+  const mimeType =
+    window.MediaRecorder &&
+    candidates.find(t => MediaRecorder.isTypeSupported(t)) || "";
+
+  try {
+    mediaRecorder = new MediaRecorder(
+      micStream,
+      mimeType ? { mimeType } : undefined
+    );
+  } catch {
+    setMicStatus("Mic: error");
+    setMicNote("Recorder failed to start.");
+    return;
+  }
+
+  mediaRecorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) chunks.push(e.data);
+  };
+
+  mediaRecorder.onstop = async () => {
     try {
-      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    } catch {
-      setMicStatus("Mic: blocked");
-      setMicNote("Mic permission denied.");
-      return;
-    }
+      const type =
+        mediaRecorder.mimeType ||
+        (chunks[0] && chunks[0].type) ||
+        "audio/webm";
 
-    chunks = [];
-    try {
-      mediaRecorder = new MediaRecorder(micStream);
-    } catch {
-      setMicStatus("Mic: error");
-      setMicNote("Recorder failed to start.");
-      return;
-    }
+      const blob = new Blob(chunks, { type });
 
-    mediaRecorder.ondataavailable = (e) => {
-      if (e.data && e.data.size > 0) chunks.push(e.data);
-    };
-
-    mediaRecorder.onstop = async () => {
-      try {
-        const blob = new Blob(chunks, { type: mediaRecorder.mimeType || "audio/webm" });
-        await sendAudio(blob);
-      } finally {
-        try { micStream && micStream.getTracks().forEach(t => t.stop()); } catch {}
-        micStream = null;
-        mediaRecorder = null;
-        chunks = [];
+      if (!blob.size || blob.size < 800) {
+        setMicStatus("Mic: empty");
+        setMicNote("Recording too short. Try again.");
+        return;
       }
-    };
 
-    mediaRecorder.start();
-    $("mic").disabled = true;
-    $("micStop").disabled = false;
-    setMicStatus("Mic: recording…");
-  }
+      await sendAudio(blob, type);
+    } finally {
+      try { micStream.getTracks().forEach(t => t.stop()); } catch {}
+      micStream = null;
+      mediaRecorder = null;
+      chunks = [];
+    }
+  };
 
-  async function stopRecording(){
-    if (!mediaRecorder) return;
-    $("micStop").disabled = true;
-    setMicStatus("Mic: processing…");
-    try { mediaRecorder.stop(); } catch {}
-    $("mic").disabled = false;
-  }
+  mediaRecorder.start();
+  $("mic").disabled = true;
+  $("micStop").disabled = false;
+  setMicStatus("Mic: recording…");
+}
 
-  async function sendAudio(blob){
+async function sendAudio(blob, type){
+  const tone = $("tone").value;
+  const details = $("details").value.trim();
+  const scenarioPick = $("scenario").value;
+
+  const ext = type.includes("ogg") ? "ogg" : "webm";
+
+  const fd = new FormData();
+  fd.append("audio", blob, `voice.${ext}`);
+  fd.append("tone", tone);
+  fd.append("details", details);
+  fd.append("scenario", scenarioPick);
+
+  $("output").textContent = "Transcribing…";
+
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    body: fd
+  });
+
+  const data = await res.json();
+  const text = data?.text ? String(data.text).trim() : "";
+
+  $("output").textContent = text || "No output.";
+  setMicStatus("Mic: done");
+  setMicNote("Voice sent.");
+}
+
     const tone = $("tone").value;
     const details = $("details").value.trim();
 
