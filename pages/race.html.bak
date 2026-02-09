@@ -173,13 +173,14 @@
 
   pickText();
   updateBest();
-  
-  <script type="module">
+</script>
+
+
+<script type="module">
   import { injectTopbar, injectChatWidget } from "/assets/js/app.js";
   injectTopbar("race");
   injectChatWidget();
 </script>
 
-</script>
 </body>
 </html>
