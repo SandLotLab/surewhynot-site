@@ -1,57 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>TypeRace — surewhynot.app</title>
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <style>
-    .raceText{ margin-top:10px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.10); background:rgba(0,0,0,0.25); line-height:1.5; }
-    .raceText span.ok{ text-decoration:underline; }
-    .raceText span.bad{ text-decoration:underline; }
-    .raceText span.todo{ opacity:.55; }
-    .raceBar{ height:10px; border-radius:999px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.05); overflow:hidden; margin-top:10px; }
-    .raceBar > div{ height:100%; width:0%; background:rgba(255,255,255,0.18); }
-    .raceStats{ font-size:12px; opacity:.75; display:flex; gap:12px; flex-wrap:wrap; }
-  </style>
-</head>
-
-<body>
-  <div class="shell" data-topbar>
-    <div class="card">
-      <h1>TypeRace</h1>
-
-      <div class="btns" style="margin-top:0;">
-        <button id="raceNew">New text</button>
-        <button class="primary" id="raceStart">Start</button>
-        <button id="raceReset">Reset</button>
-      </div>
-
-      <div class="raceStats">
-        <span id="raceTime">Time: 0.0s</span>
-        <span id="raceWpm">WPM: 0</span>
-        <span id="raceAcc">Acc: 100%</span>
-        <span id="raceBest">Best: –</span>
-      </div>
-
-      <div class="raceText" id="raceText"></div>
-      <div class="raceBar"><div id="raceFill"></div></div>
-
-      <label>Type here</label>
-      <textarea id="raceInput" placeholder="Start typing…" style="min-height:70px;"></textarea>
-      <div class="tiny" id="raceHint">Press Start, then type. Timer begins on first keystroke.</div>
-    </div>
-
-    <div class="footer">
-      <a href="/pages/about.html">About</a> ·
-      <a href="/pages/privacy.html">Privacy</a> ·
-      <a href="/pages/contact.html">Contact</a>
-    </div>
-  </div>
-
-
-
-
+<script>
   const texts = [
     "Systems behave perfectly until humans decide to test them.",
     "A clean interface is a lie told politely to chaos.",
@@ -174,7 +121,6 @@
   pickText();
   updateBest();
 </script>
-
 
 <script type="module">
   import { injectTopbar, injectChatWidget } from "/assets/js/app.js";
