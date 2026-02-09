@@ -119,7 +119,12 @@
   </footer>
 
 <script>
-  // Your Cloudflare Worker (AI backend)
+  // ELI5 steps:
+  // 1) This page can send text OR recorded audio to your Cloudflare Worker.
+  // 2) Text path = JSON POST.
+  // 3) Voice path = multipart/form-data POST with an "audio" file.
+  // 4) Your Worker transcribes audio, then generates the Monday message.
+
   const WORKER_URL = "https://broken-violet-bb7d.cloudflare-handprint600.workers.dev/";
 
   const TONES = [
@@ -209,7 +214,6 @@
     ["A text that reads like a prophecy", "calmly-ominous"],
     ["A text that reads like a resignation (from reality)", "resigned"],
     ["A text that suggests you’ve accepted the consequences", "already-processed-this"],
-
     ["Work message sent from the wrong mental state", "corporate-ghost"],
     ["Corporate tone, personal exhaustion", "tired-smart"],
     ["Professional words, unclear intent", "neutral-but-pointed"],
@@ -225,12 +229,15 @@
   function setMicNote(msg){ $("micNote").textContent = msg || ""; }
 
   function init(){
+    // Fill scenario dropdown
     for (const [name] of SCENARIOS){
       const o = document.createElement("option");
       o.value = name;
       o.textContent = name;
       $("scenario").appendChild(o);
     }
+
+    // Fill tone dropdown
     for (const t of TONES){
       const o = document.createElement("option");
       o.value = t;
@@ -238,16 +245,15 @@
       $("tone").appendChild(o);
     }
 
+    // When scenario changes: auto-set tone, and only auto-fill prompt if prompt is empty
     $("scenario").onchange = () => {
       const found = SCENARIOS.find(s => s[0] === $("scenario").value);
       if (found) $("tone").value = found[1];
       setStatus("");
-      // only auto-fill prompt if empty (do not overwrite typed/transcribed text)
-      if (!$("prompt").value.trim()) {
-        $("prompt").value = $("scenario").value;
-      }
+      if (!$("prompt").value.trim()) $("prompt").value = $("scenario").value;
     };
 
+    // set initial
     $("scenario").selectedIndex = 0;
     $("scenario").dispatchEvent(new Event("change"));
 
@@ -256,118 +262,102 @@
       $("mic").disabled = true;
       $("micStop").disabled = true;
       setMicStatus("Mic: unsupported");
-      setMicNote("Your browser doesn’t support recording here.");
+      setMicNote("Browser can’t record audio here.");
     }
   }
 
-  // ---- Mic recording + multipart upload ----
+  // -------- MIC RECORDING (voice -> multipart form-data) --------
   let mediaRecorder = null;
   let chunks = [];
   let micStream = null;
 
   async function startRecording(){
-  setMicNote("");
-  try {
-    micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-  } catch {
-    setMicStatus("Mic: blocked");
-    setMicNote("Mic permission denied.");
-    return;
-  }
+    setMicNote("");
 
-  chunks = [];
-
-  const candidates = [
-    "audio/webm;codecs=opus",
-    "audio/ogg;codecs=opus",
-    "audio/webm",
-    "audio/ogg"
-  ];
-  const mimeType =
-    window.MediaRecorder &&
-    candidates.find(t => MediaRecorder.isTypeSupported(t)) || "";
-
-  try {
-    mediaRecorder = new MediaRecorder(
-      micStream,
-      mimeType ? { mimeType } : undefined
-    );
-  } catch {
-    setMicStatus("Mic: error");
-    setMicNote("Recorder failed to start.");
-    return;
-  }
-
-  mediaRecorder.ondataavailable = (e) => {
-    if (e.data && e.data.size > 0) chunks.push(e.data);
-  };
-
-  mediaRecorder.onstop = async () => {
     try {
-      const type =
-        mediaRecorder.mimeType ||
-        (chunks[0] && chunks[0].type) ||
-        "audio/webm";
-
-      const blob = new Blob(chunks, { type });
-
-      if (!blob.size || blob.size < 800) {
-        setMicStatus("Mic: empty");
-        setMicNote("Recording too short. Try again.");
-        return;
-      }
-
-      await sendAudio(blob, type);
-    } finally {
-      try { micStream.getTracks().forEach(t => t.stop()); } catch {}
-      micStream = null;
-      mediaRecorder = null;
-      chunks = [];
+      micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      setMicStatus("Mic: blocked");
+      setMicNote("Mic permission denied.");
+      return;
     }
-  };
 
-  mediaRecorder.start();
-  $("mic").disabled = true;
-  $("micStop").disabled = false;
-  setMicStatus("Mic: recording…");
-}
+    chunks = [];
 
-async function sendAudio(blob, type){
-  const tone = $("tone").value;
-  const details = $("details").value.trim();
-  const scenarioPick = $("scenario").value;
+    // Choose a safe mime type (prevents “corrupted/unsupported”)
+    const candidates = [
+      "audio/webm;codecs=opus",
+      "audio/ogg;codecs=opus",
+      "audio/webm",
+      "audio/ogg"
+    ];
+    const mimeType =
+      window.MediaRecorder &&
+      candidates.find(t => MediaRecorder.isTypeSupported(t)) || "";
 
-  const ext = type.includes("ogg") ? "ogg" : "webm";
+    try {
+      mediaRecorder = new MediaRecorder(
+        micStream,
+        mimeType ? { mimeType } : undefined
+      );
+    } catch {
+      setMicStatus("Mic: error");
+      setMicNote("Recorder failed to start.");
+      return;
+    }
 
-  const fd = new FormData();
-  fd.append("audio", blob, `voice.${ext}`);
-  fd.append("tone", tone);
-  fd.append("details", details);
-  fd.append("scenario", scenarioPick);
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data && e.data.size > 0) chunks.push(e.data);
+    };
 
-  $("output").textContent = "Transcribing…";
+    mediaRecorder.onstop = async () => {
+      try {
+        const type =
+          mediaRecorder.mimeType ||
+          (chunks[0] && chunks[0].type) ||
+          "audio/webm";
 
-  const res = await fetch(WORKER_URL, {
-    method: "POST",
-    body: fd
-  });
+        const blob = new Blob(chunks, { type });
 
-  const data = await res.json();
-  const text = data?.text ? String(data.text).trim() : "";
+        // Block empty / too-short recordings
+        if (!blob.size || blob.size < 800) {
+          setMicStatus("Mic: empty");
+          setMicNote("Recording too short. Try again (2–3 seconds).");
+          return;
+        }
 
-  $("output").textContent = text || "No output.";
-  setMicStatus("Mic: done");
-  setMicNote("Voice sent.");
-}
+        await sendAudio(blob, type);
+      } finally {
+        try { micStream.getTracks().forEach(t => t.stop()); } catch {}
+        micStream = null;
+        mediaRecorder = null;
+        chunks = [];
+      }
+    };
 
+    mediaRecorder.start();
+    $("mic").disabled = true;
+    $("micStop").disabled = false;
+    setMicStatus("Mic: recording…");
+  }
+
+  async function stopRecording(){
+    if (!mediaRecorder) return;
+    $("micStop").disabled = true;
+    setMicStatus("Mic: processing…");
+    try { mediaRecorder.stop(); } catch {}
+    $("mic").disabled = false;
+  }
+
+  async function sendAudio(blob, type){
     const tone = $("tone").value;
     const details = $("details").value.trim();
-
-    // scenario picker stays optional; include it anyway (worker will prefer transcript)
     const scenarioPick = $("scenario").value;
 
+    const ext = type.includes("ogg") ? "ogg" : "webm";
+
     const fd = new FormData();
-    fd.append("audio", blob, "voice.webm");
+    fd.append("audio", blob, `voice.${ext}`);
     fd.append("tone", tone);
     fd.append("details", details);
     fd.append("scenario", scenarioPick);
@@ -380,21 +370,22 @@ async function sendAudio(blob, type){
     });
 
     const data = await res.json();
-    const text = (data && data.text) ? String(data.text).trim() : "";
+    const text = data?.text ? String(data.text).trim() : "";
     $("output").textContent = text || "No output.";
 
-    // If your worker returns a transcript in the future, you can populate prompt here.
-    // For now, we just mark success.
     setMicStatus("Mic: done");
     setMicNote("Voice sent.");
   }
 
-  // ---- Text/Picker generation (JSON) with precedence ----
+  // -------- TEXT GENERATION (JSON) --------
+  // Precedence:
+  // 1) prompt box text (typed OR user-edited)
+  // 2) scenario dropdown
+  // 3) fallback
   function computeScenario(){
     const typed = $("prompt").value.trim();
     if (typed) return typed;
 
-    // optional picker value (can be treated as fallback)
     const pick = $("scenario").value.trim();
     if (pick) return pick;
 
@@ -422,10 +413,11 @@ async function sendAudio(blob, type){
     });
 
     const data = await res.json();
-    const text = (data && data.text) ? String(data.text).trim() : "";
+    const text = data?.text ? String(data.text).trim() : "";
     $("output").textContent = text || "No output.";
   }
 
+  // -------- BUTTON WIRING --------
   $("mic").onclick = async () => {
     try { await startRecording(); }
     catch { setMicStatus("Mic: error"); setMicNote("Recording failed."); }
