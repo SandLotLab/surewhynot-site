@@ -49,9 +49,8 @@
     </div>
   </div>
 
-<script type="module">
-  import { injectTopbar } from "../assets/js/app.js";
-  injectTopbar("race");
+
+
 
   const texts = [
     "Systems behave perfectly until humans decide to test them.",
@@ -174,6 +173,13 @@
 
   pickText();
   updateBest();
+  
+  <script type="module">
+  import { injectTopbar, injectChatWidget } from "/assets/js/app.js";
+  injectTopbar("race");
+  injectChatWidget();
+</script>
+
 </script>
 </body>
 </html>
