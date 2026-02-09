@@ -50,8 +50,11 @@
   </div>
 
 <script type="module">
-  import { injectTopbar } from "../assets/js/app.js";
+  import { injectTopbar, injectChatWidget } from "/assets/js/app.js";
   injectTopbar("race");
+  injectChatWidget();
+</script>
+
 
   const texts = [
     "Systems behave perfectly until humans decide to test them.",
