@@ -113,7 +113,7 @@
     <div class="out" id="output"></div>
     <div class="tiny" id="status"></div>
   </div>
-1
+
   <footer style="margin-top:20px;font-size:12px;opacity:.7;text-align:center;">
     <a href="/pages/about.html">About</a>
     <a href="/pages/privacy.html">Privacy</a>
