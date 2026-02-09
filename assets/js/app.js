@@ -47,7 +47,6 @@ export function injectTopbar(active){
     <div class="nav">
       <a href="/index.html"${active==="home" ? ' style="text-decoration:underline;"' : ""}>Home</a>
       <a href="/pages/race.html"${active==="race" ? ' style="text-decoration:underline;"' : ""}>TypeRace</a>
-      <a href="/pages/chat.html"${active==="chat" ? ' style="text-decoration:underline;"' : ""}>Chat</a>
       <a href="/pages/fax.html"${active==="fax" ? ' style="text-decoration:underline;"' : ""}>Fax</a>
       <a href="/pages/about.html"${active==="about" ? ' style="text-decoration:underline;"' : ""}>About</a>
     </div>
