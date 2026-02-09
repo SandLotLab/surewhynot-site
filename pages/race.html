@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TypeRace — surewhynot.app</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .raceText{ margin-top:10px; padding:10px; border-radius:12px; border:1px solid rgba(255,255,255,0.10); background:rgba(0,0,0,0.25); line-height:1.5; }
+    .raceText span.ok{ text-decoration:underline; }
+    .raceText span.bad{ text-decoration:underline; }
+    .raceText span.todo{ opacity:.55; }
+    .raceBar{ height:10px; border-radius:999px; border:1px solid rgba(255,255,255,0.10); background:rgba(255,255,255,0.05); overflow:hidden; margin-top:10px; }
+    .raceBar > div{ height:100%; width:0%; background:rgba(255,255,255,0.18); }
+    .raceStats{ font-size:12px; opacity:.75; display:flex; gap:12px; flex-wrap:wrap; }
+  </style>
+</head>
+
+<body>
+  <div class="shell" data-topbar>
+    <div class="card">
+      <h1>TypeRace</h1>
+
+      <div class="btns" style="margin-top:0;">
+        <button id="raceNew">New text</button>
+        <button class="primary" id="raceStart">Start</button>
+        <button id="raceReset">Reset</button>
+      </div>
+
+      <div class="raceStats">
+        <span id="raceTime">Time: 0.0s</span>
+        <span id="raceWpm">WPM: 0</span>
+        <span id="raceAcc">Acc: 100%</span>
+        <span id="raceBest">Best: –</span>
+      </div>
+
+      <div class="raceText" id="raceText"></div>
+      <div class="raceBar"><div id="raceFill"></div></div>
+
+      <label>Type here</label>
+      <textarea id="raceInput" placeholder="Start typing…" style="min-height:70px;"></textarea>
+      <div class="tiny" id="raceHint">Press Start, then type. Timer begins on first keystroke.</div>
+    </div>
+
+    <div class="footer">
+      <a href="/pages/about.html">About</a> ·
+      <a href="/pages/privacy.html">Privacy</a> ·
+      <a href="/pages/contact.html">Contact</a>
+    </div>
+  </div>
+
+<script type="module">
+  import { injectTopbar } from "/assets/js/app.js";
+  injectTopbar("race");
+
+  const texts = [
+    "Systems behave perfectly until humans decide to test them.",
+    "A clean interface is a lie told politely to chaos.",
+    "Stability is not calm. It is maintenance done on time.",
+    "Type fast, think faster, and do not trust the first draft.",
+    "The machine is consistent. The operator is the variable.",
+    "Speed is a skill. Accuracy is a choice. Pick both."
+  ];
+
+  const $ = (id) => document.getElementById(id);
+
+  const state = {
+    target: "",
+    started: false,
+    startAt: 0,
+    raf: 0,
+    done: false,
+    best: Number(localStorage.getItem("swn_typerace_best") || "0")
+  };
+
+  function pickText(){
+    state.target = texts[Math.floor(Math.random() * texts.length)];
+    renderText("");
+    $("raceInput").value = "";
+    $("raceFill").style.width = "0%";
+    $("raceTime").textContent = "Time: 0.0s";
+    $("raceWpm").textContent = "WPM: 0";
+    $("raceAcc").textContent = "Acc: 100%";
+    $("raceHint").textContent = "Press Start, then type. Timer begins on first keystroke.";
+    state.started = false;
+    state.done = false;
+    cancelAnimationFrame(state.raf);
+  }
+
+  function escapeHtml(s){
+    return s.replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+
+  function renderText(typed){
+    const t = state.target;
+    let html = "";
+    for (let i = 0; i < t.length; i++){
+      const ch = t[i];
+      const u = typed[i];
+      if (u === undefined) html += `<span class="todo">${escapeHtml(ch)}</span>`;
+      else if (u === ch) html += `<span class="ok">${escapeHtml(ch)}</span>`;
+      else html += `<span class="bad">${escapeHtml(ch)}</span>`;
+    }
+    $("raceText").innerHTML = html;
+  }
+
+  function metrics(typed, elapsedSec){
+    const t = state.target;
+
+    let correct = 0;
+    for (let i = 0; i < typed.length; i++) if (typed[i] === t[i]) correct++;
+    const acc = typed.length ? (correct / typed.length) : 1;
+
+    const minutes = Math.max(elapsedSec / 60, 1/6000);
+    const wpm = Math.max(0, Math.round((correct / 5) / minutes));
+
+    const progress = Math.min(1, typed.length / t.length);
+
+    return { acc, wpm, progress };
+  }
+
+  function tick(){
+    if (!state.started || state.done) return;
+    const now = performance.now();
+    const elapsed = (now - state.startAt) / 1000;
+    $("raceTime").textContent = `Time: ${elapsed.toFixed(1)}s`;
+
+    const typed = $("raceInput").value;
+    const { acc, wpm, progress } = metrics(typed, elapsed);
+
+    $("raceWpm").textContent = `WPM: ${wpm}`;
+    $("raceAcc").textContent = `Acc: ${Math.round(acc * 100)}%`;
+    $("raceFill").style.width = `${Math.round(progress * 100)}%`;
+
+    state.raf = requestAnimationFrame(tick);
+  }
+
+  function updateBest(){
+    $("raceBest").textContent = state.best ? `Best: ${state.best} WPM` : "Best: –";
+  }
+
+  $("raceNew").onclick = pickText;
+  $("raceStart").onclick = () => { $("raceInput").focus(); $("raceHint").textContent = "Typing…"; };
+  $("raceReset").onclick = () => { pickText(); updateBest(); };
+
+  $("raceInput").addEventListener("input", () => {
+    const typed = $("raceInput").value;
+
+    if (!state.started && typed.length){
+      state.started = true;
+      state.startAt = performance.now();
+      cancelAnimationFrame(state.raf);
+      state.raf = requestAnimationFrame(tick);
+    }
+
+    renderText(typed);
+
+    const elapsed = state.started ? (performance.now() - state.startAt) / 1000 : 0.0001;
+    const { wpm, progress } = metrics(typed, elapsed);
+    $("raceFill").style.width = `${Math.round(progress * 100)}%`;
+
+    if (!state.done && typed === state.target){
+      state.done = true;
+      cancelAnimationFrame(state.raf);
+      $("raceHint").textContent = "Finished.";
+
+      if (wpm > state.best){
+        state.best = wpm;
+        localStorage.setItem("swn_typerace_best", String(wpm));
+        updateBest();
+      }
+    }
+  });
+
+  pickText();
+  updateBest();
+</script>
+</body>
+</html>
