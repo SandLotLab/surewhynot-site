@@ -75,11 +75,10 @@
 </head>
 
 <script type="module">
-  import { injectTopbar, injectChatWidget } from "./assets/js/app.js";
-
-  injectTopbar("home");
-  injectChatWidget();
+  import { injectTopbar } from "/assets/js/app.js";
+  injectTopbar("race");
 </script>
+
 
 <body>
   <div class="card">
