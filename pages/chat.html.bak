@@ -46,7 +46,8 @@
   </div>
 
 <script type="module">
-  import { injectTopbar, getIdentity } from "/assets/js/app.js";
+  import { injectTopbar } from "../assets/js/app.js";
+
   injectTopbar("chat");
 
   const ident = getIdentity();
