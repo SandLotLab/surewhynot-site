@@ -74,6 +74,11 @@
   </style>
 </head>
 
+<script type="module">
+  import { injectTopbar } from "./assets/js/app.js";
+  injectTopbar("home");
+</script>
+
 <body>
   <div class="card">
     <h1>surewhynot.app — monday generator</h1>
