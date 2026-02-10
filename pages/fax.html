@@ -114,26 +114,23 @@
 
   // If your verification link sends them back like:
   // /pages/fax.html?fax_verify=1&submission_id=...&email=...
-  function consumeVerifyReturn(){
-    const url = new URL(location.href);
-    const ok = url.searchParams.get("fax_verify");
-    const submissionId = url.searchParams.get("submission_id");
-    const email = url.searchParams.get("email");
+  async function hydrateFromStatus(){
+  const url = new URL(location.href);
+  const submissionId = url.searchParams.get("submission_id");
+  if (!submissionId) return;
 
-    if (ok === "1" && submissionId && email) {
-      const st = getState();
-      if (st && st.submission_id === submissionId) {
-        st.verified_email = decodeURIComponent(email);
-        st.verified_at = Date.now();
-        setState(st);
-      }
+  try {
+    const r = await fetch(`/api/fax/status?submission_id=${encodeURIComponent(submissionId)}`);
+    const j = await r.json().catch(()=>null);
+    if (!r.ok || !j) return;
 
-      url.searchParams.delete("fax_verify");
-      url.searchParams.delete("submission_id");
-      url.searchParams.delete("email");
-      history.replaceState({}, "", url.toString());
-    }
-  }
+    const st = getState() || {};
+    st.submission_id = j.submission_id;
+    st.verified_email = j.verifiedEmail || null;
+    st.verified_at = j.verified ? Date.now() : null; // UI gate only
+    setState(st);
+  } catch {}
+}
 
   $("verifyClose").onclick = hideModal;
 
@@ -271,9 +268,10 @@
   };
 
   // Init
-  consumeVerifyReturn();
+  await hydrateFromStatus();
   enableSendIfVerified();
   summarizePending();
+
 </script>
 
 </body>
