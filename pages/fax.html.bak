@@ -23,7 +23,7 @@
       <textarea id="faxMsg" placeholder="Write cover page text…"></textarea>
 
       <label>Attach PDF</label>
-      <input type="file" id="faxFile" accept="application/pdf">
+      <input type="file" id="faxFile" accept=".pdf,.png,.jpg,.jpeg,.txt,.rtf,.doc,.docx">
 
       <div class="btns">
         <button class="primary" id="faxSubmit">Submit</button>
