@@ -292,9 +292,17 @@
       const room = $("room").value.trim();
 
       const qs = new URLSearchParams();
-      qs.set("mode", mode === "online_random" ? "random" : "friends");
-      if (nick) qs.set("nick", nick);
-      if (mode === "online_friends" && room) qs.set("room", room);
+qs.set("mode", mode === "online_random" ? "random" : "friends");
+
+if (nick) qs.set("nick", nick);
+
+if (mode === "online_friends") {
+  const code = room.replace(/\s+/g, "").toLowerCase(); // normalize
+  qs.set("room", code);
+  qs.set("code", code); // compatibility
+  qs.set("id", code);   // compatibility
+}
+
 
       const ws = new WebSocket(`${url}?${qs.toString()}`);
       state.ws = ws;
