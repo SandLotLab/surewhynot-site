@@ -226,46 +226,52 @@
   };
 
   $("faxSend").onclick = async () => {
-    const st = getState();
-    if (!st || !st.submission_id) return;
+  const st = getState();
+  if (!st || !st.submission_id) return;
 
-    if (!enableSendIfVerified()) {
-      setStatus("Verify your email first.");
-      showModal();
+  if (!enableSendIfVerified()) {
+    setStatus("Verify your email first.");
+    showModal();
+    return;
+  }
+
+  setStatus("Sending…");
+
+  try {
+    const r = await fetch("/api/fax/send", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ submission_id: st.submission_id })
+    });
+
+    const j = await r.json().catch(()=>null);
+
+    if (!r.ok || !j) {
+      setStatus(j?.error || "Failed.");
       return;
     }
 
-    setStatus("Sending…");
+    // keep showing the result
+    out(
+      `Submission: ${st.submission_id}\n` +
+      `To: ${st.to}\n` +
+      `From: ${st.from}\n` +
+      (j.pages ? `Pages: ${j.pages}\n` : "") +
+      (j.mode ? `Mode: ${j.mode}\n` : "") +
+      (j.status ? `Fax status: ${j.status}\n` : "Fax queued.\n")
+    );
 
-    try {
-      // Backend sends the fax now that email is verified.
-      // Endpoint placeholder: /api/fax/send
-      const r = await fetch("/api/fax/send", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ submission_id: st.submission_id })
-      });
-      const j = await r.json().catch(()=>null);
+    setStatus("Sent/queued.");
 
-      if (!r.ok || !j) {
-        setStatus(j?.error || "Failed.");
-        return;
-      }
+    // clear persisted state so it doesn't stick on reload
+    clearState();
+    $("faxSend").disabled = true;
 
-      out(
-        `Submission: ${st.submission_id}\n` +
-        `To: ${st.to}\n` +
-        `From: ${st.from}\n` +
-        (j.pages ? `Pages: ${j.pages}\n` : "") +
-        (j.mode ? `Mode: ${j.mode}\n` : "") +
-        (j.status ? `Fax status: ${j.status}\n` : "Fax queued.\n")
-      );
+  } catch {
+    setStatus("Failed.");
+  }
+};
 
-      setStatus("Sent/queued.");
-    } catch {
-      setStatus("Failed.");
-    }
-  };
 
   // Init
   await hydrateFromStatus();
