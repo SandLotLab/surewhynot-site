@@ -301,7 +301,7 @@ export function getChatSocket() {
   qs.set("room", room);
   qs.set("nick", nick);
 
-  const ws = new WebSocket(`${wsBaseFromSite()}?${qs.toString()}`);
+  const ws = getChatSocket();
   SWN_CHAT_SOCKET = ws;
 
   return ws;
