@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fax — surewhynot.app</title>
+  <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+
+<body>
+  <div class="shell" data-topbar>
+    <div class="card">
+      <h1>Digital Fax</h1>
+      <div class="tiny">UI only. Next step adds Worker endpoint + paid gate.</div>
+
+      <label>To (fax number)</label>
+      <input id="faxTo" placeholder="+1 555 555 5555">
+
+      <label>From (name)</label>
+      <input id="faxFrom" placeholder="surewhynot.app">
+
+      <label>Cover message</label>
+      <textarea id="faxMsg" placeholder="Write cover page text…"></textarea>
+
+      <label>Attach PDF</label>
+      <input type="file" id="faxFile" accept="application/pdf">
+
+      <div class="btns">
+        <button class="primary" id="faxSend">Send (not wired)</button>
+      </div>
+
+      <div class="out" id="faxOut" style="min-height:auto;"></div>
+      <div class="tiny" id="faxStatus"></div>
+    </div>
+
+    <div class="footer">
+      <a href="/pages/about.html">About</a> ·
+      <a href="/pages/privacy.html">Privacy</a> ·
+      <a href="/pages/contact.html">Contact</a>
+    </div>
+  </div>
+
+<script type="module">
+  import { injectTopbar, getIdentity } from "/assets/js/app.js";
+  injectTopbar("fax");
+  const ident = getIdentity();
+
+  const $ = (id) => document.getElementById(id);
+
+  $("faxSend").onclick = () => {
+    const to = $("faxTo").value.trim();
+    const from = $("faxFrom").value.trim();
+    const msg = $("faxMsg").value.trim();
+    const f = $("faxFile").files && $("faxFile").files[0];
+
+    $("faxOut").textContent =
+      `User: ${ident.name}\n` +
+      `To: ${to || "(missing)"}\n` +
+      `From: ${from || "(missing)"}\n` +
+      `PDF: ${f ? f.name + " (" + f.size + " bytes)" : "(none)"}\n\n` +
+      `${msg || ""}`;
+
+    $("faxStatus").textContent = "Ready. Next step: wire to Worker + payments.";
+  };
+</script>
+
+</body>
+</html>
