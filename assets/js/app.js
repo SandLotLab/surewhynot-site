@@ -173,3 +173,10 @@ export function injectChatWidget(){
   $("swnChatClose").onclick = () => dock.classList.remove("open");
   btn.onclick = () => dock.classList.toggle("open");
 }
+
+// auto-inject chat on every page
+if (typeof window !== "undefined") {
+  window.addEventListener("DOMContentLoaded", () => {
+    injectChatWidget();
+  });
+}
