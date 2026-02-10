@@ -23,7 +23,7 @@
       <textarea id="faxMsg" placeholder="Write cover page text…"></textarea>
 
       <label>Attach PDF</label>
-      <input type="file" id="faxFile" accept="application/pdf">
+      <input type="file" id="faxFile" accept=".pdf,.png,.jpg,.jpeg,.txt,.rtf,.doc,.docx">
 
       <div class="btns">
         <button class="primary" id="faxSubmit">Submit</button>
@@ -164,7 +164,7 @@
     fd.append("to", to);
     fd.append("from", from);
     fd.append("message", msg);
-    fd.append("file", f, f.name);
+    fd.append("pdf", f, f.name);
 
     try {
       const r = await fetch("/api/fax/draft", { method:"POST", body: fd });
