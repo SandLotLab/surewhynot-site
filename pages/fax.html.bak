@@ -11,7 +11,18 @@
   <div class="shell" data-topbar>
     <div class="card">
       <h1>Digital Fax</h1>
-      <div class="tiny">UI only. Next step adds Worker endpoint + paid gate.</div>
+      <div class="tiny">Free up to 5 pages. Verification required.</div>
+
+      <label>Email (required for verification)</label>
+      <input id="email" type="email" placeholder="you@domain.com" autocomplete="email">
+
+      <div class="btns" style="margin-top:10px;">
+        <button class="primary" id="verifyBtn">Send verification email</button>
+        <button id="resetVerify">Reset</button>
+      </div>
+      <div class="tiny" id="verifyStatus"></div>
+
+      <hr style="border:0; border-top:1px solid rgba(255,255,255,0.10); margin:14px 0;">
 
       <label>To (fax number)</label>
       <input id="faxTo" placeholder="+1 555 555 5555">
@@ -26,7 +37,7 @@
       <input type="file" id="faxFile" accept="application/pdf">
 
       <div class="btns">
-        <button class="primary" id="faxSend">Send (not wired)</button>
+        <button class="primary" id="faxSend" disabled>Send fax</button>
       </div>
 
       <div class="out" id="faxOut" style="min-height:auto;"></div>
@@ -41,27 +52,164 @@
   </div>
 
 <script type="module">
-  import { injectTopbar, getIdentity } from "/assets/js/app.js";
+  import { injectTopbar } from "/assets/js/app.js";
   injectTopbar("fax");
-  const ident = getIdentity();
 
   const $ = (id) => document.getElementById(id);
 
-  $("faxSend").onclick = () => {
+  const VERIFY_STORAGE_KEY = "fax_verify_state_v1";
+  const VERIFY_TTL_MS = 30 * 60 * 1000; // 30 minutes
+
+  function setVerifyStatus(t){ $("verifyStatus").textContent = t || ""; }
+  function setFaxStatus(t){ $("faxStatus").textContent = t || ""; }
+  function out(t){ $("faxOut").textContent = t || ""; }
+
+  function getState() {
+    try { return JSON.parse(localStorage.getItem(VERIFY_STORAGE_KEY) || "{}"); }
+    catch { return {}; }
+  }
+  function setState(s) {
+    localStorage.setItem(VERIFY_STORAGE_KEY, JSON.stringify(s || {}));
+  }
+  function clearState() {
+    localStorage.removeItem(VERIFY_STORAGE_KEY);
+  }
+
+  function normEmail(e){ return (e || "").trim().toLowerCase(); }
+
+  function isVerifiedForEmail(email) {
+    const st = getState();
+    const e = normEmail(email);
+    if (!st || !st.email || !st.verifiedAt) return false;
+    if (normEmail(st.email) !== e) return false;
+    if ((Date.now() - st.verifiedAt) > VERIFY_TTL_MS) return false;
+    return true;
+  }
+
+  function applyVerifiedUI() {
+    const email = $("email").value.trim();
+    const ok = email && isVerifiedForEmail(email);
+
+    $("faxSend").disabled = !ok;
+
+    if (!email) setVerifyStatus("Enter your email to verify.");
+    else if (ok) setVerifyStatus("Email verified. You can send a fax.");
+    else setVerifyStatus("Not verified yet. Send the verification email, then click the link.");
+  }
+
+  // If the verification link sends them back like: /pages/fax.html?verified=1&email=you%40domain.com
+  // We accept it and unlock Send for that email (TTL).
+  function consumeVerificationFromURL() {
+    const url = new URL(location.href);
+    const verified = url.searchParams.get("verified");
+    const email = url.searchParams.get("email");
+
+    if (verified === "1" && email) {
+      $("email").value = decodeURIComponent(email);
+      setState({ email: $("email").value.trim(), verifiedAt: Date.now() });
+
+      // Clean URL (remove params) so it doesn’t look messy
+      url.searchParams.delete("verified");
+      url.searchParams.delete("email");
+      history.replaceState({}, "", url.toString());
+    }
+  }
+
+  $("email").addEventListener("input", applyVerifiedUI);
+
+  $("resetVerify").onclick = () => {
+    clearState();
+    out("");
+    setFaxStatus("");
+    setVerifyStatus("Verification reset.");
+    applyVerifiedUI();
+  };
+
+  $("verifyBtn").onclick = async () => {
+    const email = $("email").value.trim();
+    if (!email) return setVerifyStatus("Enter your email first.");
+
+    setVerifyStatus("Sending verification email…");
+
+    // Backend should:
+    // 1) create one-time token
+    // 2) email user a link back to: /pages/fax.html?verified=1&email=...
+    // Endpoint placeholder:
+    try {
+      const r = await fetch("/api/fax/verify/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const j = await r.json().catch(()=>null);
+
+      if (!r.ok || !j) {
+        setVerifyStatus("Failed to send verification email.");
+        return;
+      }
+
+      setVerifyStatus("Verification email sent. Click the link in your inbox, then come back here.");
+    } catch {
+      setVerifyStatus("Failed to send verification email.");
+    }
+  };
+
+  $("faxSend").onclick = async () => {
+    const email = $("email").value.trim();
+    if (!isVerifiedForEmail(email)) {
+      applyVerifiedUI();
+      return;
+    }
+
     const to = $("faxTo").value.trim();
-    const from = $("faxFrom").value.trim();
+    const from = $("faxFrom").value.trim() || "surewhynot.app";
     const msg = $("faxMsg").value.trim();
     const f = $("faxFile").files && $("faxFile").files[0];
 
-    $("faxOut").textContent =
-      `User: ${ident.name}\n` +
-      `To: ${to || "(missing)"}\n` +
-      `From: ${from || "(missing)"}\n` +
-      `PDF: ${f ? f.name + " (" + f.size + " bytes)" : "(none)"}\n\n` +
-      `${msg || ""}`;
+    if (!to) return setFaxStatus("Missing fax number.");
+    if (!f)  return setFaxStatus("Attach a PDF.");
 
-    $("faxStatus").textContent = "Ready. Next step: wire to Worker + payments.";
+    setFaxStatus("Submitting…");
+    out("");
+
+    const fd = new FormData();
+    fd.append("to", to);
+    fd.append("from", from);
+    fd.append("message", msg);
+    fd.append("email", email);
+    fd.append("file", f, f.name);
+
+    try {
+      const r = await fetch("/api/fax/submit", { method:"POST", body: fd });
+      const j = await r.json().catch(()=>null);
+
+      if (!r.ok || !j) {
+        out(`Error: ${r.status}`);
+        setFaxStatus(j?.error || "Failed.");
+        return;
+      }
+
+      out(
+        `To: ${to}\n` +
+        `From: ${from}\n` +
+        `PDF: ${f.name} (${f.size} bytes)\n` +
+        `Pages: ${j.pages ?? "(pending)"}\n` +
+        (j.mode ? `Mode: ${j.mode}\n` : "")
+      );
+
+      if (j.checkout_url) {
+        setFaxStatus("Redirecting to payment…");
+        location.href = j.checkout_url;
+      } else {
+        setFaxStatus("Queued.");
+      }
+    } catch {
+      setFaxStatus("Failed.");
+    }
   };
+
+  consumeVerificationFromURL();
+  applyVerifiedUI();
 </script>
 
 </body>

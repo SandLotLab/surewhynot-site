@@ -11,18 +11,7 @@
   <div class="shell" data-topbar>
     <div class="card">
       <h1>Digital Fax</h1>
-      <div class="tiny">Free up to 5 pages. Verification required.</div>
-
-      <label>Email (required for verification)</label>
-      <input id="email" type="email" placeholder="you@domain.com" autocomplete="email">
-
-      <div class="btns" style="margin-top:10px;">
-        <button class="primary" id="verifyBtn">Send verification email</button>
-        <button id="resetVerify">Reset</button>
-      </div>
-      <div class="tiny" id="verifyStatus"></div>
-
-      <hr style="border:0; border-top:1px solid rgba(255,255,255,0.10); margin:14px 0;">
+      <div class="tiny">Free up to 5 pages. Email verification happens after you submit.</div>
 
       <label>To (fax number)</label>
       <input id="faxTo" placeholder="+1 555 555 5555">
@@ -37,7 +26,8 @@
       <input type="file" id="faxFile" accept="application/pdf">
 
       <div class="btns">
-        <button class="primary" id="faxSend" disabled>Send fax</button>
+        <button class="primary" id="faxSubmit">Submit</button>
+        <button id="faxSend" disabled>Send fax</button>
       </div>
 
       <div class="out" id="faxOut" style="min-height:auto;"></div>
@@ -51,166 +41,241 @@
     </div>
   </div>
 
+  <!-- Email verification modal -->
+  <div id="verifyModal" style="position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,0.65); padding:18px; z-index:9999;">
+    <div style="width:min(520px,100%); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.10); border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,0.45);">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <div style="font-size:14px; opacity:.95;">Verify your email</div>
+        <button id="verifyClose" style="padding:6px 10px; border-radius:10px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#e8edf5; cursor:pointer;">X</button>
+      </div>
+
+      <div class="tiny" style="margin-top:8px;">
+        Enter your email. We’ll send a link. Click it, then come back here and hit <b>Send fax</b>.
+      </div>
+
+      <label style="margin-top:12px;">Email</label>
+      <input id="verifyEmail" type="email" placeholder="you@domain.com" autocomplete="email" style="width:100%; padding:8px 10px; border-radius:12px; border:1px solid rgba(255,255,255,0.12); background:rgba(0,0,0,0.35); color:#e8edf5; outline:none;">
+
+      <div class="btns" style="margin-top:12px;">
+        <button class="primary" id="verifySend">Send verification link</button>
+        <button id="verifyReset">Reset</button>
+      </div>
+
+      <div class="tiny" id="verifyStatus" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
 <script type="module">
   import { injectTopbar } from "/assets/js/app.js";
   injectTopbar("fax");
 
   const $ = (id) => document.getElementById(id);
 
-  const VERIFY_STORAGE_KEY = "fax_verify_state_v1";
-  const VERIFY_TTL_MS = 30 * 60 * 1000; // 30 minutes
+  const STORAGE_KEY = "fax_submit_state_v2";
+  const VERIFY_TTL_MS = 30 * 60 * 1000; // 30 min
 
-  function setVerifyStatus(t){ $("verifyStatus").textContent = t || ""; }
-  function setFaxStatus(t){ $("faxStatus").textContent = t || ""; }
+  function setStatus(t){ $("faxStatus").textContent = t || ""; }
   function out(t){ $("faxOut").textContent = t || ""; }
+  function setVStatus(t){ $("verifyStatus").textContent = t || ""; }
 
-  function getState() {
-    try { return JSON.parse(localStorage.getItem(VERIFY_STORAGE_KEY) || "{}"); }
+  function showModal(){ $("verifyModal").style.display = "flex"; }
+  function hideModal(){ $("verifyModal").style.display = "none"; }
+
+  function getState(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}"); }
     catch { return {}; }
   }
-  function setState(s) {
-    localStorage.setItem(VERIFY_STORAGE_KEY, JSON.stringify(s || {}));
+  function setState(s){
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(s || {}));
   }
-  function clearState() {
-    localStorage.removeItem(VERIFY_STORAGE_KEY);
+  function clearState(){
+    localStorage.removeItem(STORAGE_KEY);
   }
 
-  function normEmail(e){ return (e || "").trim().toLowerCase(); }
-
-  function isVerifiedForEmail(email) {
+  function enableSendIfVerified(){
     const st = getState();
-    const e = normEmail(email);
-    if (!st || !st.email || !st.verifiedAt) return false;
-    if (normEmail(st.email) !== e) return false;
-    if ((Date.now() - st.verifiedAt) > VERIFY_TTL_MS) return false;
-    return true;
-  }
-
-  function applyVerifiedUI() {
-    const email = $("email").value.trim();
-    const ok = email && isVerifiedForEmail(email);
-
+    const ok = !!(st && st.submission_id && st.verified_email && st.verified_at && (Date.now() - st.verified_at) <= VERIFY_TTL_MS);
     $("faxSend").disabled = !ok;
-
-    if (!email) setVerifyStatus("Enter your email to verify.");
-    else if (ok) setVerifyStatus("Email verified. You can send a fax.");
-    else setVerifyStatus("Not verified yet. Send the verification email, then click the link.");
+    return ok;
   }
 
-  // If the verification link sends them back like: /pages/fax.html?verified=1&email=you%40domain.com
-  // We accept it and unlock Send for that email (TTL).
-  function consumeVerificationFromURL() {
+  function summarizePending(){
+    const st = getState();
+    if (!st || !st.submission_id) return;
+
+    out(
+      `Submission: ${st.submission_id}\n` +
+      `To: ${st.to}\n` +
+      `From: ${st.from}\n` +
+      `PDF: ${st.fileName}\n` +
+      `Status: ${st.verified_at ? "email verified" : "email not verified"}\n`
+    );
+  }
+
+  // If your verification link sends them back like:
+  // /pages/fax.html?fax_verify=1&submission_id=...&email=...
+  function consumeVerifyReturn(){
     const url = new URL(location.href);
-    const verified = url.searchParams.get("verified");
+    const ok = url.searchParams.get("fax_verify");
+    const submissionId = url.searchParams.get("submission_id");
     const email = url.searchParams.get("email");
 
-    if (verified === "1" && email) {
-      $("email").value = decodeURIComponent(email);
-      setState({ email: $("email").value.trim(), verifiedAt: Date.now() });
+    if (ok === "1" && submissionId && email) {
+      const st = getState();
+      if (st && st.submission_id === submissionId) {
+        st.verified_email = decodeURIComponent(email);
+        st.verified_at = Date.now();
+        setState(st);
+      }
 
-      // Clean URL (remove params) so it doesn’t look messy
-      url.searchParams.delete("verified");
+      url.searchParams.delete("fax_verify");
+      url.searchParams.delete("submission_id");
       url.searchParams.delete("email");
       history.replaceState({}, "", url.toString());
     }
   }
 
-  $("email").addEventListener("input", applyVerifiedUI);
+  $("verifyClose").onclick = hideModal;
 
-  $("resetVerify").onclick = () => {
-    clearState();
-    out("");
-    setFaxStatus("");
-    setVerifyStatus("Verification reset.");
-    applyVerifiedUI();
+  $("verifyReset").onclick = () => {
+    const st = getState();
+    if (st) {
+      delete st.verified_email;
+      delete st.verified_at;
+      setState(st);
+    }
+    setVStatus("Verification reset.");
+    enableSendIfVerified();
+    summarizePending();
   };
 
-  $("verifyBtn").onclick = async () => {
-    const email = $("email").value.trim();
-    if (!email) return setVerifyStatus("Enter your email first.");
-
-    setVerifyStatus("Sending verification email…");
-
-    // Backend should:
-    // 1) create one-time token
-    // 2) email user a link back to: /pages/fax.html?verified=1&email=...
-    // Endpoint placeholder:
-    try {
-      const r = await fetch("/api/fax/verify/start", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email })
-      });
-      const j = await r.json().catch(()=>null);
-
-      if (!r.ok || !j) {
-        setVerifyStatus("Failed to send verification email.");
-        return;
-      }
-
-      setVerifyStatus("Verification email sent. Click the link in your inbox, then come back here.");
-    } catch {
-      setVerifyStatus("Failed to send verification email.");
-    }
-  };
-
-  $("faxSend").onclick = async () => {
-    const email = $("email").value.trim();
-    if (!isVerifiedForEmail(email)) {
-      applyVerifiedUI();
-      return;
-    }
-
+  $("faxSubmit").onclick = async () => {
     const to = $("faxTo").value.trim();
     const from = $("faxFrom").value.trim() || "surewhynot.app";
     const msg = $("faxMsg").value.trim();
     const f = $("faxFile").files && $("faxFile").files[0];
 
-    if (!to) return setFaxStatus("Missing fax number.");
-    if (!f)  return setFaxStatus("Attach a PDF.");
+    if (!to) return setStatus("Missing fax number.");
+    if (!f)  return setStatus("Attach a PDF.");
 
-    setFaxStatus("Submitting…");
+    setStatus("Submitting…");
     out("");
 
+    // Submit the fax payload (without sending). Backend returns submission_id.
+    // Endpoint placeholder: /api/fax/draft
     const fd = new FormData();
     fd.append("to", to);
     fd.append("from", from);
     fd.append("message", msg);
-    fd.append("email", email);
     fd.append("file", f, f.name);
 
     try {
-      const r = await fetch("/api/fax/submit", { method:"POST", body: fd });
+      const r = await fetch("/api/fax/draft", { method:"POST", body: fd });
+      const j = await r.json().catch(()=>null);
+
+      if (!r.ok || !j || !j.submission_id) {
+        out(`Error: ${r.status}`);
+        setStatus(j?.error || "Failed.");
+        return;
+      }
+
+      setState({
+        submission_id: j.submission_id,
+        to, from,
+        fileName: f.name,
+        created_at: Date.now(),
+        // verification fields set later
+      });
+
+      setStatus("Submitted. Verify email to unlock Send.");
+      summarizePending();
+      enableSendIfVerified();
+      showModal();
+      $("verifyEmail").value = "";
+      setVStatus("");
+    } catch {
+      setStatus("Failed.");
+    }
+  };
+
+  $("verifySend").onclick = async () => {
+    const email = $("verifyEmail").value.trim();
+    const st = getState();
+
+    if (!st || !st.submission_id) return setVStatus("No submitted fax found. Click Submit first.");
+    if (!email) return setVStatus("Enter your email.");
+
+    setVStatus("Sending verification email…");
+
+    // Backend should email a link that returns them to this page with:
+    // ?fax_verify=1&submission_id=...&email=...
+    try {
+      const r = await fetch("/api/fax/verify/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ submission_id: st.submission_id, email })
+      });
       const j = await r.json().catch(()=>null);
 
       if (!r.ok || !j) {
-        out(`Error: ${r.status}`);
-        setFaxStatus(j?.error || "Failed.");
+        setVStatus("Failed to send verification email.");
+        return;
+      }
+
+      setVStatus("Verification email sent. Click the link, then come back and press Send fax.");
+    } catch {
+      setVStatus("Failed to send verification email.");
+    }
+  };
+
+  $("faxSend").onclick = async () => {
+    const st = getState();
+    if (!st || !st.submission_id) return;
+
+    if (!enableSendIfVerified()) {
+      setStatus("Verify your email first.");
+      showModal();
+      return;
+    }
+
+    setStatus("Sending…");
+
+    try {
+      // Backend sends the fax now that email is verified.
+      // Endpoint placeholder: /api/fax/send
+      const r = await fetch("/api/fax/send", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ submission_id: st.submission_id })
+      });
+      const j = await r.json().catch(()=>null);
+
+      if (!r.ok || !j) {
+        setStatus(j?.error || "Failed.");
         return;
       }
 
       out(
-        `To: ${to}\n` +
-        `From: ${from}\n` +
-        `PDF: ${f.name} (${f.size} bytes)\n` +
-        `Pages: ${j.pages ?? "(pending)"}\n` +
-        (j.mode ? `Mode: ${j.mode}\n` : "")
+        `Submission: ${st.submission_id}\n` +
+        `To: ${st.to}\n` +
+        `From: ${st.from}\n` +
+        (j.pages ? `Pages: ${j.pages}\n` : "") +
+        (j.mode ? `Mode: ${j.mode}\n` : "") +
+        (j.status ? `Fax status: ${j.status}\n` : "Fax queued.\n")
       );
 
-      if (j.checkout_url) {
-        setFaxStatus("Redirecting to payment…");
-        location.href = j.checkout_url;
-      } else {
-        setFaxStatus("Queued.");
-      }
+      setStatus("Sent/queued.");
     } catch {
-      setFaxStatus("Failed.");
+      setStatus("Failed.");
     }
   };
 
-  consumeVerificationFromURL();
-  applyVerifiedUI();
+  // Init
+  consumeVerifyReturn();
+  enableSendIfVerified();
+  summarizePending();
 </script>
 
 </body>
 </html>
+
