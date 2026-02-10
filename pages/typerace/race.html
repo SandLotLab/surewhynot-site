@@ -297,7 +297,12 @@ qs.set("mode", mode === "online_random" ? "random" : "friends");
 if (nick) qs.set("nick", nick);
 
 if (mode === "online_friends") {
-  const code = room.replace(/\s+/g, "").toLowerCase(); // normalize
+  const code = room.trim();
+if (!code) {
+  alert("Room code required");
+  return;
+}
+
   qs.set("room", code);
   qs.set("code", code); // compatibility
   qs.set("id", code);   // compatibility
