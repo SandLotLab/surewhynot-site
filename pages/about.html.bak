@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About – surewhynot.app</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #0b0f14;
+      color: #e8edf5;
+      line-height: 1.6;
+      padding: 32px;
+    }
+    .wrap { max-width: 900px; margin: auto; }
+    a { color: #ffd27a; text-decoration: none; }
+    h1 { letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>About</h1>
+
+    <p>
+      <strong>surewhynot.app</strong> is a small lab-style site built around simple,
+      inspectable tools.
+    </p>
+
+    <p>
+      Sometimes you don’t need AI. You just need the right words.
+    </p>
+
+    <p>
+      The phrase generator runs entirely in your browser. No logins, no tracking,
+      no data sent anywhere.
+    </p>
+
+    <p>
+      Tools may change. Experiments may disappear. That’s intentional.
+    </p>
+
+    <p>
+      If it’s useful — good.  
+      If it sparks an idea — even better.
+    </p>
+
+    <p><a href="/">← Back to generator</a></p>
+  </div>
+</body>
+</html>
