@@ -55,6 +55,7 @@ export function injectTopbar(active){
   mount.prepend(host);
 }
 
+export function injectChatWidget(){
   // Don’t inject twice
   if (document.getElementById("swnChatBtn")) return;
 
