@@ -257,3 +257,52 @@ export function injectChatWidget(){
 
   render();
 }
+
+// ===============================
+// SITE CHAT (persistent, cross-page)
+// ===============================
+const SWN_CHAT_KEY = "swn_chat_room";
+const SWN_NICK_KEY = "swn_chat_nick";
+let SWN_CHAT_SOCKET = null;
+
+export function setChatRoom(room) {
+  const r = String(room || "SITE").toUpperCase();
+  localStorage.setItem(SWN_CHAT_KEY, r);
+  return r;
+}
+
+export function getChatRoom() {
+  return (localStorage.getItem(SWN_CHAT_KEY) || "SITE").toUpperCase();
+}
+
+export function setChatNick(nick) {
+  const n = String(nick || "User").slice(0, 16);
+  localStorage.setItem(SWN_NICK_KEY, n);
+  return n;
+}
+
+export function getChatNick() {
+  return (localStorage.getItem(SWN_NICK_KEY) || "User").slice(0, 16);
+}
+
+function wsBaseFromSite() {
+  // ALWAYS uses the same host you're currently on (surewhynot.app),
+  // so you don't hardcode anything.
+  return `wss://${location.host}/chat`;
+}
+
+export function getChatSocket() {
+  if (SWN_CHAT_SOCKET && SWN_CHAT_SOCKET.readyState === 1) return SWN_CHAT_SOCKET;
+
+  const room = getChatRoom();
+  const nick = getChatNick();
+
+  const qs = new URLSearchParams();
+  qs.set("room", room);
+  qs.set("nick", nick);
+
+  const ws = getChatSocket();
+  SWN_CHAT_SOCKET = ws;
+
+  return ws;
+}
