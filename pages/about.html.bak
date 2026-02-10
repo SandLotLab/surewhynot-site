@@ -20,23 +20,22 @@
   </style>
 </head>
 <body>
-  <div class="shell">
+
+  <div class="shell" data-topbar>
+
     <div class="card">
-      <h1>About</h1>
-
-      <p>surewhynot.app is a small lab-style site built around simple, inspectable tools.</p>
-
-      <p>Sometimes you don’t need AI. You just need the right words.</p>
-
-      <p>The phrase generator runs entirely in your browser. No logins, no tracking, no data sent anywhere.</p>
-
-      <p>Tools may change. Experiments may disappear. That’s intentional.</p>
-
-      <p>If it’s useful — good. If it sparks an idea — even better.</p>
-
-      <p><a href="/">← Back to generator</a></p>
+      <!-- generator (UNCHANGED) -->
     </div>
+
+    <div class="footer">
+      <a href="/pages/about.html">About</a> ·
+      <a href="/pages/privacy.html">Privacy</a> ·
+      <a href="/pages/contact.html">Contact</a>
+    </div>
+
   </div>
+
 </body>
+
 
 </html>

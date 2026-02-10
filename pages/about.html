@@ -3,39 +3,77 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>About – surewhynot.app</title>
+  <title>About — surewhynot.app</title>
+
+  <!-- Shared site styles -->
+  <link rel="stylesheet" href="/assets/css/style.css">
+
   <style>
-    :root { color-scheme: dark; }
-    body {
-      margin: 0;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      background: #0b0f14;
-      color: #e8edf5;
+    /* Page-specific only. Matches other pages. */
+    .about-text {
       line-height: 1.6;
-      padding: 32px;
+      font-size: 13px;
+      opacity: 0.92;
     }
-    .wrap { max-width: 900px; margin: auto; }
-    a { color: #ffd27a; text-decoration: none; }
-    h1 { letter-spacing: .5px; }
+    .about-text p {
+      margin: 0 0 14px;
+    }
+    .about-back {
+      margin-top: 16px;
+      font-size: 12px;
+    }
   </style>
 </head>
-<body>
 
+<!-- Topbar -->
+<script type="module">
+  import { injectTopbar } from "/assets/js/app.js";
+  injectTopbar("about");
+</script>
+
+<body>
   <div class="shell" data-topbar>
 
     <div class="card">
-      <!-- generator (UNCHANGED) -->
+      <h1>About</h1>
+
+      <div class="about-text">
+        <p>
+          <b>surewhynot.app</b> is a small lab-style site built around simple,
+          inspectable tools.
+        </p>
+
+        <p>
+          Sometimes you don’t need AI. You just need the right words.
+        </p>
+
+        <p>
+          Some tools run entirely in your browser. Others use lightweight
+          workers. No logins. No trackers. No hidden pipelines.
+        </p>
+
+        <p>
+          Tools may change. Experiments may disappear.
+          That’s intentional.
+        </p>
+
+        <p>
+          If it’s useful — good.
+          If it sparks an idea — better.
+        </p>
+      </div>
+
+      <div class="about-back">
+        <a href="/index.html">← Back to generator</a>
+      </div>
     </div>
 
-    <div class="footer">
-      <a href="/pages/about.html">About</a> ·
-      <a href="/pages/privacy.html">Privacy</a> ·
+    <footer class="footer">
+      <a href="/pages/about.html">About</a>
+      <a href="/pages/privacy.html">Privacy</a>
       <a href="/pages/contact.html">Contact</a>
-    </div>
+    </footer>
 
   </div>
-
 </body>
-
-
 </html>
