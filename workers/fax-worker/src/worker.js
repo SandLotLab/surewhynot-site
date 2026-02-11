@@ -31,11 +31,6 @@ export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
 
-    if (url.pathname === "/api/_debug/stripe") {
-      const k = env.STRIPE_SECRET_KEY || "";
-      return json({ prefix: k.slice(0, 3), len: k.length }, 200);
-    }
-
     // FAX
     if (url.pathname === "/api/fax/draft" && req.method === "POST") return draftFax(req, env);
     if (url.pathname === "/api/fax/verify/start" && req.method === "POST") return startVerify(req, env);
@@ -69,6 +64,11 @@ function bad(status, msg) {
 function ttlSeconds(env) {
   const n = parseInt(env.VERIFY_TTL_SECONDS || "1800", 10);
   return Number.isFinite(n) && n > 0 ? n : 1800;
+}
+function getStripeSecretKey(env) {
+  const key = String(env.STRIPE_SECRET_KEY || "").trim();
+  if (!key) return null;
+  return key.startsWith("sk_") ? key : null;
 }
 
 // ----------------- STATUS -----------------
@@ -110,6 +110,11 @@ async function createCheckout(req, env) {
 
   if (!draft.verified) return bad(403, "Email not verified.");
   if (draft.sent) return bad(409, "Already sent.");
+
+  const stripeSecretKey = getStripeSecretKey(env);
+  if (!stripeSecretKey) {
+    return bad(500, "Stripe is not configured. Set STRIPE_SECRET_KEY to a valid secret key (starts with sk_).");
+  }
 
   const pricing = await computePrice(env, draft);
   if (pricing.dueCents <= 0) {
@@ -154,7 +159,7 @@ async function createCheckout(req, env) {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
-      authorization: `Bearer ${env.STRIPE_SECRET_KEY}`,
+      authorization: `Bearer ${stripeSecretKey}`,
     },
     body: fd.toString(),
   });
@@ -226,6 +231,7 @@ async function draftFax(req, env) {
   const to = (form.get("to") || "").toString().trim();
   const from = env.DEFAULT_FROM_FAX;
   const message = (form.get("message") || "").toString();
+  const deviceId = (form.get("device_id") || "").toString().trim();
 
   // accept either "file" or "pdf"
   const file = form.get("file") || form.get("pdf");
@@ -325,6 +331,7 @@ async function draftFax(req, env) {
     contentUrl: contentUrl.toString(),
 
     createdAt: Date.now(),
+    deviceId: deviceId || null,
     verified: false,
     verifiedEmail: null,
     verifiedAt: null,
@@ -430,41 +437,41 @@ async function sendMailchannels(env, { to, subject, text }) {
 
 // ----------------- PRICING + USAGE -----------------
 
-function laDateKey() {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/Los_Angeles",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
 function cfgInt(env, key, fallback) {
   const v = parseInt(env[key] || "", 10);
   return Number.isFinite(v) ? v : fallback;
 }
-function usageStub(env, email) {
-  const id = env.USAGE_DO.idFromName(`${email}|${laDateKey()}`);
+function usageStub(env, usageKey) {
+  const id = env.USAGE_DO.idFromName(usageKey);
   return env.USAGE_DO.get(id);
 }
-async function getUsedPages(env, email) {
-  const r = await usageStub(env, email).fetch("https://do/used");
+async function getUsedPages(env, usageKey) {
+  if (!usageKey) return 0;
+  const r = await usageStub(env, usageKey).fetch("https://do/used");
   return (await r.json()).used || 0;
 }
-async function addUsedPages(env, email, pages) {
-  await usageStub(env, email).fetch("https://do/add", {
+async function addUsedPages(env, usageKey, pages) {
+  if (!usageKey) return;
+  await usageStub(env, usageKey).fetch("https://do/add", {
     method: "POST",
     body: JSON.stringify({ pages }),
   });
+}
+function usageKeyForDraft(draft) {
+  if (draft.deviceId) return `device:${draft.deviceId}`;
+  if (draft.verifiedEmail) return `email:${draft.verifiedEmail}`;
+  return null;
 }
 async function computePrice(env, draft) {
   const FREE = cfgInt(env, "FREE_PAGES_PER_DAY", 5);
   const PRICE = cfgInt(env, "PRICE_PER_PAGE_CENTS", 10);
 
-  const used = await getUsedPages(env, draft.verifiedEmail);
+  const usageKey = usageKeyForDraft(draft);
+  const used = await getUsedPages(env, usageKey);
   const freeLeft = Math.max(0, FREE - used);
   const paidPages = Math.max(0, draft.pages - freeLeft);
 
-  return { used, freeLeft, paidPages, dueCents: paidPages * PRICE };
+  return { used, freeLeft, paidPages, dueCents: paidPages * PRICE, usageKey };
 }
 
 async function faxPrice(url, env) {
@@ -538,7 +545,7 @@ async function sendFax(req, env) {
   await env.FAX_KV.put(KV_PREFIX + submission_id, JSON.stringify(draft), { expirationTtl: 3600 });
 
   // count pages after successful send
-  await addUsedPages(env, draft.verifiedEmail, draft.pages);
+  await addUsedPages(env, usageKeyForDraft(draft), draft.pages);
 
   return json({ status: "queued", pages: draft.pages, fax_id: draft.sinchFaxId }, 200);
 }
@@ -555,10 +562,24 @@ export class UsageDO {
   async fetch(request) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const WINDOW_MS = 24 * 60 * 60 * 1000;
+    const now = Date.now();
 
-    // current total pages used today
+    const readRecent = async () => {
+      const events = (await this.state.storage.get("events")) || [];
+      const recent = events.filter((e) => {
+        const ts = Number(e?.ts || 0);
+        const pages = Number(e?.pages || 0);
+        return Number.isFinite(ts) && Number.isFinite(pages) && pages > 0 && ts >= (now - WINDOW_MS);
+      });
+      const used = recent.reduce((sum, e) => sum + Number(e.pages || 0), 0);
+      await this.state.storage.put("events", recent);
+      return { used, recent };
+    };
+
+    // current total pages used in the last 24 hours
     if (request.method === "GET" && path === "/used") {
-      const used = (await this.state.storage.get("used")) || 0;
+      const { used } = await readRecent();
       return new Response(JSON.stringify({ used }), {
         headers: { "content-type": "application/json; charset=utf-8" },
       });
@@ -575,9 +596,10 @@ export class UsageDO {
         });
       }
 
-      const cur = (await this.state.storage.get("used")) || 0;
-      const next = cur + pages;
-      await this.state.storage.put("used", next);
+      const { recent } = await readRecent();
+      recent.push({ ts: now, pages });
+      const next = recent.reduce((sum, e) => sum + Number(e.pages || 0), 0);
+      await this.state.storage.put("events", recent);
 
       return new Response(JSON.stringify({ used: next }), {
         headers: { "content-type": "application/json; charset=utf-8" },

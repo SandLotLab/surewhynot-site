@@ -11,7 +11,7 @@
   <div class="shell" data-topbar>
     <div class="card">
       <h1>Digital Fax</h1>
-      <div class="tiny">Free up to 5 pages/day. $0.10 per page after.</div>
+      <div class="tiny">Free up to 5 pages per rolling 24 hours per device. $0.10 per page after.</div>
 
       <label>To (fax number)</label>
       <input id="faxTo" placeholder="+1 555 555 5555">
@@ -74,7 +74,17 @@
   const $ = (id) => document.getElementById(id);
 
   const STORAGE_KEY = "fax_submit_state_v3";
+  const DEVICE_ID_KEY = "fax_device_id_v1";
   const VERIFY_TTL_MS = 30 * 60 * 1000;
+
+  function getDeviceId() {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id) {
+      id = (crypto && crypto.randomUUID) ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  }
 
   function setStatus(t){ $("faxStatus").textContent = t || ""; }
   function out(t){ $("faxOut").textContent = t || ""; }
@@ -231,6 +241,7 @@
     fd.append("to", to);
     //fd.append("from", from);
     fd.append("message", msg);
+    fd.append("device_id", getDeviceId());
     fd.append("file", f, f.name);
 
     try {
