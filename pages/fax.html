@@ -217,7 +217,7 @@
 
   $("faxSubmit").onclick = async () => {
     const to = $("faxTo").value.trim();
-    const from = $("faxFrom").value.trim() || "surewhynot.app";
+    const from = $("faxFrom").value.trim();
     const msg = $("faxMsg").value.trim();
     const f = $("faxFile").files && $("faxFile").files[0];
 
@@ -229,7 +229,7 @@
 
     const fd = new FormData();
     fd.append("to", to);
-    fd.append("from", from);
+    //fd.append("from", from);
     fd.append("message", msg);
     fd.append("file", f, f.name);
 

@@ -107,16 +107,61 @@
 
     out(
       `Submission: ${st.submission_id}\n` +
-      `To: ${st.to}\n` +
-      `From: ${st.from}\n` +
-      `File: ${st.fileName}\n` +
+      `To: ${st.to || ""}\n` +
+      `From: ${st.from || ""}\n` +
+      `File: ${st.fileName || ""}\n` +
       `Status: ${st.verified_at ? "email verified" : "email not verified"}\n`
     );
   }
 
-  async function hydrateFromStatus(){
+  function getSubmissionIdFromUrl(){
     const url = new URL(location.href);
-    const submissionId = url.searchParams.get("submission_id");
+
+    // 1) ?submission_id=
+    let sid = url.searchParams.get("submission_id");
+    if (sid) return sid;
+
+    // 2) last path segment if you ever do /pages/fax/<id>
+    const parts = url.pathname.split("/").filter(Boolean);
+    const last = parts[parts.length - 1] || "";
+    // crude guard so we don't treat "fax.html" as an id
+    if (last && last !== "fax.html" && last !== "fax") return last;
+
+    return null;
+  }
+
+  function setSubmissionIdInUrl(sid){
+    const url = new URL(location.href);
+    url.searchParams.set("submission_id", sid);
+    // keep token if present, but not needed; leaving it doesn't hurt
+    history.replaceState({}, "", url.toString());
+  }
+
+  async function confirmTokenIfPresent(){
+    const url = new URL(location.href);
+    const token = url.searchParams.get("token");
+    if (!token) return null;
+
+    try {
+      const r = await fetch(`/api/fax/verify/confirm?token=${encodeURIComponent(token)}`, { method: "GET" });
+      const j = await r.json().catch(()=>null);
+      if (!r.ok || !j) return null;
+
+      // expect server to give us submission_id (handle a couple shapes)
+      const sid = j.submission_id || j.submissionId || j?.data?.submission_id || null;
+      if (!sid) return null;
+
+      setSubmissionIdInUrl(sid);
+      return sid;
+    } catch {
+      return null;
+    }
+  }
+
+  async function hydrateFromStatus(){
+    // If we arrived via token link, confirm it first and derive submission_id
+    let submissionId = await confirmTokenIfPresent();
+    if (!submissionId) submissionId = getSubmissionIdFromUrl();
     if (!submissionId) return;
 
     try {
@@ -124,11 +169,35 @@
       const j = await r.json().catch(()=>null);
       if (!r.ok || !j) return;
 
+      // normalize common shapes
+      const sid = j.submission_id || j.submissionId || submissionId;
+      const to = j.to || j.faxTo || j.destination || "";
+      const from = j.from || j.faxFrom || j.source || "";
+      const cover = j.message || j.cover || j.coverMessage || "";
+      const fileName = j.file || j.fileName || j.filename || "";
+
+      // Prefill visible form fields so the page isn't "blank" after verify
+      if (to) $("faxTo").value = to;
+      if (from) $("faxFrom").value = from;
+      if (cover) $("faxMsg").value = cover;
+
       const st = getState() || {};
-      st.submission_id = j.submission_id;
-      st.verified_email = j.verifiedEmail || null;
-      st.verified_at = j.verified ? Date.now() : null;
+      st.submission_id = sid;
+      st.to = to || st.to;
+      st.from = from || st.from;
+      st.fileName = fileName || st.fileName;
+
+      // Verified markers (support a few keys)
+      const verified = !!(j.verified || j.email_verified || j.emailVerified);
+      const verifiedEmail = j.verifiedEmail || j.email || j.verified_email || j.emailVerifiedFor || null;
+
+      st.verified_email = verifiedEmail || st.verified_email || null;
+      st.verified_at = verified ? Date.now() : st.verified_at || null;
+
       setState(st);
+
+      summarizePending();
+      enableSendIfVerified();
     } catch {}
   }
 
@@ -173,6 +242,9 @@
         setStatus(j?.error || "Failed.");
         return;
       }
+
+      // Put submission_id into URL so refresh / returning works
+      setSubmissionIdInUrl(j.submission_id);
 
       setState({
         submission_id: j.submission_id,
@@ -241,7 +313,6 @@
 
       const j = await r.json().catch(()=>null);
 
-      // If payment required -> create Stripe checkout and redirect
       if (r.status === 402 && j?.pricing) {
         setStatus(`Payment required: $${(j.pricing.dueCents/100).toFixed(2)} (${j.pricing.paidPages} page(s)). Redirecting…`);
 
