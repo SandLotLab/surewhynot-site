@@ -323,10 +323,12 @@
         });
         const pj = await pr.json().catch(()=>null);
 
-        if (!pr.ok || !pj?.url) {
+       if (!pr.ok || !pj?.url) {
           setStatus(pj?.error || "Payment create failed.");
+          out(JSON.stringify(pj, null, 2)); // show full error
           return;
-        }
+      }
+
 
         location.href = pj.url;
         return;
