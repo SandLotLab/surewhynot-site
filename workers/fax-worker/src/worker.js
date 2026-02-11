@@ -31,6 +31,20 @@ export default {
   async fetch(req, env, ctx) {
     const url = new URL(req.url);
 
+    // Debug helper to confirm which Stripe key family is active in this deployed worker.
+    if (url.pathname === "/api/_debug/stripe" && req.method === "GET") {
+      const key = String(env.STRIPE_SECRET_KEY || "").trim();
+      return json(
+        {
+          configured: !!key,
+          prefix: key ? key.slice(0, 3) : null,
+          startsWithSk: key ? key.startsWith("sk_") : false,
+          length: key.length,
+        },
+        200
+      );
+    }
+
     // FAX
     if (url.pathname === "/api/fax/draft" && req.method === "POST") return draftFax(req, env);
     if (url.pathname === "/api/fax/verify/start" && req.method === "POST") return startVerify(req, env);
@@ -165,7 +179,19 @@ async function createCheckout(req, env) {
   });
 
   const j = await r.json().catch(() => null);
-  if (!r.ok || !j?.url || !j?.id) return json({ error: "Stripe create session failed.", stripe: j }, 502);
+  if (!r.ok || !j?.url || !j?.id) {
+    return json(
+      {
+        error: "Stripe create session failed.",
+        stripe: j,
+        stripeKeyInfo: {
+          prefix: stripeSecretKey.slice(0, 3),
+          length: stripeSecretKey.length,
+        },
+      },
+      502
+    );
+  }
 
   draft.stripeSessionId = j.id;
   draft.stripeCheckoutUrl = j.url;
