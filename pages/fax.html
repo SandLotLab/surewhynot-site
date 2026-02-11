@@ -314,19 +314,9 @@
       const j = await r.json().catch(()=>null);
 
       if (r.status === 402 && j?.pricing) {
-        setStatus(`Payment required: $${(j.pricing.dueCents/100).toFixed(2)} (${j.pricing.paidPages} page(s)). Redirecting…`);
-
-        const pr = await fetch("/api/fax/pay/create", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ submission_id: st.submission_id })
-        });
-        const pj = await pr.json().catch(()=>null);
-
-        if (!pr.ok || !pj?.url) {
-          setStatus(pj?.error || "Payment create failed.");
-          return;
-        }
+  setStatus(`Payment required: $${(j.pricing.dueCents/100).toFixed(2)} (${j.pricing.paidPages} page(s)). Payments are disabled right now — reduce pages or try later.`);
+  return;
+}
 
         location.href = pj.url;
         return;
