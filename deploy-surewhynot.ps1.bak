@@ -2,7 +2,7 @@ $ErrorActionPreference = "Stop"
 
 # ===== CONFIG =====
 $RepoRoot   = "C:\Users\BigHomieCed\Desktop\GitHub\surewhynot-site"
-$WorkerConfig = Join-Path $RepoRoot "workers\fax-worker\wrangler.toml"
+$WorkerPath = Join-Path $RepoRoot "workers\fax-worker"
 $CommitMsg  = "fax paywall + 24h per-device usage + stripe key validation"
 
 Write-Host "== 1) Go to repo root ==" -ForegroundColor Cyan
@@ -29,9 +29,9 @@ if ($changes) {
   git push origin main
 }
 
-Write-Host "== 5) Deploy worker using workers/fax-worker/wrangler.toml ==" -ForegroundColor Cyan
-Set-Location $RepoRoot
-npx wrangler deploy --config "$WorkerConfig"
+Write-Host "== 5) Deploy worker from workers/fax-worker ==" -ForegroundColor Cyan
+Set-Location $WorkerPath
+npx wrangler deploy
 
 Write-Host "✅ DONE" -ForegroundColor Green
 Write-Host "If Stripe key changed, run this once then deploy again:"
