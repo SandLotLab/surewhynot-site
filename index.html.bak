@@ -9,7 +9,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>surewhynot.app</title>
-
   <link rel="stylesheet" href="/assets/css/style.css">
 
   <style>
@@ -35,76 +34,7 @@
       width:100%;
       padding:8px 10px;
       border-radius:12px;
-      border:1px solid rgba(255,255,255,0.12);
-      background:rgba(0,0,0,0.35);
-      color:#e8edf5;
-      outline:none;
-    }
-    textarea{ min-height:90px; resize:vertical; }
-    .row{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    @media (max-width:760px){ .row{ grid-template-columns:1fr; } }
-    .btns{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
-    button{
-      padding:8px 12px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,0.14);
-      background:rgba(255,255,255,0.06);
-      color:#e8edf5; cursor:pointer;
-    }
-    button.primary{ border-color: rgba(255,200,80,0.35); }
-    button:hover{ background:rgba(255,255,255,0.09); }
-    button:disabled{ opacity:.55; cursor:not-allowed; }
-    .out{
-      margin-top:14px;
-      border-radius:12px;
-      border:1px solid rgba(255,255,255,0.10);
-      background:rgba(0,0,0,0.30);
-      padding:12px;
-      white-space:pre-wrap;
-      min-height:64px;
-    }
-    .tiny{ font-size:12px; opacity:.7; margin-top:8px; }
-    .hint{ font-size:12px; opacity:.7; margin-top:6px; }
-    .micRow{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; }
-    .pill{
-      font-size:12px; opacity:.85;
-      border:1px solid rgba(255,255,255,0.12);
-      background:rgba(0,0,0,0.25);
-      padding:6px 10px; border-radius:999px;
-    }
-  </style>
-</head>
-
-<script type="module">
-  import { injectTopbar, injectChatWidget } from "/assets/js/app.js";
-  injectTopbar("home");
-  injectChatWidget();
-</script>
-
-<body>
-
-  <!-- THIS is the missing wrapper -->
-  <div class="shell" data-topbar>
-
-    <div class="card">
-      <!-- EVERYTHING BELOW IS UNCHANGED -->
-      <h1>surewhynot.app — monday generator</h1>
-
-      <label>Scenario picker (optional)</label>
-      <select id="scenario"></select>
-      <div class="hint">Pick a seed, or ignore it and type/speak instead.</div>
-
-      <div class="row">
-        <div>
-          <label>Tone</label>
-          <select id="tone"></select>
-          <div class="tiny">Scenario auto-sets tone. You can override.</div>
-        </div>
-        <div>
-          <label>Extra details (optional)</label>
-          <textarea id="details" placeholder="Add ingredients. Names, places, weird nouns, whatever."></textarea>
-          <div class="tiny">These are treated like background radiation.</div>
-        </div>
+@@ -108,37 +107,38 @@
       </div>
 
       <label>Generator box (optional — type OR voice fills this)</label>
@@ -130,7 +60,8 @@
     <div class="footer">
       <a href="/pages/about.html">About</a> ·
       <a href="/pages/privacy.html">Privacy</a> ·
-      <a href="/pages/contact.html">Contact</a>
+      <a href="/pages/contact.html">Contact</a> ·
+      <a href="/social-studio/client/">Social Studio</a>
     </div>
 
   </div>
