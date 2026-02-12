@@ -224,7 +224,7 @@ async function createCheckout(req, env) {
   });
 
   const j = await r.json().catch(() => null);
-@@ -103,26 +239,444 @@ function json(obj, status = 200) {
+
   }
 
   draft.stripeSessionId = j.id;
@@ -233,7 +233,7 @@ async function createCheckout(req, env) {
   await env.FAX_KV.put(KV_PREFIX + submission_id, JSON.stringify(draft), { expirationTtl: 3600 });
 
   return json({ url: j.url, id: j.id, pricing }, 200);
-}
+
 
 async function stripeWebhook(req, env) {
   // Minimal: accept Stripe webhook and mark draft as paid on checkout.session.completed.
