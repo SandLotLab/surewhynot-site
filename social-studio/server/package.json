@@ -12,5 +12,10 @@
     "express": "^4.19.2",
     "uuid": "^11.0.3",
     "ws": "^8.18.0"
-  }
+  },
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
