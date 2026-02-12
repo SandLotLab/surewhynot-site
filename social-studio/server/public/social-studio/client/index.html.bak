@@ -92,7 +92,6 @@ async function saveProfile() {
 
   chat.innerHTML = "";
   await loadHistory();
-  connectWs();
 }
 
 saveBtn.onclick = saveProfile;
