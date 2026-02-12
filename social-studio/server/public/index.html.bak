@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Social Studio Test</title>
+  <style>
+    body { font-family: monospace; background:#111; color:#eee; padding:20px; }
+    #chat { border:1px solid #333; height:300px; overflow:auto; padding:10px; margin-bottom:10px; }
+    input { width:80%; padding:8px; }
+    button { padding:8px; }
+  </style>
+</head>
+
+app.use(express.static(path.join(__dirname, "public")));
+
+<body>
+
+<h2>Social Studio</h2>
+
+<div id="chat"></div>
+
+<input id="msg" placeholder="type message..." />
+<button onclick="send()">Send</button>
+
+<script>
+const uuid = "ced-browser";
+
+const chat = document.getElementById("chat");
+
+function log(text) {
+  chat.innerHTML += text + "<br>";
+  chat.scrollTop = chat.scrollHeight;
+}
+
+async function send() {
+  const text = document.getElementById("msg").value;
+  document.getElementById("msg").value = "";
+
+  await fetch("http://localhost:8787/api/chat/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": uuid
+    },
+    body: JSON.stringify({ message: text })
+  });
+}
+
+async function loadHistory() {
+  const res = await fetch("http://localhost:8787/api/chat/history");
+  const data = await res.json();
+  data.messages.forEach(m => {
+    log(m.displayName + ": " + m.message);
+  });
+}
+
+const ws = new WebSocket("ws://localhost:8787/ws?uuid=" + uuid);
+
+ws.onmessage = (e) => {
+  const data = JSON.parse(e.data);
+  if (data.type === "chat:new") {
+    log(data.payload.displayName + ": " + data.payload.message);
+  }
+};
+
+loadHistory();
+</script>
+
+</body>
+</html>
