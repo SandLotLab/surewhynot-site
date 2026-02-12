@@ -99,7 +99,7 @@ async function sendMessage() {
 
   input.value = "";
 
-  await fetch("/api/chat/send", {
+  await fetch("/social-studio/api/chat/send", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -120,7 +120,7 @@ input.addEventListener("keydown", (e) => {
 ======================== */
 
 async function loadHistory() {
-  const res = await fetch("/api/chat/history");
+  const res = await fetch("/social-studio/api/chat/history");
   const data = await res.json();
   data.messages.forEach(m => {
     log(m.displayName, m.message);
@@ -132,7 +132,7 @@ async function loadHistory() {
 ======================== */
 
 const protocol = location.protocol === "https:" ? "wss://" : "ws://";
-const ws = new WebSocket(protocol + location.host + "/ws?uuid=" + uuid);
+const ws = new WebSocket(protocol + location.host + "/social-studio/ws?uuid=" + uuid);
 
 ws.onmessage = (e) => {
   const data = JSON.parse(e.data);

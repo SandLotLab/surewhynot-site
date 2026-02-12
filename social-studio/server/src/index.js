@@ -13,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
+app.use(express.static(path.join(__dirname, "../public")));
 
 const server = createServer(app);
 const wss = new WebSocketServer({ server, path: "/ws" });
@@ -80,7 +81,7 @@ app.get("/", (_req, res) => {
 /* =========================
    HEALTH CHECK
 ========================= */
-app.get("/api/health", (_req, res) => {
+app.get("/social-studio/api/health", (_req, res) => {
   res.json({
     ok: true,
     online: onlineUsers().length,
@@ -92,7 +93,7 @@ app.get("/api/health", (_req, res) => {
 /* =========================
    CHAT SEND
 ========================= */
-app.post("/api/chat/send", (req, res) => {
+app.post("/social-studio/api/chat/send", (req, res) => {
   const user = authFromReq(req);
   const text = String(req.body?.message || "").trim();
   if (!text) return res.status(400).json({ error: "message required" });
@@ -116,7 +117,7 @@ app.post("/api/chat/send", (req, res) => {
 /* =========================
    CHAT HISTORY
 ========================= */
-app.get("/api/chat/history", (_req, res) => {
+app.get("/social-studio/api/chat/history", (_req, res) => {
   res.json({ messages });
 });
 
