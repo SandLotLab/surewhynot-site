@@ -5,16 +5,43 @@
   <title>Social Studio</title>
   <style>
     body { font-family: monospace; background:#0f1115; color:#e5e7eb; padding:20px; }
-    h2 { margin-bottom: 10px; }
-    #chat { border:1px solid #333; height:350px; overflow-y:auto; padding:10px; margin-bottom:10px; background:#111318; }
+    h2 { margin-bottom:10px; }
+
+    #chat {
+      border:1px solid #333;
+      height:350px;
+      overflow-y:auto;
+      padding:10px;
+      margin-bottom:10px;
+      background:#111318;
+    }
+
     .msg { margin-bottom:6px; }
     .name { color:#7dd3fc; }
-    .row { display:flex; gap:10px; margin-bottom:10px; align-items:center; flex-wrap:wrap; }
-    input { padding:8px; background:#1c1f26; border:1px solid #333; color:white; }
-    #msg { width: 520px; max-width: 100%; }
-    #name, #room { width: 220px; max-width: 100%; }
-    button { padding:8px 12px; background:#2563eb; color:white; border:none; cursor:pointer; }
+
+    .row { display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+
+    input {
+      padding:8px;
+      background:#1c1f26;
+      border:1px solid #333;
+      color:white;
+    }
+
+    #msg { width:500px; max-width:100%; }
+    #name, #room { width:200px; }
+
+    button {
+      padding:8px 12px;
+      background:#2563eb;
+      color:white;
+      border:none;
+      cursor:pointer;
+    }
+
     button:hover { background:#1d4ed8; }
+
+    #online { margin-bottom:10px; opacity:0.8; }
   </style>
 </head>
 <body>
@@ -27,6 +54,8 @@
   <button id="saveBtn">Save</button>
 </div>
 
+<div id="online"></div>
+
 <div id="chat"></div>
 
 <div class="row">
@@ -35,6 +64,8 @@
 </div>
 
 <script>
+/* ================= Identity ================= */
+
 let uuid = localStorage.getItem("social_uuid");
 if (!uuid) {
   uuid = crypto.randomUUID();
@@ -44,16 +75,18 @@ if (!uuid) {
 const chat = document.getElementById("chat");
 const input = document.getElementById("msg");
 const button = document.getElementById("sendBtn");
-
 const nameInput = document.getElementById("name");
 const roomInput = document.getElementById("room");
 const saveBtn = document.getElementById("saveBtn");
+const onlineDiv = document.getElementById("online");
 
 let currentRoom = localStorage.getItem("social_room") || "lobby";
 let displayName = localStorage.getItem("social_name") || "";
 
 roomInput.value = currentRoom;
 nameInput.value = displayName;
+
+/* ================= UI ================= */
 
 function log(name, text) {
   const div = document.createElement("div");
@@ -63,11 +96,61 @@ function log(name, text) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+/* ================= Presence ================= */
+
+async function heartbeat() {
+  await fetch("/social-studio/api/presence/heartbeat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": uuid
+    },
+    body: JSON.stringify({ room: currentRoom })
+  });
+}
+
+async function refreshOnline() {
+  const res = await fetch(
+    "/social-studio/api/chat/presence?room=" + encodeURIComponent(currentRoom),
+    { headers: { "x-user-id": uuid } }
+  );
+  const data = await res.json();
+  onlineDiv.textContent = `Online in ${currentRoom}: ${data.onlineCount}`;
+}
+
+/* ================= Chat ================= */
+
 async function loadHistory() {
-  const res = await fetch("/social-studio/api/chat/history?room=" + encodeURIComponent(currentRoom));
+  chat.innerHTML = "";
+  const res = await fetch(
+    "/social-studio/api/chat/history?room=" + encodeURIComponent(currentRoom),
+    { headers: { "x-user-id": uuid } }
+  );
   const data = await res.json();
   (data.messages || []).forEach(m => log(m.displayName, m.message));
 }
+
+async function sendMessage() {
+  const text = input.value.trim();
+  if (!text) return;
+  input.value = "";
+
+  await fetch("/social-studio/api/chat/send", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": uuid
+    },
+    body: JSON.stringify({ message: text, room: currentRoom })
+  });
+}
+
+button.onclick = sendMessage;
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") sendMessage();
+});
+
+/* ================= Profile / Room ================= */
 
 async function saveProfile() {
   displayName = nameInput.value.trim().slice(0, 32);
@@ -79,41 +162,31 @@ async function saveProfile() {
   if (displayName) {
     await fetch("/social-studio/api/auth/display-name", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-user-id": uuid },
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": uuid
+      },
       body: JSON.stringify({ displayName })
     });
   }
 
   await fetch("/social-studio/api/chat/room", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-user-id": uuid },
+    headers: {
+      "Content-Type": "application/json",
+      "x-user-id": uuid
+    },
     body: JSON.stringify({ room: currentRoom })
   });
 
-  chat.innerHTML = "";
-  await loadHistory();
   connectWs();
+  await loadHistory();
+  await refreshOnline();
 }
 
 saveBtn.onclick = saveProfile;
 
-async function sendMessage() {
-  const text = input.value.trim();
-  if (!text) return;
-  input.value = "";
-
-  await fetch("/social-studio/api/chat/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "x-user-id": uuid },
-    body: JSON.stringify({ message: text, room: currentRoom })
-  });
-}
-
-button.onclick = sendMessage;
-
-input.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
-});
+/* ================= WebSocket ================= */
 
 const protocol = location.protocol === "https:" ? "wss://" : "ws://";
 let ws = null;
@@ -122,7 +195,12 @@ function connectWs() {
   if (ws) ws.close();
 
   ws = new WebSocket(
-    protocol + location.host + "/social-studio/ws?uuid=" + uuid + "&room=" + encodeURIComponent(currentRoom)
+    protocol +
+    location.host +
+    "/social-studio/ws?uuid=" +
+    uuid +
+    "&room=" +
+    encodeURIComponent(currentRoom)
   );
 
   ws.onmessage = (e) => {
@@ -135,8 +213,18 @@ function connectWs() {
   };
 }
 
+/* ================= Init ================= */
+
 connectWs();
 loadHistory();
+refreshOnline();
+heartbeat();
+
+/* 5 minute heartbeat */
+setInterval(async () => {
+  await heartbeat();
+  await refreshOnline();
+}, 5 * 60 * 1000);
 </script>
 
 </body>

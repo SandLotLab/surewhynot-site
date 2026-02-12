@@ -78,6 +78,14 @@ app.get("/", (_req, res) => {
   res.send("Social Studio server is running.");
 });
 
+/*============================
+  add hearbeat endpoint(online status)*/
+app.post("/social-studio/api/presence/heartbeat", (req, res) => {
+  const user = authFromReq(req);
+  markSeen(user.uuid);
+  res.json({ ok: true, lastSeenAt: Date.now() });
+});
+
 /* =========================
    HEALTH CHECK
 ========================= */
