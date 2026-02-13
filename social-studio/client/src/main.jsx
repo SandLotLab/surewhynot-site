@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import "./styles.css";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787";
+// IMPORTANT: server routes are /social-studio/api/* and WS is /social-studio/ws
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787/social-studio";
 const UUID_KEY = "social_studio_uuid_v1";
 const NAME_KEY = "social_studio_name_v1";
 const ROOM_KEY = "social_studio_room_v1";
@@ -24,16 +25,20 @@ function App() {
   const [displayName, setDisplayName] = useState(localStorage.getItem(NAME_KEY) || "");
   const [room, setRoom] = useState(localStorage.getItem(ROOM_KEY) || "lobby");
   const [theme, setTheme] = useState(localStorage.getItem(THEME_KEY) || "midnight");
-  const [auth, setAuth] = useState(null);
+
+  const [user, setUser] = useState(null); // server returns { ok, user }
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [presence, setPresence] = useState({ onlineCount: 0, users: [] });
+
   const [dailyBoard, setDailyBoard] = useState([]);
   const [globalBoard, setGlobalBoard] = useState([]);
-  const [puzzle, setPuzzle] = useState(null);
+
+  const [puzzle, setPuzzle] = useState(null); // server: { ok, puzzle: { day,type,scramble,hint } }
   const [puzzleInput, setPuzzleInput] = useState("");
-  const [puzzleState, setPuzzleState] = useState(null);
-  const [track, setTrack] = useState(null);
+  const [puzzleState, setPuzzleState] = useState(null); // server: { ok, day, solved }
+
+  const [track, setTrack] = useState(null); // server stub returns { ok, track: null }
   const [status, setStatus] = useState("Ready");
   const [socket, setSocket] = useState(null);
 
@@ -41,7 +46,7 @@ function App() {
     const res = await fetch(`${API_BASE}${path}`, {
       ...opts,
       headers: {
-        "content-type": "application/json",
+        "Content-Type": "application/json",
         "x-user-id": uuid,
         ...(opts.headers || {}),
       },
@@ -51,9 +56,7 @@ function App() {
     return body;
   }
 
-  useEffect(() => {
-    localStorage.setItem(ROOM_KEY, room);
-  }, [room]);
+  useEffect(() => localStorage.setItem(ROOM_KEY, room), [room]);
   useEffect(() => {
     localStorage.setItem(THEME_KEY, theme);
     document.documentElement.setAttribute("data-theme", theme);
@@ -63,9 +66,27 @@ function App() {
   }, [displayName]);
 
   const wsUrl = useMemo(() => {
-    const base = API_BASE.replace(/^http/, "ws");
-    return `${base}/ws?uuid=${encodeURIComponent(uuid)}&room=${encodeURIComponent(room)}`;
+    const wsBase = API_BASE.replace(/^http/, "ws"); // keeps /social-studio
+    return `${wsBase}/ws?uuid=${encodeURIComponent(uuid)}&room=${encodeURIComponent(room)}`;
   }, [uuid, room]);
+
+  async function bootstrap() {
+    const data = await api("/api/auth/anonymous", {
+      method: "POST",
+      body: JSON.stringify({
+        uuid,
+        displayName: displayName || undefined,
+        room,
+      }),
+    });
+
+    // server returns { ok: true, user: {...} }
+    setUser(data.user);
+
+    // if server assigned default name, keep it
+    if (!displayName && data.user?.displayName) setDisplayName(data.user.displayName);
+    if (data.user?.room && data.user.room !== room) setRoom(data.user.room);
+  }
 
   async function loadAll() {
     const [h, p, d, g, t, ps, music] = await Promise.all([
@@ -82,23 +103,17 @@ function App() {
     setPresence(p);
     setDailyBoard(d.rows || []);
     setGlobalBoard(g.rows || []);
-    setPuzzle(t);
+    setPuzzle(t.puzzle || null);
     setPuzzleState(ps);
-    setTrack(music);
+    setTrack(music.track ?? null);
   }
 
   useEffect(() => {
     (async () => {
-      const data = await api("/api/auth/anonymous", {
-        method: "POST",
-        body: JSON.stringify({ uuid, displayName: displayName || undefined, room }),
-      });
-      setAuth(data);
-      if (!displayName && data.displayName) setDisplayName(data.displayName);
-      if (data.room && data.room !== room) setRoom(data.room);
-      if (data.theme && data.theme !== theme) setTheme(data.theme);
+      await bootstrap();
       await loadAll();
     })().catch((e) => setStatus(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [uuid]);
 
   useEffect(() => {
@@ -109,23 +124,24 @@ function App() {
       setStatus(`Connected (${room})`);
       ws.send(JSON.stringify({ type: "chat:join", room }));
     };
+
     ws.onmessage = (ev) => {
       const msg = JSON.parse(ev.data);
+
       if (msg.type === "chat:new") {
         setMessages((m) => [...m, msg.payload].slice(-100));
       }
-      if (msg.type === "presence:update") {
-        if (!msg.payload?.room || msg.payload.room === room) {
-          api(`/api/chat/presence?room=${encodeURIComponent(room)}`).then(setPresence).catch(() => {});
-        }
-      }
+
       if (msg.type === "hello") {
-        setAuth((prev) => ({ ...(prev || {}), ...msg.payload }));
+        // server sends full user object
+        setUser(msg.payload);
       }
+
       if (msg.type === "chat:joined") {
         setStatus(`Joined ${msg.payload.room}`);
       }
     };
+
     ws.onclose = () => setStatus("Disconnected");
 
     const heartbeat = setInterval(() => {
@@ -136,10 +152,11 @@ function App() {
       clearInterval(heartbeat);
       ws.close();
     };
-  }, [wsUrl]);
+  }, [wsUrl, room]);
 
   useEffect(() => {
     loadAll().catch((e) => setStatus(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room]);
 
   async function sendMessage() {
@@ -150,6 +167,10 @@ function App() {
       } else {
         await api("/api/chat/send", { method: "POST", body: JSON.stringify({ room, message }) });
       }
+
+      // refresh user XP + boards/presence after sending
+      await bootstrap();
+      await loadAll();
       setMessage("");
     } catch (e) {
       setStatus(e.message);
@@ -158,32 +179,33 @@ function App() {
 
   async function saveName() {
     try {
-      await api("/api/auth/display-name", { method: "POST", body: JSON.stringify({ displayName }) });
+      const res = await api("/api/auth/display-name", {
+        method: "POST",
+        body: JSON.stringify({ displayName }),
+      });
+      // server returns fields, but user is source of truth
+      await bootstrap();
+      await loadAll();
       setStatus("Name updated");
-      loadAll();
     } catch (e) {
       setStatus(e.message);
     }
   }
 
   async function changeTheme(next) {
+    // client-only for now (your server doesn't implement /api/auth/theme)
     setTheme(next);
-    try {
-      const res = await api("/api/auth/theme", { method: "POST", body: JSON.stringify({ theme: next }) });
-      setAuth((prev) => ({ ...(prev || {}), ...res }));
-      setStatus(`Theme set: ${next}`);
-    } catch (e) {
-      setStatus(e.message);
-      setTheme(auth?.theme || "midnight");
-    }
+    setStatus(`Theme set: ${next}`);
   }
 
   async function changeRoom(nextRoom) {
-    const normalized = nextRoom.trim() || "lobby";
+    const normalized = (nextRoom || "").trim() || "lobby";
     try {
       const res = await api("/api/chat/room", { method: "POST", body: JSON.stringify({ room: normalized }) });
       setRoom(res.room);
       if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "chat:join", room: res.room }));
+      await bootstrap();
+      await loadAll();
       setStatus(`Room set: ${res.room}`);
     } catch (e) {
       setStatus(e.message);
@@ -192,25 +214,25 @@ function App() {
 
   async function submitPuzzle() {
     try {
-      const result = await api("/api/puzzle/submit", { method: "POST", body: JSON.stringify({ move: puzzleInput }) });
-      setStatus(result.correct ? `Solved! +${result.awardedXp} XP` : "Try again");
+      const result = await api("/api/puzzle/submit", {
+        method: "POST",
+        body: JSON.stringify({ guess: puzzleInput }),
+      });
+
+      if (result.solved) setStatus(`Solved! +${result.awardXp || 0} XP`);
+      else setStatus("Try again");
+
       setPuzzleInput("");
-      loadAll();
+      await bootstrap();
+      await loadAll();
     } catch (e) {
       setStatus(e.message);
     }
   }
 
   async function callTool(route) {
-    try {
-      const result = await api(route, {
-        method: "POST",
-        body: JSON.stringify({ fileSizeBytes: 1024 * 1024, expiryHours: 6 }),
-      });
-      setStatus(`Tool queued: ${result.tool}`);
-    } catch (e) {
-      setStatus(e.message);
-    }
+    // server doesn't implement tools yet; keep as UI-only
+    setStatus(`Missing server route: ${route}`);
   }
 
   return (
@@ -224,7 +246,11 @@ function App() {
 
         <h4>Theme</h4>
         <select value={theme} onChange={(e) => changeTheme(e.target.value)}>
-          {THEMES.map((t) => <option key={t} value={t}>{t}</option>)}
+          {THEMES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
         </select>
 
         <h4>Subscription</h4>
@@ -241,18 +267,21 @@ function App() {
           <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Display name" />
           <button onClick={saveName}>Save</button>
           <span>UUID: {uuid.slice(0, 8)}…</span>
-          <span>XP: {auth?.xpTotal ?? 0}</span>
+          <span>XP: {user?.xpTotal ?? 0}</span>
+          <span>Daily: {user?.dailyXp ?? 0}</span>
         </div>
 
         <div className="nameRow">
-          <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="room (e.g. lobby or private-team)" />
+          <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="room (e.g. lobby)" />
           <button onClick={() => changeRoom(room)}>Join room</button>
-          <span>Current room: {auth?.room || room}</span>
+          <span>Current room: {user?.room || room}</span>
         </div>
 
         <section className="messages">
           {messages.map((m) => (
-            <div key={m.id}><b>{m.displayName}</b> <small>[{m.room}]</small>: {m.message}</div>
+            <div key={m.id}>
+              <b>{m.displayName}</b> <small>[{m.room}]</small>: {m.message}
+            </div>
           ))}
         </section>
 
@@ -264,27 +293,55 @@ function App() {
 
       <aside className="right panel">
         <h3>Online users ({presence.onlineCount})</h3>
-        <ul>{presence.users.map((u) => <li key={u.uuid}>{u.displayName} ({u.xpTotal})</li>)}</ul>
+        <ul>
+          {presence.users.map((u) => (
+            <li key={u.uuid}>
+              {u.displayName} ({u.xpTotal ?? 0})
+            </li>
+          ))}
+        </ul>
+
         <h3>Daily Leaderboard</h3>
-        <ol>{dailyBoard.slice(0, 5).map((u) => <li key={u.uuid}>{u.displayName}: {u.xp}</li>)}</ol>
+        <ol>
+          {dailyBoard.slice(0, 5).map((u) => (
+            <li key={u.uuid}>
+              {u.displayName}: {u.dailyXp ?? 0}
+            </li>
+          ))}
+        </ol>
+
         <h3>Global Leaderboard</h3>
-        <ol>{globalBoard.slice(0, 5).map((u) => <li key={u.uuid}>{u.displayName}: {u.xp}</li>)}</ol>
+        <ol>
+          {globalBoard.slice(0, 5).map((u) => (
+            <li key={u.uuid}>
+              {u.displayName}: {u.xpTotal ?? 0}
+            </li>
+          ))}
+        </ol>
       </aside>
 
       <section className="puzzle panel">
         <h3>Daily Puzzle</h3>
-        <p>{puzzle?.prompt}</p>
+        <div>
+          <div>
+            <b>Scramble:</b> {puzzle?.scramble || "…"}
+          </div>
+          <div>
+            <b>Hint:</b> {puzzle?.hint || "…"}
+          </div>
+        </div>
+
         <input value={puzzleInput} onChange={(e) => setPuzzleInput(e.target.value)} placeholder="Enter answer" />
-        <button onClick={submitPuzzle}>Submit move</button>
+        <button onClick={submitPuzzle}>Submit</button>
         <div>Solved: {String(puzzleState?.solved || false)}</div>
       </section>
 
       <section className="music panel">
         <h3>Music Sync (Frontend only)</h3>
-        <div className="tiny">Now playing: {track ? `${track.track} — ${track.artist}` : "loading..."}</div>
+        <div className="tiny">Now playing: {track ? "custom track" : "none"}</div>
         <iframe
           title="spotify"
-          src={track?.embedUrl || "https://open.spotify.com/embed/track/11dFghVXANMlKmJXsNCbNl"}
+          src={"https://open.spotify.com/embed/track/11dFghVXANMlKmJXsNCbNl"}
           width="100%"
           height="152"
           allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"

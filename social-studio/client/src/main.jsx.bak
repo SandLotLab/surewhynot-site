@@ -1,0 +1,97 @@
+import React, { useEffect, useMemo, useState } from "react";
+import { createRoot } from "react-dom/client";
+import "./styles.css";
+
+// IMPORTANT: server routes are /social-studio/api/* and WS is /social-studio/ws
+const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787/social-studio";
+const UUID_KEY = "social_studio_uuid_v1";
+const NAME_KEY = "social_studio_name_v1";
+const ROOM_KEY = "social_studio_room_v1";
+const THEME_KEY = "social_studio_theme_v1";
+
+const THEMES = ["midnight", "sunset", "forest", "violet"];
+
+function getOrCreateUuid() {
+  let uuid = localStorage.getItem(UUID_KEY);
+  if (!uuid) {
+    uuid = crypto.randomUUID();
+    localStorage.setItem(UUID_KEY, uuid);
+  }
+  return uuid;
+}
+
+function App() {
+  const [uuid] = useState(getOrCreateUuid);
+  const [displayName, setDisplayName] = useState(localStorage.getItem(NAME_KEY) || "");
+  const [room, setRoom] = useState(localStorage.getItem(ROOM_KEY) || "lobby");
+  const [theme, setTheme] = useState(localStorage.getItem(THEME_KEY) || "midnight");
+
+  const [user, setUser] = useState(null); // server returns { ok, user }
+  const [message, setMessage] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [presence, setPresence] = useState({ onlineCount: 0, users: [] });
+
+  const [dailyBoard, setDailyBoard] = useState([]);
+  const [globalBoard, setGlobalBoard] = useState([]);
+
+  const [puzzle, setPuzzle] = useState(null); // server: { ok, puzzle: { day,type,scramble,hint } }
+  const [puzzleInput, setPuzzleInput] = useState("");
+  const [puzzleState, setPuzzleState] = useState(null); // server: { ok, day, solved }
+
+  const [track, setTrack] = useState(null); // server stub returns { ok, track: null }
+  const [status, setStatus] = useState("Ready");
+  const [socket, setSocket] = useState(null);
+
+  async function api(path, opts = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+      ...opts,
+      headers: {
+        "Content-Type": "application/json",
+        "x-user-id": uuid,
+        ...(opts.headers || {}),
+      },
+    });
+    const body = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(body.error || `HTTP ${res.status}`);
+    return body;
+  }
+
+  useEffect(() => localStorage.setItem(ROOM_KEY, room), [room]);
+  useEffect(() => {
+    localStorage.setItem(THEME_KEY, theme);
+    document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
+  useEffect(() => {
+    if (displayName) localStorage.setItem(NAME_KEY, displayName);
+  }, [displayName]);
+
+  const wsUrl = useMemo(() => {
+    const wsBase = API_BASE.replace(/^http/, "ws"); // keeps /social-studio
+    return `${wsBase}/ws?uuid=${encodeURIComponent(uuid)}&room=${encodeURIComponent(room)}`;
+  }, [uuid, room]);
+
+  async function bootstrap() {
+    const data = await api("/api/auth/anonymous", {
+      method: "POST",
+      body: JSON.stringify({
+        uuid,
+        displayName: displayName || undefined,
+        room,
+      }),
+    });
+
+    // server returns { ok: true, user: {...} }
+    setUser(data.user);
+
+    // if server assigned default name, keep it
+    if (!displayName && data.user?.displayName) setDisplayName(data.user.displayName);
+    if (data.user?.room && data.user.room !== room) setRoom(data.user.room);
+  }
+
+  async function loadAll() {
+    const [h, p, d, g, t, ps, music] = await Promise.all([
+      api(`/api/chat/history?room=${encodeURIComponent(room)}`),
+      api(`/api/chat/presence?room=${encodeURIComponent(room)}`),
+      api("/api/leaderboard/daily"),
+      api("/api/leaderboard/global"),
+      api("/api/pu
