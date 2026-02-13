@@ -247,16 +247,17 @@ function App() {
   }
 
   async function callTool(route) {
-    try {
-      const res = await api(route, {
-        method: "POST",
-        body: JSON.stringify({ fileSizeBytes: 12345, expiryHours: 6 }),
-      });
-      setStatus(`${res.tool}: ${res.status}`);
-    } catch (e) {
-      setStatus(e.message);
-    }
+  try {
+    const result = await api(route, {
+      method: "POST",
+      body: JSON.stringify({ expiryHours: 6, fileSizeBytes: 12345 }),
+    });
+    setStatus(JSON.stringify(result));
+  } catch (e) {
+    setStatus(e.message);
   }
+}
+
 
   return (
     <div className="layout">
