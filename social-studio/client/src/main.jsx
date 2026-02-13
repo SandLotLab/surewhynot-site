@@ -8,6 +8,7 @@ const UUID_KEY = "social_studio_uuid_v1";
 const NAME_KEY = "social_studio_name_v1";
 const ROOM_KEY = "social_studio_room_v1";
 const THEME_KEY = "social_studio_theme_v1";
+const [tools, setTools] = useState([]);
 
 const THEMES = ["midnight", "sunset", "forest", "violet"];
 
@@ -89,24 +90,26 @@ function App() {
   }
 
   async function loadAll() {
-    const [h, p, d, g, t, ps, music] = await Promise.all([
-      api(`/api/chat/history?room=${encodeURIComponent(room)}`),
-      api(`/api/chat/presence?room=${encodeURIComponent(room)}`),
-      api("/api/leaderboard/daily"),
-      api("/api/leaderboard/global"),
-      api("/api/puzzle/today"),
-      api("/api/puzzle/state"),
-      api("/api/music/current"),
-    ]);
+  const [h, p, d, g, t, ps, music, tl] = await Promise.all([
+    api(`/api/chat/history?room=${encodeURIComponent(room)}`),
+    api(`/api/chat/presence?room=${encodeURIComponent(room)}`),
+    api("/api/leaderboard/daily"),
+    api("/api/leaderboard/global"),
+    api("/api/puzzle/today"),
+    api("/api/puzzle/state"),
+    api("/api/music/current"),
+    api("/api/tools"),
+  ]);
 
-    setMessages(h.messages || []);
-    setPresence(p);
-    setDailyBoard(d.rows || []);
-    setGlobalBoard(g.rows || []);
-    setPuzzle(t.puzzle || null);
-    setPuzzleState(ps);
-    setTrack(music.track ?? null);
-  }
+  setMessages(h.messages || []);
+  setPresence(p);
+  setDailyBoard(d.rows || []);
+  setGlobalBoard(g.rows || []);
+  setPuzzle(t);
+  setPuzzleState(ps);
+  setTrack(music);
+  setTools(tl.tools || []);
+}
 
   useEffect(() => {
     (async () => {
@@ -239,18 +242,17 @@ function App() {
     <div className="layout">
       <aside className="sidebar panel">
         <h3>Tools</h3>
-        <button onClick={() => callTool("/api/tools/pdf/merge")}>PDF Merge</button>
-        <button onClick={() => callTool("/api/tools/pdf/compress")}>PDF Compress</button>
-        <button onClick={() => callTool("/api/tools/invoice")}>Invoice Generator</button>
-        <button onClick={() => callTool("/api/tools/share")}>Expiring Share</button>
+        {tools.length === 0 && <div className="tiny">Loading tools…</div>}
 
-        <h4>Theme</h4>
-        <select value={theme} onChange={(e) => changeTheme(e.target.value)}>
-          {THEMES.map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
+         {tools.map((t) => (
+           <button
+             key={t.id}
+             onClick={() => callTool(t.path.replace("/social-studio", ""))}
+           >
+             {t.id}
+           </button>
+         ))}
+
         </select>
 
         <h4>Subscription</h4>
