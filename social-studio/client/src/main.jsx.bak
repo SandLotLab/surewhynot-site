@@ -94,4 +94,262 @@ function App() {
       api(`/api/chat/presence?room=${encodeURIComponent(room)}`),
       api("/api/leaderboard/daily"),
       api("/api/leaderboard/global"),
-      api("/api/pu
+      api("/api/puzzle/today"),
+      api("/api/puzzle/state"),
+      api("/api/music/current"),
+    ]);
+
+    setMessages(h.messages || []);
+    setPresence(p);
+    setDailyBoard(d.rows || []);
+    setGlobalBoard(g.rows || []);
+    setPuzzle(t.puzzle || null);
+    setPuzzleState(ps);
+    setTrack(music.track ?? null);
+  }
+
+  useEffect(() => {
+    (async () => {
+      await bootstrap();
+      await loadAll();
+    })().catch((e) => setStatus(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [uuid]);
+
+  useEffect(() => {
+    const ws = new WebSocket(wsUrl);
+    setSocket(ws);
+
+    ws.onopen = () => {
+      setStatus(`Connected (${room})`);
+      ws.send(JSON.stringify({ type: "chat:join", room }));
+    };
+
+    ws.onmessage = (ev) => {
+      const msg = JSON.parse(ev.data);
+
+      if (msg.type === "chat:new") {
+        setMessages((m) => [...m, msg.payload].slice(-100));
+      }
+
+      if (msg.type === "hello") {
+        // server sends full user object
+        setUser(msg.payload);
+      }
+
+      if (msg.type === "chat:joined") {
+        setStatus(`Joined ${msg.payload.room}`);
+      }
+    };
+
+    ws.onclose = () => setStatus("Disconnected");
+
+    const heartbeat = setInterval(() => {
+      if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: "heartbeat" }));
+    }, 30_000);
+
+    return () => {
+      clearInterval(heartbeat);
+      ws.close();
+    };
+  }, [wsUrl, room]);
+
+  useEffect(() => {
+    loadAll().catch((e) => setStatus(e.message));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room]);
+
+  async function sendMessage() {
+    if (!message.trim()) return;
+    try {
+      if (socket?.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: "chat:send", room, message }));
+      } else {
+        await api("/api/chat/send", { method: "POST", body: JSON.stringify({ room, message }) });
+      }
+
+      // refresh user XP + boards/presence after sending
+      await bootstrap();
+      await loadAll();
+      setMessage("");
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function saveName() {
+    try {
+      const res = await api("/api/auth/display-name", {
+        method: "POST",
+        body: JSON.stringify({ displayName }),
+      });
+      // server returns fields, but user is source of truth
+      await bootstrap();
+      await loadAll();
+      setStatus("Name updated");
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function changeTheme(next) {
+    // client-only for now (your server doesn't implement /api/auth/theme)
+    setTheme(next);
+    setStatus(`Theme set: ${next}`);
+  }
+
+  async function changeRoom(nextRoom) {
+    const normalized = (nextRoom || "").trim() || "lobby";
+    try {
+      const res = await api("/api/chat/room", { method: "POST", body: JSON.stringify({ room: normalized }) });
+      setRoom(res.room);
+      if (socket?.readyState === WebSocket.OPEN) socket.send(JSON.stringify({ type: "chat:join", room: res.room }));
+      await bootstrap();
+      await loadAll();
+      setStatus(`Room set: ${res.room}`);
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function submitPuzzle() {
+    try {
+      const result = await api("/api/puzzle/submit", {
+        method: "POST",
+        body: JSON.stringify({ guess: puzzleInput }),
+      });
+
+      if (result.solved) setStatus(`Solved! +${result.awardXp || 0} XP`);
+      else setStatus("Try again");
+
+      setPuzzleInput("");
+      await bootstrap();
+      await loadAll();
+    } catch (e) {
+      setStatus(e.message);
+    }
+  }
+
+  async function callTool(route) {
+    // server doesn't implement tools yet; keep as UI-only
+    setStatus(`Missing server route: ${route}`);
+  }
+
+  return (
+    <div className="layout">
+      <aside className="sidebar panel">
+        <h3>Tools</h3>
+        <button onClick={() => callTool("/api/tools/pdf/merge")}>PDF Merge</button>
+        <button onClick={() => callTool("/api/tools/pdf/compress")}>PDF Compress</button>
+        <button onClick={() => callTool("/api/tools/invoice")}>Invoice Generator</button>
+        <button onClick={() => callTool("/api/tools/share")}>Expiring Share</button>
+
+        <h4>Theme</h4>
+        <select value={theme} onChange={(e) => changeTheme(e.target.value)}>
+          {THEMES.map((t) => (
+            <option key={t} value={t}>
+              {t}
+            </option>
+          ))}
+        </select>
+
+        <h4>Subscription</h4>
+        <small>Premium unlocks private rooms, custom themes, and higher limits.</small>
+      </aside>
+
+      <main className="chat panel">
+        <header>
+          <h1>Social Studio</h1>
+          <div className="status">{status}</div>
+        </header>
+
+        <div className="nameRow">
+          <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Display name" />
+          <button onClick={saveName}>Save</button>
+          <span>UUID: {uuid.slice(0, 8)}…</span>
+          <span>XP: {user?.xpTotal ?? 0}</span>
+          <span>Daily: {user?.dailyXp ?? 0}</span>
+        </div>
+
+        <div className="nameRow">
+          <input value={room} onChange={(e) => setRoom(e.target.value)} placeholder="room (e.g. lobby)" />
+          <button onClick={() => changeRoom(room)}>Join room</button>
+          <span>Current room: {user?.room || room}</span>
+        </div>
+
+        <section className="messages">
+          {messages.map((m) => (
+            <div key={m.id}>
+              <b>{m.displayName}</b> <small>[{m.room}]</small>: {m.message}
+            </div>
+          ))}
+        </section>
+
+        <footer>
+          <input value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Send a message" />
+          <button onClick={sendMessage}>Send</button>
+        </footer>
+      </main>
+
+      <aside className="right panel">
+        <h3>Online users ({presence.onlineCount})</h3>
+        <ul>
+          {presence.users.map((u) => (
+            <li key={u.uuid}>
+              {u.displayName} ({u.xpTotal ?? 0})
+            </li>
+          ))}
+        </ul>
+
+        <h3>Daily Leaderboard</h3>
+        <ol>
+          {dailyBoard.slice(0, 5).map((u) => (
+            <li key={u.uuid}>
+              {u.displayName}: {u.dailyXp ?? 0}
+            </li>
+          ))}
+        </ol>
+
+        <h3>Global Leaderboard</h3>
+        <ol>
+          {globalBoard.slice(0, 5).map((u) => (
+            <li key={u.uuid}>
+              {u.displayName}: {u.xpTotal ?? 0}
+            </li>
+          ))}
+        </ol>
+      </aside>
+
+      <section className="puzzle panel">
+        <h3>Daily Puzzle</h3>
+        <div>
+          <div>
+            <b>Scramble:</b> {puzzle?.scramble || "…"}
+          </div>
+          <div>
+            <b>Hint:</b> {puzzle?.hint || "…"}
+          </div>
+        </div>
+
+        <input value={puzzleInput} onChange={(e) => setPuzzleInput(e.target.value)} placeholder="Enter answer" />
+        <button onClick={submitPuzzle}>Submit</button>
+        <div>Solved: {String(puzzleState?.solved || false)}</div>
+      </section>
+
+      <section className="music panel">
+        <h3>Music Sync (Frontend only)</h3>
+        <div className="tiny">Now playing: {track ? "custom track" : "none"}</div>
+        <iframe
+          title="spotify"
+          src={"https://open.spotify.com/embed/track/11dFghVXANMlKmJXsNCbNl"}
+          width="100%"
+          height="152"
+          allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+          loading="lazy"
+        />
+      </section>
+    </div>
+  );
+}
+
+createRoot(document.getElementById("root")).render(<App />);

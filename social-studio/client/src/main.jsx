@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./styles.css";
 
 // IMPORTANT: server routes are /social-studio/api/* and WS is /social-studio/ws
-const API_BASE = import.meta.env.VITE_API_BASE || "http://localhost:8787/social-studio";
+const API_BASE = "/social-studio";
 const UUID_KEY = "social_studio_uuid_v1";
 const NAME_KEY = "social_studio_name_v1";
 const ROOM_KEY = "social_studio_room_v1";
