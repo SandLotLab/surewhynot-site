@@ -16,9 +16,6 @@ import toolsRoutes from "./routes/tools.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const app = express();
-app.use("/social-studio", toolsRoutes);
-
 
 // Serves: server/public/... (your client lives at public/social-studio/client/index.html)
 const PUBLIC_DIR = path.join(__dirname, "../public");
@@ -34,8 +31,10 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
-app.use(toolsRoutes);
+// ✅ mount tools under /social-studio so tools.js routes like /api/tools/... become /social-studio/api/tools/...
+app.use("/social-studio", toolsRoutes);
 
+// Serve static after API mounts (either order works, this is cleaner)
 app.use(express.static(PUBLIC_DIR));
 
 const server = createServer(app);

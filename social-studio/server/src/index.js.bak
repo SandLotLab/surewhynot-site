@@ -8,6 +8,7 @@ import { randomUUID } from "crypto";
 import path from "path";
 import fs from "fs";
 import { fileURLToPath } from "url";
+import toolsRoutes from "./routes/tools.js";
 
 /* ========================
    Paths
@@ -15,6 +16,8 @@ import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+app.use("/social-studio", toolsRoutes);
+
 
 // Serves: server/public/... (your client lives at public/social-studio/client/index.html)
 const PUBLIC_DIR = path.join(__dirname, "../public");

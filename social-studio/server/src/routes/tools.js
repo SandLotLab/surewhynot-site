@@ -1,12 +1,8 @@
 // social-studio/server/src/routes/tools.js
 import express from "express";
+import { buildInvoice } from "../tools/invoice.js";
 
 const router = express.Router();
-
-/*
-  Placeholder “business tools” endpoints.
-  These just prove the API wiring works.
-*/
 
 function num(v, fallback) {
   const n = Number(v);
@@ -37,14 +33,15 @@ router.post("/api/tools/pdf/compress", (req, res) => {
   });
 });
 
+/* REPLACE ONLY THIS ROUTE */
 router.post("/api/tools/invoice", (req, res) => {
+  const invoice = buildInvoice(req.body || {});
   res.json({
     ok: true,
     tool: "invoice",
-    status: "placeholder",
+    status: "working",
     accepted: true,
-    invoiceId: `inv_${Date.now()}`,
-    message: "Generated (stub). Implement real invoice generator later.",
+    invoice,
   });
 });
 
