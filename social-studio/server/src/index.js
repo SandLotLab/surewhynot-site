@@ -33,7 +33,7 @@ app.use(express.static(PUBLIC_DIR));
 
 const server = createServer(app);
 
-// IMPORTANT: WS path matches your client (/social-studio/ws)
+// WS path matches your client
 const wss = new WebSocketServer({ server, path: "/social-studio/ws" });
 
 const PORT = process.env.PORT || 8787;
@@ -42,7 +42,7 @@ const PORT = process.env.PORT || 8787;
    In-memory state
 ======================== */
 
-const PRESENCE_MS = 10 * 60 * 1000; // 10 minutes "online window" (for /presence list)
+const PRESENCE_MS = 2 * 60 * 1000; // 2 minutes online window
 const MESSAGE_HISTORY_LIMIT = 300;
 
 const users = new Map(); // uuid -> user
@@ -97,6 +97,10 @@ function schedulePersist() {
    Helpers
 ======================== */
 
+function dayKey(d = new Date()) {
+  return d.toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
 function safeRoom(room) {
   const r = String(room || "lobby").trim().slice(0, 32);
   return r || "lobby";
@@ -107,6 +111,25 @@ function safeName(name) {
   return n;
 }
 
+function ensureXpFields(u) {
+  if (typeof u.xpTotal !== "number") u.xpTotal = 0;
+  if (typeof u.dailyXp !== "number") u.dailyXp = 0;
+  if (typeof u.lastLoginDay !== "string") u.lastLoginDay = null;
+  if (typeof u.solvedDay !== "string") u.solvedDay = null;
+  return u;
+}
+
+function applyDailyLoginBonus(u) {
+  const today = dayKey();
+  if (u.lastLoginDay !== today) {
+    u.lastLoginDay = today;
+    u.dailyXp = 0;
+    u.xpTotal += 10;
+    u.dailyXp += 10;
+  }
+  return u;
+}
+
 function getUser(uuid) {
   if (!users.has(uuid)) {
     users.set(uuid, {
@@ -115,15 +138,22 @@ function getUser(uuid) {
       room: "lobby",
       lastSeenAt: 0,
       createdAt: Date.now(),
+      xpTotal: 0,
+      dailyXp: 0,
+      lastLoginDay: null,
+      solvedDay: null,
     });
     schedulePersist();
   }
-  return users.get(uuid);
+  const u = users.get(uuid);
+  ensureXpFields(u);
+  return u;
 }
 
 function markSeen(uuid) {
   const u = getUser(uuid);
   u.lastSeenAt = Date.now();
+  applyDailyLoginBonus(u);
   schedulePersist();
   return u;
 }
@@ -139,7 +169,7 @@ function authFromReq(req) {
 function onlineUsers(room = null) {
   const cutoff = Date.now() - PRESENCE_MS;
   return [...users.values()].filter((u) => {
-    if (u.lastSeenAt < cutoff) return false;
+    if ((u.lastSeenAt || 0) < cutoff) return false;
     if (room && (u.room || "lobby") !== room) return false;
     return true;
   });
@@ -162,11 +192,44 @@ function broadcast(type, payload, room = null) {
 }
 
 /* ========================
+   Daily Puzzle (minimal)
+======================== */
+
+function pickDailyAnswer(k) {
+  const words = ["ORBIT", "LASER", "CLOUD", "STACK", "TOKEN", "ROUTE", "CRYPT"];
+  let h = 0;
+  for (const ch of k) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return words[h % words.length];
+}
+
+function scrambleWord(word, k) {
+  let h = 0;
+  for (const ch of k) h = (h * 33 + ch.charCodeAt(0)) >>> 0;
+  const arr = word.split("");
+  for (let i = arr.length - 1; i > 0; i--) {
+    h = (h * 1664525 + 1013904223) >>> 0;
+    const j = h % (i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.join("");
+}
+
+function todayPuzzle() {
+  const today = dayKey();
+  const answer = pickDailyAnswer(today);
+  return {
+    day: today,
+    type: "scramble",
+    scramble: scrambleWord(answer, today),
+    hint: `${answer.length} letters`,
+  };
+}
+
+/* ========================
    Static client route
 ======================== */
 
 // Your client file is at: public/social-studio/client/index.html
-// This makes /social-studio/client/ load it reliably even if static indexing is weird.
 app.get("/social-studio/client/", (_req, res) => {
   res.sendFile(path.join(PUBLIC_DIR, "social-studio/client/index.html"));
 });
@@ -184,12 +247,34 @@ app.get("/social-studio/api/health", (_req, res) => {
   });
 });
 
-/* Presence heartbeat (client calls this every 5 minutes) */
+/* Auth bootstrap */
+app.post("/social-studio/api/auth/anonymous", (req, res) => {
+  const incoming = String(req.body?.uuid || "").trim();
+  const uuid = incoming || randomUUID();
+  const user = markSeen(uuid);
+
+  const displayName = safeName(req.body?.displayName);
+  if (displayName) user.displayName = displayName;
+
+  if (req.body?.room) user.room = safeRoom(req.body.room);
+
+  schedulePersist();
+  res.json({ ok: true, user });
+});
+
+/* Presence heartbeat */
 app.post("/social-studio/api/presence/heartbeat", (req, res) => {
   const user = authFromReq(req);
   if (req.body?.room) user.room = safeRoom(req.body.room);
   schedulePersist();
-  res.json({ ok: true, lastSeenAt: user.lastSeenAt, room: user.room });
+  res.json({
+    ok: true,
+    lastSeenAt: user.lastSeenAt,
+    room: user.room,
+    xpTotal: user.xpTotal,
+    dailyXp: user.dailyXp,
+    lastLoginDay: user.lastLoginDay,
+  });
 });
 
 /* Set display name */
@@ -200,7 +285,15 @@ app.post("/social-studio/api/auth/display-name", (req, res) => {
 
   user.displayName = displayName;
   schedulePersist();
-  res.json({ ok: true, uuid: user.uuid, displayName: user.displayName, room: user.room });
+  res.json({
+    ok: true,
+    uuid: user.uuid,
+    displayName: user.displayName,
+    room: user.room,
+    xpTotal: user.xpTotal,
+    dailyXp: user.dailyXp,
+    lastLoginDay: user.lastLoginDay,
+  });
 });
 
 /* Set room */
@@ -215,11 +308,13 @@ app.post("/social-studio/api/chat/room", (req, res) => {
 app.post("/social-studio/api/chat/send", (req, res) => {
   const user = authFromReq(req);
 
-  // room can come from body OR user.room
   user.room = safeRoom(req.body?.room || user.room);
 
   const text = String(req.body?.message || "").trim().slice(0, 1000);
   if (!text) return res.status(400).json({ error: "message is required" });
+
+  user.xpTotal += 1;
+  user.dailyXp += 1;
 
   const msg = {
     id: randomUUID(),
@@ -234,11 +329,9 @@ app.post("/social-studio/api/chat/send", (req, res) => {
   if (messages.length > MESSAGE_HISTORY_LIMIT) messages.shift();
 
   schedulePersist();
-
-  // ✅ broadcast ONLY to that room
   broadcast("chat:new", msg, msg.room);
 
-  res.json({ ok: true, message: msg });
+  res.json({ ok: true, message: msg, user });
 });
 
 /* History (ROOM FILTERED) */
@@ -256,14 +349,83 @@ app.get("/social-studio/api/chat/history", (req, res) => {
 app.get("/social-studio/api/chat/presence", (req, res) => {
   const user = authFromReq(req);
   const room = safeRoom(req.query.room || user.room || "lobby");
-  const online = onlineUsers(room).map((u) => ({
-    uuid: u.uuid,
-    displayName: u.displayName,
-    room: u.room,
-    lastSeenAt: u.lastSeenAt,
-  }));
+
+  const online = onlineUsers(room).map((u) => {
+    ensureXpFields(u);
+    return {
+      uuid: u.uuid,
+      displayName: u.displayName,
+      room: u.room,
+      lastSeenAt: u.lastSeenAt,
+      xpTotal: u.xpTotal,
+      dailyXp: u.dailyXp,
+    };
+  });
 
   res.json({ room, onlineCount: online.length, users: online });
+});
+
+/* Leaderboards */
+app.get("/social-studio/api/leaderboard/daily", (_req, res) => {
+  const rows = [...users.values()]
+    .map((u) => ensureXpFields(u))
+    .sort((a, b) => (b.dailyXp || 0) - (a.dailyXp || 0))
+    .slice(0, 50)
+    .map((u) => ({ uuid: u.uuid, displayName: u.displayName, dailyXp: u.dailyXp || 0 }));
+
+  res.json({ ok: true, day: dayKey(), rows });
+});
+
+app.get("/social-studio/api/leaderboard/global", (_req, res) => {
+  const rows = [...users.values()]
+    .map((u) => ensureXpFields(u))
+    .sort((a, b) => (b.xpTotal || 0) - (a.xpTotal || 0))
+    .slice(0, 50)
+    .map((u) => ({ uuid: u.uuid, displayName: u.displayName, xpTotal: u.xpTotal || 0 }));
+
+  res.json({ ok: true, rows });
+});
+
+/* Puzzle */
+app.get("/social-studio/api/puzzle/today", (_req, res) => {
+  res.json({ ok: true, puzzle: todayPuzzle() });
+});
+
+app.get("/social-studio/api/puzzle/state", (req, res) => {
+  const user = authFromReq(req);
+  const today = dayKey();
+  res.json({ ok: true, day: today, solved: user.solvedDay === today });
+});
+
+app.post("/social-studio/api/puzzle/submit", (req, res) => {
+  const user = authFromReq(req);
+  const today = dayKey();
+
+  if (user.solvedDay === today) {
+    return res.json({ ok: true, solved: true, already: true, awardXp: 0, user });
+  }
+
+  const guess = String(req.body?.guess || "").trim().toUpperCase();
+  const answer = pickDailyAnswer(today);
+
+  if (guess === answer) {
+    user.solvedDay = today;
+    user.xpTotal += 5;
+    user.dailyXp += 5;
+    schedulePersist();
+    return res.json({ ok: true, solved: true, already: false, awardXp: 5, user });
+  }
+
+  res.json({ ok: true, solved: false, user });
+});
+
+/* Stubs (stop 404s) */
+app.get("/social-studio/api/music/current", (_req, res) => {
+  res.json({ ok: true, track: null });
+});
+
+app.get("/social-studio/api/subscription/stripe-placeholder", (_req, res) => {
+  res.json({ ok: true, status: "placeholder" });
 });
 
 /* ========================
@@ -280,7 +442,6 @@ wss.on("connection", (ws, req) => {
   user.room = requestedRoom;
   markSeen(uuid);
 
-  // ✅ store uuid AND room so broadcast filtering works
   wsMeta.set(ws, { uuid, room: user.room });
   wsByUuid.set(uuid, ws);
 
@@ -294,28 +455,30 @@ wss.on("connection", (ws, req) => {
       return;
     }
 
-    // optional heartbeat message from ws client
     if (data?.type === "heartbeat") {
       markSeen(uuid);
       return;
     }
 
-    // allow room switches over WS
     if (data?.type === "chat:join") {
       const nextRoom = safeRoom(data.room);
       user.room = nextRoom;
       wsMeta.set(ws, { uuid, room: nextRoom });
+      markSeen(uuid);
       schedulePersist();
       ws.send(JSON.stringify({ type: "chat:joined", payload: { room: nextRoom }, ts: Date.now() }));
       return;
     }
 
-    // send message over WS (ROOM ISOLATED)
     if (data?.type === "chat:send") {
       const text = String(data.message || "").trim().slice(0, 1000);
       if (!text) return;
 
       const room = safeRoom(data.room || user.room);
+
+      markSeen(uuid);
+      user.xpTotal += 1;
+      user.dailyXp += 1;
 
       const msg = {
         id: randomUUID(),
@@ -330,8 +493,6 @@ wss.on("connection", (ws, req) => {
       if (messages.length > MESSAGE_HISTORY_LIMIT) messages.shift();
 
       schedulePersist();
-
-      // ✅ broadcast ONLY to that room
       broadcast("chat:new", msg, room);
     }
   });
