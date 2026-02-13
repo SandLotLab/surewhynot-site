@@ -292,7 +292,7 @@ function App() {
           <button onClick={sendMessage}>Send</button>
         </footer>
       </main>
-
+);
       <aside className="right panel">
         <h3>Online users ({presence.onlineCount})</h3>
         <ul>
