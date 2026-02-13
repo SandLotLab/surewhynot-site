@@ -292,7 +292,7 @@ function App() {
           <button onClick={sendMessage}>Send</button>
         </footer>
       </main>
-
+);
       <aside className="right panel">
         <h3>Online users ({presence.onlineCount})</h3>
         <ul>
@@ -309,7 +309,7 @@ function App() {
             <li key={u.uuid}>
               {u.displayName}: {u.dailyXp ?? 0}
             </li>
-          ))}
+          ))}E
         </ol>
 
         <h3>Global Leaderboard</h3>
@@ -317,7 +317,7 @@ function App() {
           {globalBoard.slice(0, 5).map((u) => (
             <li key={u.uuid}>
               {u.displayName}: {u.xpTotal ?? 0}
-            </li>
+            </li>DFRGG
           ))}
         </ol>
       </aside>
@@ -327,8 +327,7 @@ function App() {
         <div>
           <div>
             <b>Scramble:</b> {puzzle?.scramble || "…"}
-          </div>
-          <div>
+          </div>R
             <b>Hint:</b> {puzzle?.hint || "…"}
           </div>
         </div>
