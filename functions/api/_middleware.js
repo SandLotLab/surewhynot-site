@@ -2,10 +2,20 @@ export async function onRequest(context) {
   const { request, env, next } = context;
   const url = new URL(request.url);
 
-  // 1) Health = no rate limit
-  if (url.pathname === "/api/health") {
+  // ✅ ADD THIS: only rate limit these expensive endpoints
+  const PROTECTED_PATHS = new Set([
+    "/api/chat",
+  ]);
+  const isProtected =
+    PROTECTED_PATHS.has(url.pathname) ||
+    url.pathname.startsWith("/api/fax/"); // keeps your existing fax/* behavior
+
+  // ✅ CHANGE THIS: if NOT protected, skip rate limit entirely
+  if (!isProtected) {
     return next();
   }
+
+  // (everything below stays the same)
 
   // 2) Identify caller (IP)
   const ip =
