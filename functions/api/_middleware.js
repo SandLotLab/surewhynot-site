@@ -1,35 +1,47 @@
-const WINDOW_SECONDS = 60;
-const LIMIT = 60; // 60 requests per 60s per IP
-
-function getIP(request) {
-  return (
-    request.headers.get("CF-Connecting-IP") ||
-    request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
-    "unknown"
-  );
-}
-
 export async function onRequest(context) {
   const { request, env, next } = context;
+  const url = new URL(request.url);
 
-  // Only limit API calls (this middleware lives under /api already)
-  const ip = getIP(request);
-  const now = Math.floor(Date.now() / 1000);
-  const bucket = Math.floor(now / WINDOW_SECONDS);
-  const key = `rl:${ip}:${bucket}`;
+  // 1) Health = no rate limit
+  if (url.pathname === "/api/health") {
+    return next();
+  }
 
-  const currentRaw = await env.RATE_KV.get(key);
-  const current = currentRaw ? parseInt(currentRaw, 10) : 0;
+  // 2) Identify caller (IP)
+  const ip =
+    request.headers.get("CF-Connecting-IP") ||
+    request.headers.get("X-Forwarded-For")?.split(",")[0]?.trim() ||
+    "unknown";
 
-  if (current >= LIMIT) {
+  // 3) Decide limit per endpoint
+  let limit = 60;     // default
+  let windowSec = 60; // default window
+
+  if (url.pathname.startsWith("/api/fax/")) {
+    limit = 5;
+    windowSec = 60;
+  }
+
+  // 4) Make key per (endpoint + ip) so chat can’t block fax
+  const bucket = url.pathname.startsWith("/api/fax/") ? "fax" : "api";
+  const key = `${bucket}:${ip}`;
+
+  // 5) Read current count
+  const raw = await env.RATE_KV.get(key);
+  const count = raw ? Number(raw) : 0;
+
+  // 6) Block if over limit
+  if (count >= limit) {
     return new Response(JSON.stringify({ error: "rate_limited" }), {
       status: 429,
-      headers: { "Content-Type": "application/json" },
+      headers: { "content-type": "application/json" },
     });
   }
 
-  // increment + keep it alive for the window
-  await env.RATE_KV.put(key, String(current + 1), { expirationTtl: WINDOW_SECONDS });
+  // 7) Increment and set TTL so it resets every window
+  const nextCount = count + 1;
+  await env.RATE_KV.put(key, String(nextCount), { expirationTtl: windowSec });
 
+  // 8) Continue to your API handler
   return next();
 }
