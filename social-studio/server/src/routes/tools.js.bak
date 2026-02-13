@@ -1,6 +1,6 @@
 // social-studio/server/src/routes/tools.js
 import express from "express";
-import { buildInvoice } from "../tools/invoice.js";
+import { createShare, getShare } from "../tools/share.js";
 
 const router = express.Router();
 
@@ -9,6 +9,7 @@ function num(v, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+/* PDF endpoints still stubbed */
 router.post("/api/tools/pdf/merge", (req, res) => {
   const fileSizeBytes = num(req.body?.fileSizeBytes, 0);
   res.json({
@@ -33,30 +34,48 @@ router.post("/api/tools/pdf/compress", (req, res) => {
   });
 });
 
-/* REPLACE ONLY THIS ROUTE */
-router.post("/api/tools/invoice", (req, res) => {
-  const invoice = buildInvoice(req.body || {});
+/* Invoice (still stub) */
+router.post("/api/tools/invoice", (_req, res) => {
   res.json({
     ok: true,
     tool: "invoice",
     status: "working",
     accepted: true,
-    invoice,
+    invoiceId: `inv_${Date.now()}`,
+    message: "Generated (still stub output).",
   });
 });
 
+/* Share (now “working”) */
 router.post("/api/tools/share", (req, res) => {
-  const expiryHours = Math.max(1, Math.min(72, num(req.body?.expiryHours, 6)));
-  const expiresAt = Date.now() + expiryHours * 60 * 60 * 1000;
+  const expiryHours = num(req.body?.expiryHours, 6);
+  const fileSizeBytes = num(req.body?.fileSizeBytes, 0);
+
+  const created = createShare({ expiryHours, fileSizeBytes });
 
   res.json({
     ok: true,
     tool: "share",
-    status: "placeholder",
+    status: "working",
     accepted: true,
-    url: `https://example.com/share/${Date.now()}`,
-    expiresAt,
-    message: "Created (stub). Implement real expiring links + storage later.",
+    shareId: created.shareId,
+    expiresAt: created.expiresAt,
+    downloadUrl: `/social-studio/api/tools/share/download/${created.shareId}`,
+  });
+});
+
+/* Download (placeholder response, but wired + expiry enforced) */
+router.get("/api/tools/share/download/:shareId", (req, res) => {
+  const share = getShare(req.params.shareId);
+
+  if (!share) return res.status(404).json({ ok: false, error: "share not found" });
+  if (Date.now() > share.expiresAt) return res.status(410).json({ ok: false, error: "share expired" });
+
+  res.json({
+    ok: true,
+    shareId: share.shareId,
+    status: "working",
+    message: "Download endpoint wired. Attach real file bytes later.",
   });
 });
 
