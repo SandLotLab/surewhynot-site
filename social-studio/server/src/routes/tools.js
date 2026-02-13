@@ -12,6 +12,18 @@ function num(v, fallback) {
   return Number.isFinite(n) ? n : fallback;
 }
 
+router.get("/api/tools", (_req, res) => {
+  res.json({
+    ok: true,
+    tools: [
+      { id: "pdf/merge", method: "POST", path: "/social-studio/api/tools/pdf/merge" },
+      { id: "pdf/compress", method: "POST", path: "/social-studio/api/tools/pdf/compress" },
+      { id: "invoice", method: "POST", path: "/social-studio/api/tools/invoice" },
+      { id: "share", method: "POST", path: "/social-studio/api/tools/share" },
+    ],
+  });
+});
+
 router.post("/api/tools/pdf/merge", (req, res) => {
   const fileSizeBytes = num(req.body?.fileSizeBytes, 0);
   res.json({
