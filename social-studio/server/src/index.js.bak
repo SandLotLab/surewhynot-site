@@ -56,12 +56,18 @@ function getUser(uuid) {
   return users.get(uuid);
 }
 
-function broadcast(type, payload) {
+function broadcast(type, payload, room = null) {
   const msg = JSON.stringify({ type, payload, ts: Date.now() });
+
   for (const ws of wss.clients) {
-    if (ws.readyState === 1) {
-      ws.send(msg);
+    if (ws.readyState !== 1) continue;
+
+    if (room) {
+      const meta = wsMeta.get(ws);
+      if (!meta || meta.room !== room) continue;
     }
+
+    ws.send(msg);
   }
 }
 
@@ -76,6 +82,14 @@ function authFromReq(req) {
 ========================= */
 app.get("/", (_req, res) => {
   res.send("Social Studio server is running.");
+});
+
+/*============================
+  add hearbeat endpoint(online status)*/
+app.post("/social-studio/api/presence/heartbeat", (req, res) => {
+  const user = authFromReq(req);
+  markSeen(user.uuid);
+  res.json({ ok: true, lastSeenAt: Date.now() });
 });
 
 /* =========================
@@ -167,7 +181,7 @@ wss.on("connection", (ws, req) => {
 
       messages.push(msg);
       if (messages.length > MESSAGE_HISTORY_LIMIT) messages.shift();
-      broadcast("chat:new", msg);
+      broadcast("chat:new", msg, msg.room););
     }
   });
 
