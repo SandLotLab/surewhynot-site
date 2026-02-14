@@ -1,8 +1,0 @@
-{
-  "name": "surewhynot-fax-worker",
-  "private": true,
-  "type": "module",
-  "dependencies": {
-    "pdf-lib": "^1.17.1"
-  }
-}
