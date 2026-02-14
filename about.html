@@ -2,68 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>About — SureWhyNot</title>
-  <meta name="description" content="About SureWhyNot Social Studio." />
-  <style>
-    :root{--bg:#0b0f14;--panel:#0f1620;--line:#1e2a3a;--text:#e8eef6;--muted:#9db0c6;--amber:#f5b942;--shadow:0 10px 30px rgba(0,0,0,.35);--radius:16px;}
-    *{box-sizing:border-box} html,body{height:100%}
-    body{margin:0;min-height:100vh;display:flex;flex-direction:column;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
-      background:radial-gradient(1200px 600px at 50% 0%, #111a26 0%, var(--bg) 55%);color:var(--text);}
-    a{color:inherit;text-decoration:none}
-    .wrap{width:min(900px,calc(100% - 32px));margin:0 auto}
-    header{border-bottom:1px solid rgba(30,42,58,.6);padding:18px 0}
-    .brand{display:flex;align-items:center;gap:10px;font-weight:700;justify-content:center}
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--amber);box-shadow:0 0 18px rgba(245,185,66,.45)}
-    main{flex:1;padding:22px 0 40px}
-    .card{background:linear-gradient(180deg, rgba(15,22,32,.92), rgba(13,20,29,.92));
-      border:1px solid rgba(30,42,58,.9);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
-    h1{margin:0 0 10px;font-size:20px} p{margin:10px 0;line-height:1.45;color:var(--muted);font-size:13px}
-    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
-    .pill{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:999px;border:1px solid rgba(30,42,58,.9);background:rgba(15,22,32,.75)}
-    footer{border-top:1px solid rgba(30,42,58,.6);padding:18px 0;color:var(--muted);font-size:12px;margin-top:auto}
-    .footerline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  </style>
+  <link rel="stylesheet" href="/assets/site.css">
 </head>
+
 <body>
-  <header>
-    <div class="wrap">
-      <div class="brand"><span class="dot"></span><span>SureWhyNot — Social Studio</span></div>
-    </div>
-  </header>
+  <div class="page">
+    <header>
+      <div class="wrap topbar">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>SureWhyNot — Social Studio</span>
+        </div>
+        <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
 
-  <main class="wrap">
-    <div class="card">
-      <h1>About</h1>
-      <p>
-        SureWhyNot is a tiny, privacy-forward place to use a useful tool and then chill for a minute:
-        quick games, simple pages, no accounts.
-      </p>
-      <p>
-        The goal is calm and lightweight. Use the utility tool (fax / converter / export — whatever’s live),
-        then relax with Type Racer or the Mini Puzzle.
-      </p>
-      <p>
-        This site is built with “privacy first” as the default. No forced sign-ups. No default tracking.
-      </p>
-
-      <div class="row">
-        <a class="pill" href="/">Home</a>
-        <a class="pill" href="/privacy.html">Privacy</a>
-        <a class="pill" href="/contact.html">Contact</a>
+        <nav class="navcenter" aria-label="Site">
+          <a class="pill" href="/index.html">Home</a>
+          <a class="pill" href="/typeracer.html">Type Racer</a>
+          <a class="pill" href="/puzzle.html">Mini Puzzle</a>
+          <a class="pill" href="/utility.html">Utility</a>
+        </nav>
       </div>
-    </div>
-  </main>
+    </header>
 
-  <footer>
-    <div class="wrap footerline">
-      <div>© <span id="year"></span> surewhynot.app</div>
-      <div>No accounts • No default trackers</div>
-    </div>
-  </footer>
+    <main>
+      <div class="wrap">
+        <section class="grid" style="grid-template-columns:1fr;">
+          <div class="card">
+            <div class="pad">
+              <div class="h1">About</div>
+              <div class="muted">
+                SureWhyNot is a small, simple site built for quick utility tools and lightweight games.
+                <div class="hr"></div>
+                The goal is easy:
+                <br>- Get something done (export, convert, etc.)
+                <br>- Then chill for a minute (type race, mini puzzle)
+                <div class="hr"></div>
+                No accounts. No “social feed.” No pressure.
+                This is meant to be a calm corner that stays fast and minimal.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
 
-  <script>
-    document.getElementById("year").textContent = String(new Date().getFullYear());
-  </script>
+    <footer>
+      <div class="footerwrap">
+        <div>© 2026 surewhynot.app</div>
+        <div class="footerlinks">
+          <a href="/about.html">About</a>
+          <span>•</span>
+          <a href="/privacy.html">Privacy</a>
+          <span>•</span>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>

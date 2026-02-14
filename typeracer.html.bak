@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Type Racer — SureWhyNot</title>
+  <style>
+    :root{
+      --bg:#0b0f14;--panel:#0f1620;--line:#1e2a3a;--text:#e8eef6;--muted:#9db0c6;--amber:#f5b942;
+      --shadow:0 10px 30px rgba(0,0,0,.35);--radius:16px;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;min-height:100vh;display:flex;flex-direction:column;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      background:radial-gradient(1200px 600px at 50% 0%, #111a26 0%, var(--bg) 55%);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    .wrap{width:min(980px,calc(100% - 32px));margin:0 auto}
+    header{border-bottom:1px solid rgba(30,42,58,.6);padding:18px 0}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;justify-content:center}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--amber);box-shadow:0 0 18px rgba(245,185,66,.45)}
+    main{flex:1;padding:18px 0 28px}
+    .grid{display:grid;gap:14px;grid-template-columns:1.1fr .9fr}
+    @media (max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{
+      background:linear-gradient(180deg, rgba(15,22,32,.92), rgba(13,20,29,.92));
+      border:1px solid rgba(30,42,58,.9);border-radius:var(--radius);box-shadow:var(--shadow);
+      padding:14px;
+    }
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .pill{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:10px 14px;border-radius:999px;border:1px solid rgba(30,42,58,.9);
+      background:rgba(15,22,32,.75);cursor:pointer;
+    }
+    .pill:hover{border-color:rgba(245,185,66,.65)}
+    h1{margin:0 0 8px;font-size:18px}
+    .muted{color:var(--muted);font-size:12px;line-height:1.4}
+
+    /* Race track */
+    .track{
+      margin-top:12px;
+      border:1px solid rgba(30,42,58,.9);
+      border-radius:14px;
+      background:
+        linear-gradient(180deg, rgba(7,10,14,.6), rgba(9,13,18,.9)),
+        repeating-linear-gradient(90deg, rgba(255,255,255,.06) 0 18px, rgba(255,255,255,0) 18px 36px);
+      padding:12px;
+      overflow:hidden;
+      position:relative;
+    }
+    .lane{
+      position:relative;
+      height:54px;
+      border-top:1px dashed rgba(157,176,198,.25);
+      display:flex;
+      align-items:center;
+    }
+    .lane:first-child{border-top:none}
+    .finish{
+      position:absolute;top:0;bottom:0;right:14px;width:8px;
+      background:repeating-linear-gradient(180deg, rgba(245,185,66,.9) 0 10px, rgba(0,0,0,0) 10px 20px);
+      border-radius:6px;
+      opacity:.9;
+    }
+    .racer{
+      position:absolute;left:8px;
+      display:flex;align-items:center;gap:10px;
+      transition:left .06s linear;
+      user-select:none;
+    }
+    .emoji{
+      font-size:26px;line-height:1;
+      filter:drop-shadow(0 6px 12px rgba(0,0,0,.35));
+    }
+    .tag{
+      font-size:12px;color:var(--muted);
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(30,42,58,.85);
+      background:rgba(15,22,32,.8);
+      white-space:nowrap;
+    }
+
+    /* Typing */
+    .textBox{
+      margin-top:10px;
+      padding:12px;border-radius:14px;
+      border:1px solid rgba(30,42,58,.9);
+      background:rgba(15,22,32,.6);
+    }
+    .target{
+      font-size:14px;line-height:1.6;
+      word-wrap:break-word;
+    }
+    .good{color:#cfe3ff}
+    .bad{color:#ff9aa2}
+    .caret{
+      display:inline-block;width:10px;height:18px;
+      border-left:2px solid rgba(245,185,66,.95);
+      margin-left:1px;transform:translateY(3px);
+      animation:blink 1s steps(1) infinite;
+    }
+    @keyframes blink{50%{opacity:0}}
+    textarea{
+      width:100%;min-height:90px;margin-top:10px;
+      padding:12px;border-radius:14px;
+      border:1px solid rgba(30,42,58,.9);
+      background:rgba(7,10,14,.55);color:var(--text);
+      outline:none;resize:vertical;
+      font-family:inherit;font-size:14px;line-height:1.5;
+    }
+    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}
+    @media (max-width:620px){.stats{grid-template-columns:1fr}}
+    .stat{
+      border:1px solid rgba(30,42,58,.85);
+      border-radius:14px;background:rgba(15,22,32,.6);
+      padding:10px;
+    }
+    .stat b{display:block;font-size:16px;margin-top:2px}
+    footer{border-top:1px solid rgba(30,42,58,.6);padding:18px 0;color:var(--muted);font-size:12px;margin-top:auto}
+    .footerline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap">
+      <div class="brand"><span class="dot"></span><span>SureWhyNot — Type Racer</span></div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <div class="grid">
+      <section class="card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <h1>Race the elephant, airplane, and ant</h1>
+            <div class="muted">Type the text exactly. Your typing moves your racer. The others “type” at steady speeds.</div>
+          </div>
+          <div class="row">
+            <button class="pill" id="btnNew">New Race</button>
+            <button class="pill" id="btnReset">Reset</button>
+          </div>
+        </div>
+
+        <div class="track" id="track">
+          <div class="finish" title="Finish"></div>
+
+          <div class="lane">
+            <div class="racer" id="rYou"><span class="emoji">🚗</span><span class="tag">You</span></div>
+          </div>
+          <div class="lane">
+            <div class="racer" id="rEle"><span class="emoji">🐘</span><span class="tag">Elephant</span></div>
+          </div>
+          <div class="lane">
+            <div class="racer" id="rAir"><span class="emoji">✈️</span><span class="tag">Airplane</span></div>
+          </div>
+          <div class="lane">
+            <div class="racer" id="rAnt"><span class="emoji">🐜</span><span class="tag">Ant</span></div>
+          </div>
+        </div>
+
+        <div class="textBox">
+          <div class="target" id="target"></div>
+          <textarea id="input" spellcheck="false" autocapitalize="off" autocomplete="off" placeholder="Type here..."></textarea>
+
+          <div class="stats">
+            <div class="stat"><div class="muted">WPM</div><b id="wpm">0</b></div>
+            <div class="stat"><div class="muted">Accuracy</div><b id="acc">100%</b></div>
+            <div class="stat"><div class="muted">Time</div><b id="time">0.0s</b></div>
+          </div>
+        </div>
+      </section>
+
+      <aside class="card">
+        <h1>Ad slot placeholder</h1>
+        <div class="muted" style="margin-bottom:10px">Keep this spot consistent so the layout doesn’t jump later.</div>
+        <div style="border:1px dashed rgba(157,176,198,.35);border-radius:14px;padding:18px;text-align:center;color:var(--amber)">
+          [ AdSense Slot Here ]
+        </div>
+
+        <div style="height:12px"></div>
+
+        <h1>How it works</h1>
+        <div class="muted">
+          • Your car moves based on correct characters typed.<br/>
+          • The elephant, airplane, and ant move with fixed speeds.<br/>
+          • Race text is ~4 sentences so it feels worth it.
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap footerline">
+      <div>© <span id="year"></span> surewhynot.app</div>
+      <div><a href="/">Home</a> • <a href="/privacy.html">Privacy</a> • <a href="/contact.html">Contact</a></div>
+    </div>
+  </footer>
+
+  <script>
+    // ---- Race text (4 sentences each) ----
+    const TEXTS = [
+      "A quiet city can still feel alive when people choose to play. Type steady and keep your eyes on the next word. Speed comes from calm hands, not panic. Finish clean and the race ends fast.",
+      "Small habits beat big plans when you repeat them every day. Your fingers learn patterns the way feet learn stairs. Accuracy first, then speed will follow. Keep going even when you miss a letter.",
+      "The best tools are simple: they do one job and do it well. This race is just you and the text in front of you. Let the others rush if they want. You win by staying consistent."
+    ];
+
+    // ---- Elements ----
+    const targetEl = document.getElementById("target");
+    const inputEl  = document.getElementById("input");
+    const wpmEl    = document.getElementById("wpm");
+    const accEl    = document.getElementById("acc");
+    const timeEl   = document.getElementById("time");
+    const yearEl   = document.getElementById("year");
+    yearEl.textContent = String(new Date().getFullYear());
+
+    const trackEl = document.getElementById("track");
+    const rYou = document.getElementById("rYou");
+    const rEle = document.getElementById("rEle");
+    const rAir = document.getElementById("rAir");
+    const rAnt = document.getElementById("rAnt");
+
+    const btnNew = document.getElementById("btnNew");
+    const btnReset = document.getElementById("btnReset");
+
+    // ---- State ----
+    let targetText = "";
+    let startTs = null;
+    let running = false;
+    let rafId = null;
+
+    // competitor speeds (px/sec)
+    const SPEEDS = {
+      ele: 120,
+      air: 150,
+      ant: 95
+    };
+
+    // positions in px
+    let posYou = 8, posEle = 8, posAir = 8, posAnt = 8;
+
+    function pickText(){
+      return TEXTS[Math.floor(Math.random() * TEXTS.length)];
+    }
+
+    function resetPositions(){
+      posYou = posEle = posAir = posAnt = 8;
+      rYou.style.left = posYou + "px";
+      rEle.style.left = posEle + "px";
+      rAir.style.left = posAir + "px";
+      rAnt.style.left = posAnt + "px";
+    }
+
+    function renderTarget(){
+      const typed = inputEl.value;
+      let html = "";
+      let correct = 0;
+
+      for(let i=0;i<targetText.length;i++){
+        const t = targetText[i];
+        const c = typed[i];
+
+        if (c === undefined){
+          if (i === typed.length){
+            html += `<span class="caret"></span>`;
+          }
+          html += t.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+          continue;
+        }
+
+        if (c === t){
+          correct++;
+          html += `<span class="good">${escapeHtml(t)}</span>`;
+        } else {
+          html += `<span class="bad">${escapeHtml(t)}</span>`;
+        }
+      }
+
+      targetEl.innerHTML = html;
+      return { correct, totalTyped: typed.length };
+    }
+
+    function escapeHtml(s){
+      return s.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+    }
+
+    function calcStats(){
+      const now = performance.now();
+      const elapsed = startTs ? (now - startTs) / 1000 : 0;
+      timeEl.textContent = elapsed.toFixed(1) + "s";
+
+      const typed = inputEl.value;
+      const words = typed.trim().length ? typed.trim().split(/\s+/).length : 0;
+      const wpm = elapsed > 0 ? Math.max(0, Math.round((words / elapsed) * 60)) : 0;
+      wpmEl.textContent = String(wpm);
+
+      const { correct, totalTyped } = renderTarget();
+      const acc = totalTyped > 0 ? Math.round((correct / totalTyped) * 100) : 100;
+      accEl.textContent = acc + "%";
+
+      // move YOU based on correct chars
+      const usableWidth = trackEl.clientWidth - 120; // padding for emoji/tag + finish
+      const progress = Math.min(1, correct / targetText.length);
+      posYou = 8 + progress * usableWidth;
+      rYou.style.left = posYou + "px";
+
+      // finish check
+      if (progress >= 1){
+        endRace();
+      }
+    }
+
+    function endRace(){
+      running = false;
+      inputEl.disabled = true;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+
+      // simple winner calc
+      const positions = [
+        { name:"You", pos:posYou },
+        { name:"Elephant", pos:posEle },
+        { name:"Airplane", pos:posAir },
+        { name:"Ant", pos:posAnt }
+      ].sort((a,b)=>b.pos-a.pos);
+
+      const winner = positions[0].name;
+      targetEl.innerHTML = `<span class="good">Race ended. Winner: ${winner}.</span>`;
+    }
+
+    function tick(ts){
+      if (!running) return;
+
+      const now = performance.now();
+      const elapsed = (now - startTs) / 1000;
+
+      // competitors move with time
+      const usableWidth = trackEl.clientWidth - 120;
+
+      posEle = 8 + Math.min(usableWidth, elapsed * SPEEDS.ele);
+      posAir = 8 + Math.min(usableWidth, elapsed * SPEEDS.air);
+      posAnt = 8 + Math.min(usableWidth, elapsed * SPEEDS.ant);
+
+      rEle.style.left = posEle + "px";
+      rAir.style.left = posAir + "px";
+      rAnt.style.left = posAnt + "px";
+
+      // stats + your movement
+      calcStats();
+
+      // if a competitor reaches end first
+      if (posEle >= 8 + usableWidth || posAir >= 8 + usableWidth || posAnt >= 8 + usableWidth){
+        endRace();
+        return;
+      }
+
+      rafId = requestAnimationFrame(tick);
+    }
+
+    function newRace(){
+      targetText = pickText();
+      inputEl.value = "";
+      inputEl.disabled = false;
+      inputEl.focus();
+
+      startTs = null;
+      running = false;
+
+      wpmEl.textContent = "0";
+      accEl.textContent = "100%";
+      timeEl.textContent = "0.0s";
+
+      resetPositions();
+      renderTarget();
+    }
+
+    function startRaceIfNeeded(){
+      if (running) return;
+      if (!startTs) startTs = performance.now();
+      running = true;
+      rafId = requestAnimationFrame(tick);
+    }
+
+    // ---- Events ----
+    btnNew.addEventListener("click", newRace);
+    btnReset.addEventListener("click", () => {
+      inputEl.value = "";
+      startTs = null;
+      running = false;
+      inputEl.disabled = false;
+      resetPositions();
+      renderTarget();
+      wpmEl.textContent = "0";
+      accEl.textContent = "100%";
+      timeEl.textContent = "0.0s";
+      inputEl.focus();
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    });
+
+    inputEl.addEventListener("input", () => {
+      startRaceIfNeeded();
+      calcStats();
+    });
+
+    // ---- Init ----
+    newRace();
+  </script>
+</body>
+</html>
