@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SureWhyNot — Social Studio</title>
+  <meta name="description" content="A small privacy-forward playground: Type Racer + Mini Puzzle." />
+  <style>
+    :root { color-scheme: dark; --bg:#0b0f14; --card:#121825; --text:#e8edf7; --muted:#9aa7bd; --accent:#d5b25e; --line:#243048; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:var(--bg);color:var(--text)}
+    a{color:var(--text);text-decoration:none}
+    a:hover{text-decoration:underline}
+    header{position:sticky;top:0;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
+    .wrap{max-width:980px;margin:0 auto;padding:16px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 18px rgba(213,178,94,.35)}
+    nav{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(18,24,37,.65)}
+    .pill[aria-current="page"]{border-color:rgba(213,178,94,.55);box-shadow:0 0 0 2px rgba(213,178,94,.12) inset}
+    main{padding:18px 0 40px}
+    .grid{display:grid;grid-template-columns:1fr;gap:14px}
+    @media(min-width:900px){.grid{grid-template-columns:1.3fr .7fr}}
+    .card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg, rgba(18,24,37,.86), rgba(18,24,37,.55));padding:14px}
+    h1,h2{margin:0 0 10px 0}
+    h1{font-size:20px}
+    h2{font-size:16px;color:var(--muted)}
+    .muted{color:var(--muted)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    button,input,textarea,select{
+      font:inherit;color:var(--text);background:#0f1420;border:1px solid var(--line);
+      padding:10px 12px;border-radius:12px;outline:none
+    }
+    button{cursor:pointer}
+    button:hover{border-color:rgba(213,178,94,.55)}
+    .kpi{display:flex;gap:12px;flex-wrap:wrap}
+    .kpi div{padding:10px 12px;border:1px dashed rgba(154,167,189,.35);border-radius:12px}
+    .big{font-size:22px;color:var(--accent)}
+    .textblock{white-space:pre-wrap;line-height:1.45}
+    .adbox{min-height:90px;display:grid;place-items:center;border:1px dashed rgba(213,178,94,.35);border-radius:16px;color:rgba(213,178,94,.85)}
+    footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted)}
+    .hidden{display:none}
+    .target{padding:12px;border-radius:12px;border:1px solid rgba(154,167,189,.25);background:rgba(15,20,32,.75)}
+    .good{color:#9af7b2}
+    .bad{color:#ff9a9a}
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <span class="dot"></span>
+      <strong>SureWhyNot — Social Studio</strong>
+      <span class="muted">tiny, privacy-forward, ad-friendly</span>
+    </div>
+   <nav class="navcenter">
+     <a class="pill" href="#home" id="tab-home">Home</a>
+     <a class="pill" href="#typeracer" id="tab-typeracer">Type Racer</a>
+     <a class="pill" href="#puzzle" id="tab-puzzle">Mini Puzzle</a>
+     <a class="pill" href="#utility" id="tab-utility">Utility</a>
+   </nav>
+
+  </div>
+</header>
+
+<main class="wrap">
+  <!-- HOME -->
+  <section id="home" class="card">
+    <h1>Welcome</h1>
+    <div class="grid">
+      <div class="card">
+        <h2>What this is</h2>
+        <div class="textblock muted">
+A small site with simple games people actually play:
+- Type Racer (repeatable, score-based)
+- Mini Puzzle (fast brain snack)
+- Local Chat (optional, stays in your browser)
+
+No accounts. No trackers baked in by default.
+Add AdSense when you’re ready.</div>
+      </div>
+
+      <div class="card">
+        <h2>Ad slot placeholder</h2>
+        <div class="adbox">[ AdSense Slot Here ]</div>
+        <div class="muted" style="margin-top:10px">
+Keep this spot consistent so the layout doesn’t jump later.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TYPE RACER -->
+  <section id="typeracer" class="card hidden">
+    <h1>Type Racer</h1>
+    <div class="grid">
+      <div class="card">
+        <h2>Target text</h2>
+        <div id="tr-target" class="target"></div>
+
+        <div style="height:10px"></div>
+
+        <textarea id="tr-input" rows="4" placeholder="Type here…"></textarea>
+
+        <div style="height:10px"></div>
+
+        <div class="row">
+          <button id="tr-start">Start</button>
+          <button id="tr-reset">New Text</button>
+          <label class="muted">Duration:
+            <select id="tr-duration">
+              <option value="30">30s</option>
+              <option value="60" selected>60s</option>
+              <option value="120">120s</option>
+            </select>
+          </label>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="kpi">
+          <div><div class="muted">Time</div><div class="big" id="tr-time">—</div></div>
+          <div><div class="muted">WPM</div><div class="big" id="tr-wpm">—</div></div>
+          <div><div class="muted">Accuracy</div><div class="big" id="tr-acc">—</div></div>
+          <div><div class="muted">Best WPM</div><div class="big" id="tr-best">—</div></div>
+        </div>
+
+        <div style="height:10px"></div>
+        <div id="tr-status" class="muted"></div>
+      </div>
+
+      <div class="card">
+        <h2>Notes</h2>
+        <div class="textblock muted">
+- “Best WPM” is saved in your browser only.
+- No server calls.
+- Good for ads because people replay.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MINI PUZZLE -->
+  <section id="puzzle" class="card hidden">
+    <h1>Mini Puzzle — Guess the Number</h1>
+    <div class="grid">
+      <div class="card">
+        <h2>Rules</h2>
+        <div class="muted">I pick a number 1–100. You guess. I say higher/lower.</div>
+
+        <div style="height:12px"></div>
+
+        <div class="row">
+          <button id="pz-new">New Game</button>
+          <span class="muted">Attempts: <strong id="pz-attempts">0</strong></span>
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="row">
+          <input id="pz-guess" type="number" min="1" max="100" placeholder="1..100" />
+          <button id="pz-submit">Guess</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <div id="pz-msg" class="target"></div>
+      </div>
+
+      <div class="card">
+        <h2>Why keep this</h2>
+        <div class="textblock muted">
+Fast loop, low effort, good dwell time.
+If you later want “daily puzzle”, this becomes a hook.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LOCAL CHAT (browser-only) -->
+  <section id="localchat" class="card hidden">
+    <h1>Local Chat (browser-only)</h1>
+    <div class="grid">
+      <div class="card">
+        <h2>Room</h2>
+        <div class="muted">This is NOT a real network chat. It’s just a local message board saved in your browser.</div>
+
+        <div style="height:12px"></div>
+
+        <div class="row">
+          <input id="lc-name" placeholder="Name (optional)" />
+          <button id="lc-clear">Clear</button>
+        </div>
+
+        <div style="height:10px"></div>
+
+        <div class="row">
+          <input id="lc-text" placeholder="Message…" style="flex:1;min-width:220px" />
+          <button id="lc-send">Send</button>
+        </div>
+
+        <div style="height:12px"></div>
+        <div id="lc-feed" class="target" style="min-height:160px"></div>
+      </div>
+
+      <div class="card">
+        <h2>Keep or delete?</h2>
+        <div class="textblock muted">
+Keep it if you want “social studio vibes” without any backend.
+Delete it if you want maximum simplicity for AdSense review.</div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <span>© <span id="yr"></span> surewhynot.app</span>
+      <span class="muted">•</span>
+      <a href="privacy.html" class="muted">Privacy</a>
+      <span class="muted">•</span>
+      <a href="contact.html" class="muted">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---------- tiny router ---------- */
+const sections = ["home","typeracer","puzzle","localchat"];
+function show(hash){
+  const id = (hash || "#home").replace("#","");
+  for (const s

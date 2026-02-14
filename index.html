@@ -4,230 +4,594 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SureWhyNot — Social Studio</title>
-  <meta name="description" content="A small privacy-forward playground: Type Racer + Mini Puzzle." />
+  <meta name="description" content="SureWhyNot Social Studio — tiny, privacy-forward, ad-friendly mini games + utility." />
+
   <style>
-    :root { color-scheme: dark; --bg:#0b0f14; --card:#121825; --text:#e8edf7; --muted:#9aa7bd; --accent:#d5b25e; --line:#243048; }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;background:var(--bg);color:var(--text)}
-    a{color:var(--text);text-decoration:none}
-    a:hover{text-decoration:underline}
-    header{position:sticky;top:0;background:rgba(11,15,20,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
-    .wrap{max-width:980px;margin:0 auto;padding:16px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);box-shadow:0 0 18px rgba(213,178,94,.35)}
-    nav{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px}
-    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(18,24,37,.65)}
-    .pill[aria-current="page"]{border-color:rgba(213,178,94,.55);box-shadow:0 0 0 2px rgba(213,178,94,.12) inset}
-    main{padding:18px 0 40px}
-    .grid{display:grid;grid-template-columns:1fr;gap:14px}
-    @media(min-width:900px){.grid{grid-template-columns:1.3fr .7fr}}
-    .card{border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg, rgba(18,24,37,.86), rgba(18,24,37,.55));padding:14px}
-    h1,h2{margin:0 0 10px 0}
-    h1{font-size:20px}
-    h2{font-size:16px;color:var(--muted)}
-    .muted{color:var(--muted)}
-    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-    button,input,textarea,select{
-      font:inherit;color:var(--text);background:#0f1420;border:1px solid var(--line);
-      padding:10px 12px;border-radius:12px;outline:none
+    :root{
+      --bg:#0b0f14;
+      --panel:#0f1620;
+      --panel2:#0d141d;
+      --line:#1e2a3a;
+      --text:#e8eef6;
+      --muted:#9db0c6;
+      --amber:#f5b942;
+      --accent:#67b0ff;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius: 16px;
     }
-    button{cursor:pointer}
-    button:hover{border-color:rgba(213,178,94,.55)}
-    .kpi{display:flex;gap:12px;flex-wrap:wrap}
-    .kpi div{padding:10px 12px;border:1px dashed rgba(154,167,189,.35);border-radius:12px}
-    .big{font-size:22px;color:var(--accent)}
-    .textblock{white-space:pre-wrap;line-height:1.45}
-    .adbox{min-height:90px;display:grid;place-items:center;border:1px dashed rgba(213,178,94,.35);border-radius:16px;color:rgba(213,178,94,.85)}
-    footer{border-top:1px solid var(--line);padding:18px 0;color:var(--muted)}
-    .hidden{display:none}
-    .target{padding:12px;border-radius:12px;border:1px solid rgba(154,167,189,.25);background:rgba(15,20,32,.75)}
-    .good{color:#9af7b2}
-    .bad{color:#ff9a9a}
+
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      flex-direction:column;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      background: radial-gradient(1200px 600px at 50% 0%, #111a26 0%, var(--bg) 55%);
+      color: var(--text);
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    button, input{
+      font:inherit;
+      color:inherit;
+    }
+
+    .wrap{
+      width:min(1060px, calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    header{
+      position:sticky;
+      top:0;
+      z-index:20;
+      background: linear-gradient(to bottom, rgba(11,15,20,.95), rgba(11,15,20,.65));
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(30,42,58,.6);
+    }
+
+    .topbar{
+      padding:16px 0 14px;
+      text-align:center;
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background: var(--amber);
+      box-shadow: 0 0 18px rgba(245,185,66,.45);
+    }
+
+    .subtitle{
+      margin-top:6px;
+      font-size:12px;
+      color: var(--muted);
+    }
+
+    nav.navcenter{
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      flex-wrap:wrap;
+      padding: 10px 0 16px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(30,42,58,.9);
+      background: rgba(15,22,32,.75);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+      transition: transform .08s ease, border-color .12s ease, background .12s ease;
+      user-select:none;
+    }
+    .pill:hover{ transform: translateY(-1px); border-color: rgba(103,176,255,.7); }
+    .pill.active{
+      border-color: rgba(245,185,66,.95);
+      background: rgba(20,28,40,.9);
+    }
+
+    main{
+      flex:1;
+      padding: 18px 0 40px;
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(15,22,32,.92), rgba(13,20,29,.92));
+      border:1px solid rgba(30,42,58,.9);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 18px;
+    }
+
+    h1{
+      margin:0 0 12px;
+      font-size: 20px;
+      letter-spacing:.3px;
+    }
+    h2{
+      margin:0 0 10px;
+      font-size: 14px;
+      color: var(--muted);
+      font-weight:600;
+      letter-spacing:.2px;
+    }
+
+    .grid{
+      display:grid;
+      gap:14px;
+      grid-template-columns: 1.2fr .8fr;
+    }
+    @media (max-width: 880px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .muted{ color: var(--muted); }
+    .small{ font-size:12px; }
+    .textblock{
+      white-space:pre-wrap;
+      line-height:1.35;
+      font-size: 13px;
+    }
+
+    .adbox{
+      border:1px dashed rgba(245,185,66,.55);
+      border-radius: 14px;
+      padding:18px;
+      text-align:center;
+      color: rgba(245,185,66,.95);
+      background: rgba(245,185,66,.06);
+    }
+
+    .row{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+
+    button{
+      border:1px solid rgba(30,42,58,.95);
+      background: rgba(15,22,32,.85);
+      border-radius: 12px;
+      padding:10px 12px;
+      cursor:pointer;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.03);
+    }
+    button:hover{ border-color: rgba(103,176,255,.7); }
+    button.primary{
+      border-color: rgba(103,176,255,.9);
+      background: rgba(103,176,255,.10);
+    }
+
+    input{
+      border:1px solid rgba(30,42,58,.95);
+      background: rgba(15,22,32,.60);
+      border-radius: 12px;
+      padding:10px 12px;
+      min-width: 220px;
+      outline:none;
+    }
+    input:focus{ border-color: rgba(245,185,66,.9); }
+
+    .target{
+      border:1px solid rgba(30,42,58,.85);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(10,14,20,.55);
+    }
+
+    .hidden{ display:none; }
+
+    footer{
+      margin-top:auto;
+      border-top: 1px solid rgba(30,42,58,.6);
+      padding: 18px 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .footerline{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
   </style>
 </head>
 
 <body>
-<header>
-  <div class="wrap">
-    <div class="brand">
-      <span class="dot"></span>
-      <strong>SureWhyNot — Social Studio</strong>
-      <span class="muted">tiny, privacy-forward, ad-friendly</span>
-    </div>
-    <nav>
-      <a class="pill" href="#home" id="tab-home">Home</a>
-      <a class="pill" href="#typeracer" id="tab-typeracer">Type Racer</a>
-      <a class="pill" href="#puzzle" id="tab-puzzle">Mini Puzzle</a>
-      <a class="pill" href="#localchat" id="tab-localchat">Local Chat</a>
-      <a class="pill" href="about.html">About</a>
-      <a class="pill" href="privacy.html">Privacy</a>
-      <a class="pill" href="contact.html">Contact</a>
-    </nav>
-  </div>
-</header>
+  <header>
+    <div class="wrap topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        <span>SureWhyNot — Social Studio</span>
+      </div>
+      <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
 
-<main class="wrap">
-  <!-- HOME -->
-  <section id="home" class="card">
-    <h1>Welcome</h1>
-    <div class="grid">
-      <div class="card">
-        <h2>What this is</h2>
-        <div class="textblock muted">
-A small site with simple games people actually play:
+      <nav class="navcenter" aria-label="Site">
+        <a class="pill active" href="#home" id="tab-home">Home</a>
+        <a class="pill" href="#typeracer" id="tab-typeracer">Type Racer</a>
+        <a class="pill" href="#puzzle" id="tab-puzzle">Mini Puzzle</a>
+        <a class="pill" href="#utility" id="tab-utility">Utility</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- HOME -->
+    <section id="home" class="card">
+      <h1>Welcome</h1>
+
+      <div class="grid">
+        <div class="card" style="box-shadow:none;">
+          <h2>What this is</h2>
+          <div class="textblock muted">
+A small site with simple stuff people actually play:
+
 - Type Racer (repeatable, score-based)
 - Mini Puzzle (fast brain snack)
-- Local Chat (optional, stays in your browser)
+- Utility (your “come back daily” tool slot)
 
-No accounts. No trackers baked in by default.
-Add AdSense when you’re ready.</div>
-      </div>
+No accounts. No default trackers.
+Ads later (your choice).</div>
+        </div>
 
-      <div class="card">
-        <h2>Ad slot placeholder</h2>
-        <div class="adbox">[ AdSense Slot Here ]</div>
-        <div class="muted" style="margin-top:10px">
-Keep this spot consistent so the layout doesn’t jump later.
+        <div class="card" style="box-shadow:none;">
+          <h2>Ad slot placeholder</h2>
+          <div class="adbox">[ AdSense Slot Here ]</div>
+          <div class="textblock muted small" style="margin-top:10px;">
+Keep this spot consistent so layout doesn’t jump later.
+          </div>
         </div>
       </div>
+    </section>
+
+    <div style="height:14px"></div>
+
+    <!-- TYPE RACER -->
+    <section id="typeracer" class="card hidden">
+      <h1>Type Racer</h1>
+
+      <div class="grid">
+        <div class="card" style="box-shadow:none;">
+          <h2>Goal</h2>
+          <div class="textblock muted">Type the prompt as fast and accurate as you can. Press Start, then type. Timer stops when you match exactly.</div>
+
+          <div style="height:12px"></div>
+
+          <div class="target" id="tr-prompt" aria-live="polite"></div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <button class="primary" id="tr-start">Start</button>
+            <span class="muted small" id="tr-status">Idle.</span>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <input id="tr-input" placeholder="Type here..." autocomplete="off" spellcheck="false" disabled />
+          <div class="textblock muted small" style="margin-top:10px;">
+WPM is approximate. Accuracy is exact-match.
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none;">
+          <h2>Score</h2>
+          <div class="target">
+            <div class="textblock">
+Time: <span id="tr-time">—</span>
+<br/>WPM: <span id="tr-wpm">—</span>
+<br/>Attempts: <span id="tr-attempts">0</span>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <h2>Ad slot placeholder</h2>
+          <div class="adbox">[ AdSense Slot Here ]</div>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:14px"></div>
+
+    <!-- MINI PUZZLE -->
+    <section id="puzzle" class="card hidden">
+      <h1>Mini Puzzle</h1>
+
+      <div class="grid">
+        <div class="card" style="box-shadow:none;">
+          <h2>Goal</h2>
+          <div class="textblock muted">Pick the correct answer. New puzzle every time you hit “New”.</div>
+
+          <div style="height:12px"></div>
+
+          <div class="target" id="pz-question"></div>
+
+          <div style="height:12px"></div>
+
+          <div class="row" id="pz-answers"></div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <button class="primary" id="pz-new">New</button>
+            <span class="muted small" id="pz-status">Idle.</span>
+          </div>
+        </div>
+
+        <div class="card" style="box-shadow:none;">
+          <h2>Stats</h2>
+          <div class="target">
+            <div class="textblock">
+Correct: <span id="pz-correct">0</span>
+<br/>Wrong: <span id="pz-wrong">0</span>
+            </div>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <h2>Ad slot placeholder</h2>
+          <div class="adbox">[ AdSense Slot Here ]</div>
+        </div>
+      </div>
+    </section>
+
+    <div style="height:14px"></div>
+
+    <!-- UTILITY -->
+    <section id="utility" class="card hidden">
+      <h1>Utility</h1>
+
+      <div class="grid">
+        <div class="card" style="box-shadow:none;">
+          <h2>Your “come back” tool slot</h2>
+          <div class="textblock muted">
+This is where your fax tool (or whatever replaces it) lives.
+For now, it’s a placeholder so the site structure is ready.</div>
+
+          <div style="height:12px"></div>
+
+          <div class="row">
+            <button class="primary" id="ut-demo">Run Demo</button>
+            <span class="muted small" id="ut-status">Idle.</span>
+          </div>
+
+          <div style="height:12px"></div>
+
+          <div class="target" id="ut-output" style="min-height:140px;">Utility output will appear here.</div>
+        </div>
+
+        <div class="card" style="box-shadow:none;">
+          <h2>Ad slot placeholder</h2>
+          <div class="adbox">[ AdSense Slot Here ]</div>
+          <div class="textblock muted small" style="margin-top:10px;">
+Keep one ad location consistent across pages.
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap footerline">
+      <div>© <span id="year"></span> surewhynot.app</div>
+      <div class="muted">No accounts • No default trackers</div>
     </div>
-  </section>
+  </footer>
 
-  <!-- TYPE RACER -->
-  <section id="typeracer" class="card hidden">
-    <h1>Type Racer</h1>
-    <div class="grid">
-      <div class="card">
-        <h2>Target text</h2>
-        <div id="tr-target" class="target"></div>
+  <script>
+    // ---------- tiny router (hash tabs) ----------
+    const tabs = ["home","typeracer","puzzle","utility"];
+    const tabEls = Object.fromEntries(tabs.map(t => [t, document.getElementById("tab-"+t)]));
+    const sectionEls = Object.fromEntries(tabs.map(t => [t, document.getElementById(t)]));
 
-        <div style="height:10px"></div>
+    function show(tab){
+      tabs.forEach(t=>{
+        sectionEls[t].classList.toggle("hidden", t !== tab);
+        tabEls[t].classList.toggle("active", t === tab);
+      });
+    }
 
-        <textarea id="tr-input" rows="4" placeholder="Type here…"></textarea>
+    function currentTab(){
+      const h = (location.hash || "#home").replace("#","");
+      return tabs.includes(h) ? h : "home";
+    }
 
-        <div style="height:10px"></div>
+    window.addEventListener("hashchange", ()=>show(currentTab()));
+    show(currentTab());
 
-        <div class="row">
-          <button id="tr-start">Start</button>
-          <button id="tr-reset">New Text</button>
-          <label class="muted">Duration:
-            <select id="tr-duration">
-              <option value="30">30s</option>
-              <option value="60" selected>60s</option>
-              <option value="120">120s</option>
-            </select>
-          </label>
-        </div>
+    // footer year
+    document.getElementById("year").textContent = String(new Date().getFullYear());
 
-        <div style="height:12px"></div>
+    // ---------- Type Racer ----------
+    const trPrompts = [
+      "ships in harbor are safe but that is not what ships are built for",
+      "small steps done daily beat big plans done rarely",
+      "type clean and steady until the timer gives up",
+      "speed is fine accuracy is final"
+    ];
 
-        <div class="kpi">
-          <div><div class="muted">Time</div><div class="big" id="tr-time">—</div></div>
-          <div><div class="muted">WPM</div><div class="big" id="tr-wpm">—</div></div>
-          <div><div class="muted">Accuracy</div><div class="big" id="tr-acc">—</div></div>
-          <div><div class="muted">Best WPM</div><div class="big" id="tr-best">—</div></div>
-        </div>
+    const trPromptEl = document.getElementById("tr-prompt");
+    const trInput = document.getElementById("tr-input");
+    const trStart = document.getElementById("tr-start");
+    const trStatus = document.getElementById("tr-status");
+    const trTimeEl = document.getElementById("tr-time");
+    const trWpmEl = document.getElementById("tr-wpm");
+    const trAttemptsEl = document.getElementById("tr-attempts");
 
-        <div style="height:10px"></div>
-        <div id="tr-status" class="muted"></div>
-      </div>
+    let trTarget = "";
+    let trStartMs = 0;
+    let trRunning = false;
+    let trAttempts = 0;
 
-      <div class="card">
-        <h2>Notes</h2>
-        <div class="textblock muted">
-- “Best WPM” is saved in your browser only.
-- No server calls.
-- Good for ads because people replay.</div>
-      </div>
-    </div>
-  </section>
+    function trPick(){
+      trTarget = trPrompts[Math.floor(Math.random()*trPrompts.length)];
+      trPromptEl.textContent = trTarget;
+    }
 
-  <!-- MINI PUZZLE -->
-  <section id="puzzle" class="card hidden">
-    <h1>Mini Puzzle — Guess the Number</h1>
-    <div class="grid">
-      <div class="card">
-        <h2>Rules</h2>
-        <div class="muted">I pick a number 1–100. You guess. I say higher/lower.</div>
+    function trResetScore(){
+      trTimeEl.textContent = "—";
+      trWpmEl.textContent = "—";
+      trStatus.textContent = "Ready.";
+    }
 
-        <div style="height:12px"></div>
+    trStart.addEventListener("click", ()=>{
+      trPick();
+      trInput.value = "";
+      trInput.disabled = false;
+      trInput.focus();
+      trStartMs = performance.now();
+      trRunning = true;
+      trAttempts++;
+      trAttemptsEl.textContent = String(trAttempts);
+      trResetScore();
+      trStatus.textContent = "Go.";
+    });
 
-        <div class="row">
-          <button id="pz-new">New Game</button>
-          <span class="muted">Attempts: <strong id="pz-attempts">0</strong></span>
-        </div>
+    trInput.addEventListener("input", ()=>{
+      if(!trRunning) return;
+      const typed = trInput.value;
+      if(typed === trTarget){
+        trRunning = false;
+        trInput.disabled = true;
+        const ms = performance.now() - trStartMs;
+        const seconds = ms / 1000;
+        const words = trTarget.trim().split(/\s+/).length;
+        const wpm = Math.max(0, Math.round((words / seconds) * 60));
+        trTimeEl.textContent = seconds.toFixed(2) + "s";
+        trWpmEl.textContent = String(wpm);
+        trStatus.textContent = "Done.";
+      } else {
+        // live feedback (simple): if mismatch early, show warning
+        if(!trTarget.startsWith(typed)){
+          trStatus.textContent = "Mismatch.";
+        } else {
+          trStatus.textContent = "Typing…";
+        }
+      }
+    });
 
-        <div style="height:12px"></div>
+    // ---------- Mini Puzzle (simple, repeatable) ----------
+    const pzQ = document.getElementById("pz-question");
+    const pzA = document.getElementById("pz-answers");
+    const pzNew = document.getElementById("pz-new");
+    const pzStatus = document.getElementById("pz-status");
+    const pzCorrectEl = document.getElementById("pz-correct");
+    const pzWrongEl = document.getElementById("pz-wrong");
 
-        <div class="row">
-          <input id="pz-guess" type="number" min="1" max="100" placeholder="1..100" />
-          <button id="pz-submit">Guess</button>
-        </div>
+    let pzCorrect = 0;
+    let pzWrong = 0;
 
-        <div style="height:12px"></div>
-        <div id="pz-msg" class="target"></div>
-      </div>
+    function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
 
-      <div class="card">
-        <h2>Why keep this</h2>
-        <div class="textblock muted">
-Fast loop, low effort, good dwell time.
-If you later want “daily puzzle”, this becomes a hook.</div>
-      </div>
-    </div>
-  </section>
+    function newPuzzle(){
+      pzStatus.textContent = "Pick one.";
+      pzA.innerHTML = "";
 
-  <!-- LOCAL CHAT (browser-only) -->
-  <section id="localchat" class="card hidden">
-    <h1>Local Chat (browser-only)</h1>
-    <div class="grid">
-      <div class="card">
-        <h2>Room</h2>
-        <div class="muted">This is NOT a real network chat. It’s just a local message board saved in your browser.</div>
+      // 3 quick puzzle types:
+      const type = randInt(1,3);
 
-        <div style="height:12px"></div>
+      let question = "";
+      let answers = [];
+      let correctIndex = 0;
 
-        <div class="row">
-          <input id="lc-name" placeholder="Name (optional)" />
-          <button id="lc-clear">Clear</button>
-        </div>
+      if(type === 1){
+        // arithmetic
+        const x = randInt(2,12), y = randInt(2,12);
+        const op = ["+","-","×"][randInt(0,2)];
+        let val;
+        if(op === "+") val = x + y;
+        if(op === "-") val = x - y;
+        if(op === "×") val = x * y;
+        question = `What is ${x} ${op} ${y}?`;
+        const wrong1 = val + randInt(1,5);
+        const wrong2 = val - randInt(1,5);
+        answers = [val, wrong1, wrong2].sort(()=>Math.random()-0.5);
+        correctIndex = answers.indexOf(val);
+      }
 
-        <div style="height:10px"></div>
+      if(type === 2){
+        // pattern
+        const a = randInt(1,9);
+        const d = randInt(2,6);
+        const seq = [a, a+d, a+2*d, a+3*d];
+        const next = a+4*d;
+        question = `Next number: ${seq.join(", ")}, ?`;
+        const wrong1 = next + d;
+        const wrong2 = next - d;
+        answers = [next, wrong1, wrong2].sort(()=>Math.random()-0.5);
+        correctIndex = answers.indexOf(next);
+      }
 
-        <div class="row">
-          <input id="lc-text" placeholder="Message…" style="flex:1;min-width:220px" />
-          <button id="lc-send">Send</button>
-        </div>
+      if(type === 3){
+        // word logic
+        const items = [
+          {q:"Which is the odd one out?", a:["circle","triangle","square"], c:"triangle"},
+          {q:"Which is NOT a color?", a:["blue","fast","green"], c:"fast"},
+          {q:"Which is NOT a tool?", a:["hammer","wrench","banana"], c:"banana"},
+        ];
+        const pick = items[randInt(0, items.length-1)];
+        question = pick.q + " " + pick.a.join(" / ");
+        const correct = pick.c;
+        answers = [...pick.a].sort(()=>Math.random()-0.5);
+        correctIndex = answers.indexOf(correct);
+      }
 
-        <div style="height:12px"></div>
-        <div id="lc-feed" class="target" style="min-height:160px"></div>
-      </div>
+      pzQ.textContent = question;
 
-      <div class="card">
-        <h2>Keep or delete?</h2>
-        <div class="textblock muted">
-Keep it if you want “social studio vibes” without any backend.
-Delete it if you want maximum simplicity for AdSense review.</div>
-      </div>
-    </div>
-  </section>
-</main>
+      answers.forEach((ans, idx)=>{
+        const b = document.createElement("button");
+        b.textContent = String(ans);
+        b.addEventListener("click", ()=>{
+          if(idx === correctIndex){
+            pzCorrect++;
+            pzCorrectEl.textContent = String(pzCorrect);
+            pzStatus.textContent = "Correct.";
+          } else {
+            pzWrong++;
+            pzWrongEl.textContent = String(pzWrong);
+            pzStatus.textContent = "Wrong.";
+          }
+          // lock buttons after answer
+          [...pzA.querySelectorAll("button")].forEach(x=>x.disabled = true);
+        });
+        pzA.appendChild(b);
+      });
+    }
 
-<footer>
-  <div class="wrap">
-    <div class="row">
-      <span>© <span id="yr"></span> surewhynot.app</span>
-      <span class="muted">•</span>
-      <a href="privacy.html" class="muted">Privacy</a>
-      <span class="muted">•</span>
-      <a href="contact.html" class="muted">Contact</a>
-    </div>
-  </div>
-</footer>
+    pzNew.addEventListener("click", newPuzzle);
+    newPuzzle();
 
-<script>
-/* ---------- tiny router ---------- */
-const sections = ["home","typeracer","puzzle","localchat"];
-function show(hash){
-  const id = (hash || "#home").replace("#","");
-  for (const s
+    // ---------- Utility placeholder ----------
+    const utBtn = document.getElementById("ut-demo");
+    const utStatus = document.getElementById("ut-status");
+    const utOut = document.getElementById("ut-output");
+
+    utBtn.addEventListener("click", ()=>{
+      const now = new Date().toLocaleString();
+      utStatus.textContent = "Ran.";
+      utOut.textContent =
+        "Demo ran at " + now + "\n\n" +
+        "Replace this with your real utility app (fax or other).\n" +
+        "This slot is ready for your next build step.";
+    });
+  </script>
+</body>
+</html>
