@@ -90,7 +90,8 @@
   <span>•</span>
   <a href="/contact.html">Contact</a>
   <span>•</span>
-  <a href="/terms.html">Terms</a>
+  <a href="terms.html">Terms</a>
+
 </div>
 
       </div>
