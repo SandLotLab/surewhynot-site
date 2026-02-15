@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About — SureWhyNot</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="wrap topbar">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>SureWhyNot — Social Studio</span>
+        </div>
+        <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
+
+        <nav class="navcenter" aria-label="Site">
+          <a class="pill" href="/index.html">Home</a>
+          <a class="pill" href="/typeracer.html">Type Racer</a>
+          <a class="pill" href="/puzzle.html">Mini Puzzle</a>
+          <a class="pill" href="/utility.html">Utility</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <section class="grid" style="grid-template-columns:1fr;">
+          <div class="card">
+            <div class="pad">
+              <div class="h1">About</div>
+              <div class="muted">
+                SureWhyNot is a small, simple site built for quick utility tools and lightweight games.
+                <div class="hr"></div>
+                The goal is easy:
+                <br>- Get something done (export, convert, etc.)
+                <br>- Then chill for a minute (type race, mini puzzle)
+                <div class="hr"></div>
+                No accounts. No “social feed.” No pressure.
+                This is meant to be a calm corner that stays fast and minimal.
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footerwrap">
+        <div>© 2026 surewhynot.app</div>
+        <div class="footerlinks">
+          <a href="/about.html">About</a>
+          <span>•</span>
+          <a href="/privacy.html">Privacy</a>
+          <span>•</span>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
