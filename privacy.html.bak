@@ -33,44 +33,19 @@
             <div class="pad">
               <div class="h1">Privacy</div>
               <div class="muted">
-
-                SureWhyNot is designed to operate with minimal data collection.
-
+                Privacy-first by design:
                 <div class="hr"></div>
-
-                Data Collection:
-                <br>- No account registration required.
-                <br>- No personal information collected.
-                <br>- No payment details stored.
-
+                - No accounts required.<br>
+                - No forced sign-in.<br>
+                - Game state is local to your browser.<br>
                 <div class="hr"></div>
-
-                Local Storage:
+                Ads:
                 <br>
-                Some tools or games may use browser local storage to save preferences or progress.
-                This information remains on your device.
-
+                This site may display advertising (including Google AdSense). Ad providers may use cookies or similar tech to show ads.
                 <div class="hr"></div>
-
-                Analytics:
-                <br>
-                Basic analytics may be used to measure traffic and performance.
-                No personally identifiable information is intentionally stored.
-
-                <div class="hr"></div>
-
-                Advertising:
-                <br>
-                This site may display advertising, including Google AdSense.
-                Advertising providers may use cookies or similar technologies to serve ads.
-                Users can manage ad preferences through browser settings or Google ad controls.
-
-                <div class="hr"></div>
-
                 Contact:
                 <br>
-                Privacy questions: <span class="kbd">privacy@surewhynot.app</span>
-
+                Privacy questions: <span class="kbd">Privacy@surewhynot.app</span>
               </div>
             </div>
           </div>
@@ -87,8 +62,6 @@
           <a href="/privacy.html">Privacy</a>
           <span>•</span>
           <a href="/contact.html">Contact</a>
-          <span>•</span>
-          <a href="/terms.html">Terms</a>
         </div>
       </div>
     </footer>

@@ -33,38 +33,14 @@
             <div class="pad">
               <div class="h1">About</div>
               <div class="muted">
-
-                SureWhyNot is an independent web studio focused on building fast, lightweight browser tools and small interactive games.
-
+                SureWhyNot is a small, simple site built for quick utility tools and lightweight games.
                 <div class="hr"></div>
-
-                This site is designed to provide:
-                <br>- Quick functional utilities that solve small tasks efficiently.
-                <br>- Lightweight browser-native games that load instantly.
-                <br>- A clean, minimal environment without social feeds or account systems.
-
+                The goal is easy:
+                <br>- Get something done (export, convert, etc.)
+                <br>- Then chill for a minute (type race, mini puzzle)
                 <div class="hr"></div>
-
-                Design Principles:
-
-                <br><br><strong>Speed.</strong>
-                Pages are intentionally lightweight and optimized for fast load times.
-
-                <br><br><strong>Privacy.</strong>
-                No accounts required. No forced sign-in. No hidden tracking mechanisms.
-
-                <br><br><strong>Local-first interaction.</strong>
-                Game progress and tool outputs remain in your browser whenever technically possible.
-
-                <br><br><strong>Sustainable support.</strong>
-                Advertising may be displayed to support hosting and development.
-                Core functionality is not restricted by ads.
-
-                <div class="hr"></div>
-
-                SureWhyNot is not a social platform, subscription service, or marketplace.
-                It is a focused, evolving web studio built for practical use and lightweight interaction.
-
+                No accounts. No “social feed.” No pressure.
+                This is meant to be a calm corner that stays fast and minimal.
               </div>
             </div>
           </div>
@@ -81,8 +57,6 @@
           <a href="/privacy.html">Privacy</a>
           <span>•</span>
           <a href="/contact.html">Contact</a>
-          <span>•</span>
-          <a href="/terms.html">Terms</a>
         </div>
       </div>
     </footer>
