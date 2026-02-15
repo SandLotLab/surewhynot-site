@@ -33,13 +33,28 @@
             <div class="pad">
               <div class="h1">Contact</div>
               <div class="muted">
-                For site issues and basic questions:
+
+                For site issues, bug reports, or general questions:
+
                 <div class="hr"></div>
+
                 <span class="kbd">hello@surewhynot.app</span>
+
                 <div class="hr"></div>
-                Privacy questions:
+
+                For privacy-related inquiries:
+
                 <br>
-                <span class="kbd">Privacy@surewhynot.app</span>
+                <span class="kbd">privacy@surewhynot.app</span>
+
+                <div class="hr"></div>
+
+                When reporting technical issues, please include:
+                <br>- Browser type
+                <br>- Device type
+                <br>- Page URL
+                <br>- Steps to reproduce the issue
+
               </div>
             </div>
           </div>
@@ -56,6 +71,8 @@
           <a href="/privacy.html">Privacy</a>
           <span>•</span>
           <a href="/contact.html">Contact</a>
+          <span>•</span>
+          <a href="/terms.html">Terms</a>
         </div>
       </div>
     </footer>
