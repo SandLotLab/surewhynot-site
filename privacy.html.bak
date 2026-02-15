@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Privacy — SureWhyNot</title>
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="wrap topbar">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>SureWhyNot — Social Studio</span>
+        </div>
+        <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
+
+        <nav class="navcenter" aria-label="Site">
+          <a class="pill" href="/index.html">Home</a>
+          <a class="pill" href="/typeracer.html">Type Racer</a>
+          <a class="pill" href="/puzzle.html">Mini Puzzle</a>
+          <a class="pill" href="/utility.html">Utility</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+        <section class="grid" style="grid-template-columns:1fr;">
+          <div class="card">
+            <div class="pad">
+              <div class="h1">Privacy</div>
+              <div class="muted">
+                Privacy-first by design:
+                <div class="hr"></div>
+                - No accounts required.<br>
+                - No forced sign-in.<br>
+                - Game state is local to your browser.<br>
+                <div class="hr"></div>
+                Ads:
+                <br>
+                This site may display advertising (including Google AdSense). Ad providers may use cookies or similar tech to show ads.
+                <div class="hr"></div>
+                Contact:
+                <br>
+                Privacy questions: <span class="kbd">Privacy@surewhynot.app</span>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footerwrap">
+        <div>© 2026 surewhynot.app</div>
+        <div class="footerlinks">
+          <a href="/about.html">About</a>
+          <span>•</span>
+          <a href="/privacy.html">Privacy</a>
+          <span>•</span>
+          <a href="/contact.html">Contact</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
