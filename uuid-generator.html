@@ -46,36 +46,42 @@
   <meta http-equiv="X-Frame-Options" content="DENY">
 
   <style>
-    table { 
-  width:100%; 
-  border-collapse: collapse; 
+    /* --- Generated UUID table only --- */
+#rows table,
+#rows { }
+
+.card table {
+  width:100%;
+  border-collapse: collapse;
 }
 
-th, td { 
-  text-align:left; 
-  padding:6px 6px;              /* ↓ was 10px 8px */
+/* TARGET ONLY THE RIGHT CARD TABLE */
+tbody#rows tr td,
+tbody#rows tr th {
+  padding:4px 6px;
   border-bottom:1px solid rgba(255,255,255,.06);
-  font-size:12px;               /* ↓ slightly tighter */
-  line-height:1.2;              /* ↓ tighter rows */
+  font-size:12px;
+  line-height:1.2;
 }
 
-th { 
-  color: var(--muted); 
-  font-weight:600; 
+tbody#rows tr th {
+  color: var(--muted);
+  font-weight:600;
 }
 
-.tag {
-  padding:2px 6px;              /* ↓ smaller version badge */
+/* compact version badge */
+tbody#rows .tag {
+  padding:2px 6px;
   font-size:11px;
 }
 
-.actions { 
-  display:flex; 
-  gap:6px;                      /* ↓ smaller gap */
+/* compact action buttons */
+tbody#rows .actions {
+  gap:6px;
 }
 
-.actions .pill {
-  padding:4px 8px;              /* ↓ tighter buttons */
+tbody#rows .actions .pill {
+  padding:4px 8px;
   font-size:11px;
 }
 

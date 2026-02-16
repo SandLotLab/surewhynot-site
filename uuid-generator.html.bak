@@ -46,48 +46,39 @@
   <meta http-equiv="X-Frame-Options" content="DENY">
 
   <style>
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
-    .col { display:flex; flex-direction:column; gap:6px; min-width:220px; flex: 1 1 220px; }
-    .lbl { font-size:12px; color:var(--muted); }
-    .in {
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(23,36,59,.8);
-      background:rgba(11,21,40,.35);
-      color:var(--text);
-      padding:10px 12px;
-      font-family:inherit;
-      font-size:12.5px;
-      line-height:1.2;
-      outline:none;
-    }
-    .ta {
-      width:100%;
-      border-radius:12px;
-      border:1px solid rgba(23,36,59,.8);
-      background:rgba(11,21,40,.35);
-      color:var(--text);
-      padding:12px;
-      font-family:inherit;
-      font-size:12.5px;
-      line-height:1.55;
-    }
-    select.in { cursor:pointer; }
-    table { width:100%; border-collapse: collapse; }
-    th, td { text-align:left; padding:10px 8px; border-bottom:1px solid rgba(255,255,255,.08); font-size:12.5px; }
-    th { color: var(--muted); font-weight:600; }
-    .tag {
-      display:inline-block;
-      border:1px solid rgba(23,36,59,.8);
-      background:rgba(11,21,40,.35);
-      border-radius:999px;
-      padding:4px 8px;
-      font-size:12px;
-      color:var(--text);
-    }
-    .actions { display:flex; gap:8px; flex-wrap:wrap; }
-    .mutedline { color:var(--muted); font-size:12px; line-height:1.5; }
+    table { 
+  width:100%; 
+  border-collapse: collapse; 
+}
+
+th, td { 
+  text-align:left; 
+  padding:6px 6px;              /* ↓ was 10px 8px */
+  border-bottom:1px solid rgba(255,255,255,.06);
+  font-size:12px;               /* ↓ slightly tighter */
+  line-height:1.2;              /* ↓ tighter rows */
+}
+
+th { 
+  color: var(--muted); 
+  font-weight:600; 
+}
+
+.tag {
+  padding:2px 6px;              /* ↓ smaller version badge */
+  font-size:11px;
+}
+
+.actions { 
+  display:flex; 
+  gap:6px;                      /* ↓ smaller gap */
+}
+
+.actions .pill {
+  padding:4px 8px;              /* ↓ tighter buttons */
+  font-size:11px;
+}
+
   </style>
 </head>
 
