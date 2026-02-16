@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Mini Puzzle — SureWhyNot</title>
+  <title>Incident Room — SureWhyNot</title>
+
   <link rel="stylesheet" href="/assets/site.css">
+
   <style>
     .row{display:flex; gap:10px; flex-wrap:wrap; margin-top:10px}
     input{
@@ -31,8 +33,32 @@
     }
     button.primary{border-color: rgba(246,195,74,.55)}
     .msg{margin-top:10px; color:var(--muted); font-size:13px; line-height:1.5}
+
+    /* optional color feedback (inline so you don't have to touch site.css) */
+    .msg.success{color:#5cff9d}
+    .msg.fail{color:#ff6b6b}
+    .msg.warn{color:var(--accent)}
+
     .grid2{display:grid; grid-template-columns:1.2fr .8fr; gap:18px; padding:22px 0 26px}
     @media (max-width: 900px){ .grid2{grid-template-columns:1fr} }
+
+    .hintgrid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .hintbox{
+      border:1px solid rgba(23,36,59,.8);
+      border-radius:12px;
+      background: rgba(11,21,40,.25);
+      padding:10px 12px;
+      font-size:12.5px;
+      color:var(--muted);
+      line-height:1.45;
+    }
+    .hintbox b{color:var(--text)}
+    code.k{color:var(--accent)}
   </style>
 </head>
 
@@ -44,10 +70,8 @@ async function loadPartials() {
   document.getElementById('site-header').innerHTML = await header.text();
   document.getElementById('site-footer').innerHTML = await footer.text();
 }
-
 loadPartials();
 </script>
-
 
 <body>
   <div class="page">
@@ -57,24 +81,32 @@ loadPartials();
     <main>
       <div class="wrap">
         <section class="grid2">
+
           <div class="card">
             <div class="pad">
-              <div class="h1">Mini Puzzle: 4-digit code</div>
+              <div class="h1">Incident Room: Production Outage</div>
               <div class="muted">
-                You get 6 tries. After each guess you’ll see:
-                <br>- <span class="kbd">Right</span> = correct digit in correct spot
-                <br>- <span class="kbd">Close</span> = digit exists but in wrong spot
+                You are on-call. Identify the correct stack signature in 6 attempts.
+                <br><br>
+                Format: <span class="kbd">env | service | failure | region</span>
+                <br>
+                Feedback:
+                <br>- <span class="kbd">Exact</span> = correct token in correct slot
+                <br>- <span class="kbd">Misplaced</span> = token exists but wrong slot
               </div>
 
               <div class="hr"></div>
 
-              <input id="guess" placeholder="Type 4 digits (example: 0834)" inputmode="numeric" maxlength="4" />
+              <input id="guess" placeholder="example: prod|auth|timeout|us-east-1" autocomplete="off" autocapitalize="off" spellcheck="false" />
+
               <div class="row">
-                <button class="primary" id="btnTry">Try</button>
-                <button id="btnNew">New Puzzle</button>
+                <button class="primary" id="btnTry">Deploy Guess</button>
+                <button id="btnNew">Reset Incident</button>
               </div>
 
-              <div class="msg" id="out"></div>
+              <div class="msg warn" id="out"></div>
+
+              <div class="hintgrid" id="hints"></div>
             </div>
           </div>
 
@@ -85,9 +117,10 @@ loadPartials();
                 <b>[ AdSense Slot Here ]</b>
               </div>
               <div class="hr"></div>
-              <div class="muted">Fast, small, replayable.</div>
+              <div class="muted">Fast, small, replayable. Now it smells like on-call.</div>
             </div>
           </div>
+
         </section>
       </div>
     </main>
@@ -100,77 +133,133 @@ loadPartials();
 (() => {
   const guessEl = document.getElementById("guess");
   const out = document.getElementById("out");
+  const hintsEl = document.getElementById("hints");
   const btnTry = document.getElementById("btnTry");
   const btnNew = document.getElementById("btnNew");
 
-  let secret = "";
-  let tries = 0;
   const maxTries = 6;
+  let tries = 0;
+  let secret = [];
+
+  // token pools
+  const envs     = ["prod","staging","dev","qa"];
+  const services = ["auth","api","worker","db"];
+  const failures = ["timeout","memory","latency","dns"];
+  const regions  = ["us-east-1","us-west-2","eu-central-1","ap-south-1"];
+
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)] }
+
+  function setMsg(text, cls){
+    out.textContent = text;
+    out.className = "msg " + (cls || "warn");
+  }
+
+  function renderHints(){
+    hintsEl.innerHTML = `
+      <div class="hintbox"><b>env</b><br>${envs.map(x=>`<code class="k">${x}</code>`).join("  ")}</div>
+      <div class="hintbox"><b>service</b><br>${services.map(x=>`<code class="k">${x}</code>`).join("  ")}</div>
+      <div class="hintbox"><b>failure</b><br>${failures.map(x=>`<code class="k">${x}</code>`).join("  ")}</div>
+      <div class="hintbox"><b>region</b><br>${regions.map(x=>`<code class="k">${x}</code>`).join("  ")}</div>
+    `;
+  }
+
+  function normalizeGuess(raw){
+    // allow either "|" or "," separators
+    const s = raw.trim().toLowerCase();
+    const parts = s.includes("|")
+      ? s.split("|")
+      : s.split(",");
+
+    return parts.map(x => x.trim()).filter(Boolean);
+  }
+
+  function validate(parts){
+    if(parts.length !== 4) return "Invalid format.";
+    if(!envs.includes(parts[0])) return "Invalid env token.";
+    if(!services.includes(parts[1])) return "Invalid service token.";
+    if(!failures.includes(parts[2])) return "Invalid failure token.";
+    if(!regions.includes(parts[3])) return "Invalid region token.";
+    return "";
+  }
 
   function newPuzzle(){
-    secret = String(Math.floor(Math.random()*10000)).padStart(4,"0");
+    secret = [pick(envs), pick(services), pick(failures), pick(regions)];
     tries = 0;
-    out.textContent = "New puzzle ready.";
+    setMsg("Incident triggered. Diagnose.", "warn");
     guessEl.value = "";
     guessEl.focus();
   }
 
-  function score(guess){
-    let right = 0, close = 0;
-    const s = secret.split("");
-    const g = guess.split("");
+  function score(guessArr){
+    let exact = 0;
+    let misplaced = 0;
 
-    const usedS = Array(4).fill(false);
-    const usedG = Array(4).fill(false);
+    const usedSecret = [false,false,false,false];
+    const usedGuess  = [false,false,false,false];
 
     for(let i=0;i<4;i++){
-      if(g[i] === s[i]){
-        right++;
-        usedS[i]=true;
-        usedG[i]=true;
+      if(guessArr[i] === secret[i]){
+        exact++;
+        usedSecret[i] = true;
+        usedGuess[i] = true;
       }
     }
+
     for(let i=0;i<4;i++){
-      if(usedG[i]) continue;
+      if(usedGuess[i]) continue;
       for(let j=0;j<4;j++){
-        if(usedS[j]) continue;
-        if(g[i] === s[j]){
-          close++;
-          usedS[j]=true;
-          usedG[i]=true;
+        if(usedSecret[j]) continue;
+        if(guessArr[i] === secret[j]){
+          misplaced++;
+          usedSecret[j] = true;
           break;
         }
       }
     }
-    return {right, close};
+    return {exact, misplaced};
   }
 
-  btnTry.addEventListener("click", () => {
-    const guess = guessEl.value.trim();
-    if(!/^\d{4}$/.test(guess)){
-      out.textContent = "Enter exactly 4 digits.";
+  function isSolved(parts){
+    for(let i=0;i<4;i++){
+      if(parts[i] !== secret[i]) return false;
+    }
+    return true;
+  }
+
+  function submit(){
+    const parts = normalizeGuess(guessEl.value);
+    const err = validate(parts);
+    if(err){
+      setMsg(err, "warn");
       return;
     }
-    tries++;
-    const {right, close} = score(guess);
 
-    if(guess === secret){
-      out.textContent = `Solved in ${tries}/${maxTries}. Code: ${secret}`;
+    tries++;
+    const {exact, misplaced} = score(parts);
+
+    if(isSolved(parts)){
+      setMsg(`Resolved in ${tries}/${maxTries}. Stack stabilized.`, "success");
       return;
     }
 
     if(tries >= maxTries){
-      out.textContent = `Out of tries. Code was ${secret}. Click New Puzzle.`;
+      setMsg(`Escalated. Root cause: ${secret.join(" | ")}`, "fail");
       return;
     }
 
-    out.textContent = `Try ${tries}/${maxTries}: Right ${right}, Close ${close}`;
+    setMsg(`Attempt ${tries}/${maxTries} → Exact: ${exact} | Misplaced: ${misplaced}`, "warn");
     guessEl.focus();
     guessEl.select();
-  });
+  }
 
+  btnTry.addEventListener("click", submit);
   btnNew.addEventListener("click", newPuzzle);
 
+  guessEl.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") submit();
+  });
+
+  renderHints();
   newPuzzle();
 })();
 </script>
