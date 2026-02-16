@@ -10,8 +10,7 @@ bindings = [
 
 [[kv_namespaces]]
 binding = "ROOM_STATE"
-id = "<YOUR_KV_NAMESPACE_ID>"
-# (optional) preview_id = "<886fe4f8471d48c5ab6c24f001eb7add>"
+id = "886fe4f8471d48c5ab6c24f001eb7add"
 
 [[migrations]]
 tag = "v1" 
