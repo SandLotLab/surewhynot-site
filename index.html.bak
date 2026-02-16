@@ -3,15 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SureWhyNot — Social Studio</title>
-  <meta name="description" content="SureWhyNot Social Studio — tiny, privacy-forward, ad-friendly mini games + utility." />
-
-  <!-- USE SAME CSS AS OTHER PAGES -->
+  <title>SureWhyNot — Developer Tools & Mini Games</title>
+  <meta name="description" content="Lightweight developer tools and simple web games. Privacy-first, no accounts, no tracking." />
   <link rel="stylesheet" href="/assets/site.css">
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-     crossorigin="anonymous"></script>
-	 
 </head>
 
 <body>
@@ -29,36 +23,52 @@
           <a class="pill active" href="/index.html">Home</a>
           <a class="pill" href="/typeracer.html">Type Racer</a>
           <a class="pill" href="/puzzle.html">Mini Puzzle</a>
-          <a class="pill" href="/utility.html">Utility</a>
-		  <a class="pill" href="/json2ts.html">JSON→TS</a>
+          <a class="pill" href="/json-formatter.html">JSON Formatter</a>
+          <a class="pill" href="/json2ts.html">JSON→TS</a>
         </nav>
       </div>
     </header>
 
     <main>
       <div class="wrap">
-
         <section class="grid">
 
           <div class="card">
             <div class="pad">
               <div class="h1">Welcome</div>
-			  <p>
-  Try our <a href="/json2ts">free JSON to TypeScript Interface Generator</a>.
-</p>
 
+              <p>
+                A small collection of lightweight developer tools and simple browser games.
+                Everything runs client-side — no accounts, no tracking, no uploads.
+              </p>
 
-              <div class="muted">
-                A small site with simple stuff people actually play.
-                <br><br>
-                - Type Racer (repeatable, score-based)<br>
-                - Mini Puzzle (fast brain snack)<br>
-                - Utility (your “come back daily” tool slot)
-                <br><br>
-                No accounts. No default trackers.
-                <br>
-                Ads later (your choice).
-              </div>
+              <ul>
+                <li>
+                  <a href="/typeracer.html">Type Racer</a>
+                  (measure typing speed and accuracy)
+                </li>
+
+                <li>
+                  <a href="/puzzle.html">Mini Puzzle</a>
+                  (fast brain snack)
+                </li>
+
+                <li>
+                  <a href="/json-formatter.html">JSON Formatter & Validator</a>
+                  (format and validate JSON instantly in your browser)
+                </li>
+
+                <li>
+                  <a href="/json2ts.html">JSON to TypeScript Interface Generator</a>
+                  (convert JSON into TypeScript interfaces or type aliases)
+                </li>
+              </ul>
+
+              <p>
+                More small utilities coming soon:
+                Hash Generator and UUID Generator.
+              </p>
+
             </div>
           </div>
 
@@ -66,17 +76,16 @@
             <div class="pad">
               <div class="h1">Ad slot placeholder</div>
 
-              <div class="adslot">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
-                  Keep this spot consistent so the layout doesn’t jump later.
-                </div>
-                <b>[ AdSense Slot Here ]</b>
+              <div style="border:1px dashed rgba(255,255,255,.2);padding:24px;text-align:center;">
+                Keep this spot consistent so the layout doesn’t jump later.
+                <br><br>
+                <strong>[ AdSense Slot Here ]</strong>
               </div>
+
             </div>
           </div>
 
         </section>
-
       </div>
     </main>
 
@@ -84,15 +93,14 @@
       <div class="footerwrap">
         <div>© 2026 surewhynot.app</div>
         <div class="footerlinks">
-  <a href="/about.html">About</a>
-  <span>•</span>
-  <a href="/privacy.html">Privacy</a>
-  <span>•</span>
-  <a href="/contact.html">Contact</a>
-  <span>•</span>
-  <a href="/terms.html">Terms</a>
-</div>
- 
+          <a href="/about.html">About</a>
+          <span>•</span>
+          <a href="/privacy.html">Privacy</a>
+          <span>•</span>
+          <a href="/contact.html">Contact</a>
+          <span>•</span>
+          <a href="/terms.txt">Terms</a>
+        </div>
       </div>
     </footer>
 
