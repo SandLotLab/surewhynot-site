@@ -38,10 +38,56 @@
               <div class="h1">JSON → TypeScript Interface Generator</div>
 
               <div class="muted">
-                Paste JSON on the left. Click Generate. Copy TypeScript on the right.
+                Paste JSON on the left. Click Generate. Copy/Download TypeScript on the right.
                 <div class="hr"></div>
 
-                <textarea id="jsonIn" style="width:100%;min-height:260px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;" spellcheck="false"
+                <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                  <div style="display:flex;flex-direction:column;gap:6px;min-width:220px;">
+                    <div style="font-size:12px;color:var(--muted);">Root name</div>
+                    <input id="rootName" value="Root"
+                      style="width:100%;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:10px 12px;font-family:inherit;font-size:12.5px;line-height:1.2;outline:none;" />
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
+                    <div style="font-size:12px;color:var(--muted);">Output style</div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input type="radio" name="outStyle" value="interface" checked>
+                        <span>Export interfaces</span>
+                      </label>
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input type="radio" name="outStyle" value="type">
+                        <span>Export type aliases</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div style="display:flex;flex-direction:column;gap:6px;min-width:260px;">
+                    <div style="font-size:12px;color:var(--muted);">Options</div>
+                    <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;">
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input id="optIPrefix" type="checkbox" checked>
+                        <span>I-prefix (IRoot)</span>
+                      </label>
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input id="optDate" type="checkbox" checked>
+                        <span>ISO strings → Date</span>
+                      </label>
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input id="optStrictNull" type="checkbox" checked>
+                        <span>Keep null unions</span>
+                      </label>
+                      <label style="display:flex;gap:8px;align-items:center;">
+                        <input id="optAutoCopyJson" type="checkbox" checked>
+                        <span>Auto-copy JSON on prettify/minify</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <textarea id="jsonIn"
+                  style="width:100%;min-height:260px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
+                  spellcheck="false"
                   placeholder='Example:
 {
   "id": 123,
@@ -49,13 +95,20 @@
   "active": true,
   "tags": ["a", "b"],
   "profile": { "rank": "SGT", "years": 10 },
-  "maybe": null
+  "maybe": null,
+  "createdAt": "2026-02-16T03:41:58.754Z",
+  "items": [
+    {"sku":"A1","qty":2},
+    {"sku":"B2"}
+  ]
 }'></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
                   <a class="pill" href="#" id="btnGenerate">Generate</a>
                   <a class="pill" href="#" id="btnPrettify">Prettify JSON</a>
                   <a class="pill" href="#" id="btnMinify">Minify JSON</a>
+                  <a class="pill" href="#" id="btnCopyJson">Copy JSON</a>
+                  <a class="pill" href="#" id="btnDownloadJson">Download JSON</a>
                   <a class="pill" href="#" id="btnClear">Clear</a>
                 </div>
 
@@ -71,11 +124,14 @@
               <div class="h1">TypeScript Output</div>
 
               <div class="muted">
-                <textarea id="tsOut" style="width:100%;min-height:360px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;" spellcheck="false"
+                <textarea id="tsOut"
+                  style="width:100%;min-height:360px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
+                  spellcheck="false"
                   placeholder="TypeScript will appear here..."></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                  <a class="pill" href="#" id="btnCopy">Copy</a>
+                  <a class="pill" href="#" id="btnCopyTs">Copy TS</a>
+                  <a class="pill" href="#" id="btnDownloadTs">Download types.ts</a>
                 </div>
               </div>
             </div>
@@ -110,9 +166,19 @@
   const tsOut = $("tsOut");
   const status = $("status");
 
+  const rootNameEl = $("rootName");
+  const optIPrefix = $("optIPrefix");
+  const optDate = $("optDate");
+  const optStrictNull = $("optStrictNull");
+  const optAutoCopyJson = $("optAutoCopyJson");
+
   function setStatus(msg) { status.textContent = msg || ""; }
 
-  // ---------- naming ----------
+  function outStyle() {
+    const r = document.querySelector('input[name="outStyle"]:checked');
+    return r ? r.value : "interface";
+  }
+
   function pascal(s) {
     if (!s) return "Root";
     return String(s)
@@ -122,16 +188,24 @@
       .map(p => p.charAt(0).toUpperCase() + p.slice(1))
       .join("");
   }
-  function singular(s) {
-    if (!s) return "Item";
-    return s.endsWith("s") ? s.slice(0, -1) : s;
-  }
+
   function safeKey(k) {
     return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
   }
 
-  // ---------- type helpers ----------
+  function singular(s) {
+    if (!s) return "Item";
+    return s.endsWith("s") ? s.slice(0, -1) : s;
+  }
+
   function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
+
+  // ISO 8601 date/time-ish (strict enough to be useful, loose enough for real-world)
+  function looksISODate(s) {
+    if (typeof s !== "string") return false;
+    // Examples: 2026-02-16, 2026-02-16T03:41:58Z, 2026-02-16T03:41:58.754Z, 2026-02-16T03:41:58+00:00
+    return /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+\-]\d{2}:\d{2})?)?$/.test(s);
+  }
 
   function uniq(arr) {
     const out = [];
@@ -140,15 +214,16 @@
   }
 
   function normalizeUnion(types) {
-    // stable-ish order: primitives first, then interfaces, then unknown; keep null last
+    // stable order, keep null last
     const order = (t) => {
       if (t === "string") return 1;
       if (t === "number") return 2;
       if (t === "boolean") return 3;
-      if (t === "null") return 99;
-      if (t === "unknown") return 98;
+      if (t === "Date") return 4;
       if (t.endsWith("[]")) return 50;
-      if (t.startsWith("I")) return 60;
+      if (t.startsWith("I") || /^[A-Z]/.test(t)) return 60;
+      if (t === "unknown") return 98;
+      if (t === "null") return 99;
       return 70;
     };
     const u = uniq(types);
@@ -167,16 +242,13 @@
     return t.includes(" | ") ? `(${t})` : t;
   }
 
-  // ---------- shape merging for arrays of objects ----------
-  // shape: Map<propName, { types: Set<string>, optional: boolean }>
+  // shape: Map<propKey, { types:Set<string>, optional:boolean }>
   function mergeShapes(a, b) {
     const out = new Map();
-
     const keys = new Set([...a.keys(), ...b.keys()]);
     for (const k of keys) {
       const inA = a.has(k);
       const inB = b.has(k);
-
       const entry = { types: new Set(), optional: false };
 
       if (inA) {
@@ -190,175 +262,260 @@
         entry.optional = entry.optional || eb.optional;
       }
 
-      if (!(inA && inB)) entry.optional = true; // missing in one item => optional
+      if (!(inA && inB)) entry.optional = true;
       out.set(k, entry);
     }
     return out;
   }
 
-  // ---------- context for collecting interfaces ----------
-  function createCtx() {
-    const ifaceOrder = [];
-    const ifaceByName = new Map(); // name -> shape map
-    const nameCounts = new Map();  // base -> count
+  function buildGeneratorOptions() {
+    const rn = (rootNameEl.value || "Root").trim() || "Root";
+    return {
+      rootName: rn,
+      iPrefix: !!optIPrefix.checked,
+      isoAsDate: !!optDate.checked,
+      keepNull: !!optStrictNull.checked,
+      style: outStyle()
+    };
+  }
 
-    function nameFor(hint) {
-      const base = "I" + pascal(hint || "Root");
+  function makeName(base, opts) {
+    const p = pascal(base || "Root");
+    if (opts.iPrefix) return "I" + p;
+    return p;
+  }
+
+  function createCtx(opts) {
+    const order = [];
+    const shapes = new Map();     // name -> shape map
+    const seenByRef = new WeakMap(); // object ref -> name (prevents infinite recursion)
+    const nameCounts = new Map(); // base -> count
+
+    function uniqName(base) {
       const n = nameCounts.get(base) || 0;
-      if (n === 0) {
-        nameCounts.set(base, 1);
-        return base;
-      }
+      if (n === 0) { nameCounts.set(base, 1); return base; }
       nameCounts.set(base, n + 1);
       return base + (n + 1);
     }
 
-    function captureObject(ifaceName, obj, hintForChildren) {
-      // Build shape for this object
-      const shape = new Map();
-      for (const [k, v] of Object.entries(obj)) {
-        shape.set(k, { types: new Set([inferType(v, k, hintForChildren)]), optional: false });
-      }
-
-      // Merge if already captured (same name)
-      if (!ifaceByName.has(ifaceName)) {
-        ifaceByName.set(ifaceName, shape);
-        ifaceOrder.push(ifaceName);
-      } else {
-        const merged = mergeShapes(ifaceByName.get(ifaceName), shape);
-        ifaceByName.set(ifaceName, merged);
-      }
-
-      // Walk children to capture nested objects
-      for (const [k, v] of Object.entries(obj)) {
-        if (isObj(v)) {
-          const childName = "I" + pascal(k);
-          // ensure stable child naming by using key-based interface
-          captureObject(childName, v, k);
-        } else if (Array.isArray(v)) {
-          // arrays: capture object items if present
-          for (const item of v) {
-            if (isObj(item)) {
-              const childHint = singular(k);
-              const childName = "I" + pascal(childHint);
-              captureObject(childName, item, childHint);
-            }
-          }
-        }
-      }
+    function nameFromPath(pathParts) {
+      // e.g. ["Root","profile"] -> IRootProfile
+      const joined = pathParts.map(pascal).join("");
+      return uniqName(makeName(joined, opts));
     }
 
-    function inferType(v, keyHint, parentHint) {
-      if (v === null) return "null";
+    function captureObject(obj, pathParts) {
+      if (!isObj(obj)) return null;
+
+      if (seenByRef.has(obj)) return seenByRef.get(obj);
+
+      const ifaceName = nameFromPath(pathParts);
+      seenByRef.set(obj, ifaceName);
+
+      const shape = new Map();
+      for (const [k, v] of Object.entries(obj)) {
+        shape.set(k, { types: new Set([inferType(v, pathParts.concat([k]))]), optional: false });
+      }
+
+      if (!shapes.has(ifaceName)) {
+        shapes.set(ifaceName, shape);
+        order.push(ifaceName);
+      } else {
+        shapes.set(ifaceName, mergeShapes(shapes.get(ifaceName), shape));
+      }
+
+      // walk children
+      for (const [k, v] of Object.entries(obj)) {
+        if (isObj(v)) {
+          captureObject(v, pathParts.concat([k]));
+        } else if (Array.isArray(v)) {
+          captureArrayForObjects(v, pathParts.concat([k]));
+        }
+      }
+
+      return ifaceName;
+    }
+
+    function captureArrayForObjects(arr, pathParts) {
+      if (!Array.isArray(arr) || arr.length === 0) return null;
+
+      let merged = null;
+      let anyObj = false;
+
+      for (const item of arr) {
+        if (!isObj(item)) continue;
+        anyObj = true;
+
+        const itemShape = new Map();
+        for (const [k, v] of Object.entries(item)) {
+          itemShape.set(k, { types: new Set([inferType(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]))]), optional: false });
+        }
+
+        merged = merged ? mergeShapes(merged, itemShape) : itemShape;
+
+        // walk nested children
+        for (const [k, v] of Object.entries(item)) {
+          if (isObj(v)) captureObject(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
+          else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
+        }
+      }
+
+      if (!anyObj) return null;
+
+      const ifaceName = nameFromPath(pathParts.concat([singular(pathParts[pathParts.length-1] || "Item")]));
+      if (!shapes.has(ifaceName)) {
+        shapes.set(ifaceName, merged || new Map());
+        order.push(ifaceName);
+      } else {
+        shapes.set(ifaceName, mergeShapes(shapes.get(ifaceName), merged || new Map()));
+      }
+
+      return ifaceName;
+    }
+
+    function inferType(v, pathParts) {
+      if (v === null) return opts.keepNull ? "null" : "unknown";
+
       const t = typeof v;
-      if (t === "string") return "string";
+      if (t === "string") {
+        if (opts.isoAsDate && looksISODate(v)) return "Date";
+        return "string";
+      }
       if (t === "number") return "number";
       if (t === "boolean") return "boolean";
 
-      if (Array.isArray(v)) return inferArray(v, keyHint, parentHint);
+      if (Array.isArray(v)) return inferArray(v, pathParts);
 
       if (isObj(v)) {
-        const iface = "I" + pascal(keyHint || parentHint || "Root");
-        captureObject(iface, v, keyHint || parentHint || "Root");
-        return iface;
+        return captureObject(v, pathParts);
       }
 
       return "unknown";
     }
 
-    function inferArray(arr, keyHint, parentHint) {
+    function inferArray(arr, pathParts) {
       if (arr.length === 0) return "unknown[]";
 
-      let elementTypes = [];
-      let objShape = null;         // merged shape for object items, if any
-      let hasObject = false;
+      const elTypes = [];
+      let objIface = null;
+
+      // capture objects first (merge shapes across array object items)
+      objIface = captureArrayForObjects(arr, pathParts);
 
       for (const item of arr) {
-        if (isObj(item)) {
-          hasObject = true;
-          // build shape for this object item (without creating an interface yet)
-          const shape = new Map();
-          for (const [k, v] of Object.entries(item)) {
-            shape.set(k, { types: new Set([inferType(v, k, keyHint)]), optional: false });
-          }
-          objShape = objShape ? mergeShapes(objShape, shape) : shape;
-        } else {
-          elementTypes.push(inferType(item, singular(keyHint || "Item"), parentHint));
-        }
-
-        // cap work
-        if (elementTypes.length > 8) break;
+        if (isObj(item)) continue; // handled via merged interface
+        elTypes.push(inferType(item, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item")])));
+        if (elTypes.length > 12) break;
       }
 
-      if (hasObject) {
-        // create/merge a dedicated interface for array objects
-        const hint = singular(keyHint || parentHint || "Item");
-        const iface = "I" + pascal(hint);
-        if (!ifaceByName.has(iface)) {
-          ifaceByName.set(iface, objShape || new Map());
-          ifaceOrder.push(iface);
-        } else {
-          const merged = mergeShapes(ifaceByName.get(iface), objShape || new Map());
-          ifaceByName.set(iface, merged);
-        }
-        elementTypes.push(iface);
-      }
+      if (objIface) elTypes.push(objIface);
 
-      const u = normalizeUnion(elementTypes);
+      let u = normalizeUnion(elTypes);
+
+      // if keepNull is off, drop null from unions (but still keep unknown)
+      if (!opts.keepNull) u = u.filter(x => x !== "null");
+
       const el = u.length === 1 ? u[0] : maybeWrapUnion(u.join(" | "));
       return `${el}[]`;
     }
 
-    function renderInterfaces() {
-      const out = [];
+    function render() {
+      const lines = [];
 
-      for (const name of ifaceOrder) {
-        const shape = ifaceByName.get(name) || new Map();
+      for (const name of order) {
+        const shape = shapes.get(name) || new Map();
 
-        out.push(`export interface ${name} {`);
-        for (const [k, meta] of shape.entries()) {
-          const prop = safeKey(k);
-          const types = normalizeUnion([...meta.types]);
-          // If null appears, allow it in union; if a prop is optional, use ?.
-          const tsType = unionType(types);
-          const optional = meta.optional ? "?" : "";
-          out.push(`  ${prop}${optional}: ${tsType};`);
+        if (opts.style === "interface") {
+          lines.push(`export interface ${name} {`);
+          for (const [k, meta] of shape.entries()) {
+            const prop = safeKey(k);
+            let tsT = unionType([...meta.types]);
+
+            if (!opts.keepNull) {
+              tsT = unionType([...meta.types].filter(x => x !== "null"));
+            }
+
+            const optional = meta.optional ? "?" : "";
+            lines.push(`  ${prop}${optional}: ${tsT};`);
+          }
+          lines.push("}");
+          lines.push("");
+        } else {
+          // type alias object form
+          lines.push(`export type ${name} = {`);
+          for (const [k, meta] of shape.entries()) {
+            const prop = safeKey(k);
+            let tsT = unionType([...meta.types]);
+
+            if (!opts.keepNull) {
+              tsT = unionType([...meta.types].filter(x => x !== "null"));
+            }
+
+            // in type alias object, optional props still use ?
+            const optional = meta.optional ? "?" : "";
+            lines.push(`  ${prop}${optional}: ${tsT};`);
+          }
+          lines.push("};");
+          lines.push("");
         }
-        out.push("}");
-        out.push("");
       }
 
-      // remove final extra blank line
-      while (out.length && out[out.length - 1] === "") out.pop();
-      return out.join("\n");
+      while (lines.length && lines[lines.length - 1] === "") lines.pop();
+      return lines.join("\n");
     }
 
-    function inferRoot(rootValue) {
-      if (rootValue === null) return { rootType: "null", rootIface: null };
-      if (Array.isArray(rootValue)) {
-        // if array has objects, ensure captured
-        const t = inferArray(rootValue, "Root", "Root");
-        return { rootType: t, rootIface: null };
+    function inferRoot(rootVal) {
+      // Root type alias should always be named Root (user asked)
+      const rootTName = "Root";
+      const rootObjName = makeName(opts.rootName, opts);
+
+      if (rootVal === null) return { rootExport: `export type ${rootTName} = ${opts.keepNull ? "null" : "unknown"};`, rootObjName: null };
+
+      if (Array.isArray(rootVal)) {
+        const t = inferType(rootVal, [opts.rootName || "Root"]);
+        return { rootExport: `export type ${rootTName} = ${t};`, rootObjName: null };
       }
-      if (isObj(rootValue)) {
-        const rootIface = "IRoot";
-        captureObject(rootIface, rootValue, "Root");
-        return { rootType: rootIface, rootIface };
+
+      if (isObj(rootVal)) {
+        // force root object name to exactly match root name setting (stable)
+        // capture root using pathParts that produce that name
+        const desired = rootObjName;
+        // temporarily map root ref to desired name to keep stable
+        if (!seenByRef.has(rootVal)) seenByRef.set(rootVal, desired);
+
+        // build/merge shape under desired
+        const shape = new Map();
+        for (const [k, v] of Object.entries(rootVal)) {
+          shape.set(k, { types: new Set([inferType(v, [opts.rootName || "Root", k])]), optional: false });
+        }
+
+        if (!shapes.has(desired)) {
+          shapes.set(desired, shape);
+          order.unshift(desired);
+        } else {
+          shapes.set(desired, mergeShapes(shapes.get(desired), shape));
+        }
+
+        // walk children
+        for (const [k, v] of Object.entries(rootVal)) {
+          if (isObj(v)) captureObject(v, [opts.rootName || "Root", k]);
+          else if (Array.isArray(v)) captureArrayForObjects(v, [opts.rootName || "Root", k]);
+        }
+
+        return { rootExport: `export type ${rootTName} = ${desired};`, rootObjName: desired };
       }
-      const t = typeof rootValue;
-      if (t === "string") return { rootType: "string", rootIface: null };
-      if (t === "number") return { rootType: "number", rootIface: null };
-      if (t === "boolean") return { rootType: "boolean", rootIface: null };
-      return { rootType: "unknown", rootIface: null };
+
+      const prim = typeof rootVal;
+      if (prim === "string") return { rootExport: `export type ${rootTName} = ${opts.isoAsDate && looksISODate(rootVal) ? "Date" : "string"};`, rootObjName: null };
+      if (prim === "number") return { rootExport: `export type ${rootTName} = number;`, rootObjName: null };
+      if (prim === "boolean") return { rootExport: `export type ${rootTName} = boolean;`, rootObjName: null };
+
+      return { rootExport: `export type ${rootTName} = unknown;`, rootObjName: null };
     }
 
-    return {
-      inferRoot,
-      renderInterfaces
-    };
+    return { inferRoot, render };
   }
 
-  // ---------- actions ----------
   function generate() {
     const raw = jsonIn.value.trim();
     if (!raw) {
@@ -367,26 +524,29 @@
       return;
     }
 
+    let parsed;
     try {
-      const parsed = JSON.parse(raw);
-
-      const ctx = createCtx();
-      const info = ctx.inferRoot(parsed);
-
-      const parts = [];
-      parts.push(`// Generated by surewhynot.app`);
-      parts.push(`export type Root = ${info.rootType};`);
-      parts.push("");
-
-      const ifaces = ctx.renderInterfaces();
-      if (ifaces.trim()) parts.push(ifaces);
-
-      tsOut.value = parts.join("\n");
-      setStatus("Generated.");
+      parsed = JSON.parse(raw);
     } catch (e) {
       tsOut.value = "";
       setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+      return;
     }
+
+    const opts = buildGeneratorOptions();
+    const ctx = createCtx(opts);
+    const rootInfo = ctx.inferRoot(parsed);
+
+    const out = [];
+    out.push(`// Generated by surewhynot.app`);
+    out.push(`// Options: style=${opts.style}, iPrefix=${opts.iPrefix}, isoAsDate=${opts.isoAsDate}, keepNull=${opts.keepNull}`);
+    out.push(rootInfo.rootExport);
+    out.push("");
+    const body = ctx.render();
+    if (body.trim()) out.push(body);
+
+    tsOut.value = out.join("\n");
+    setStatus("Generated.");
   }
 
   function prettify() {
@@ -396,6 +556,7 @@
       const parsed = JSON.parse(raw);
       jsonIn.value = JSON.stringify(parsed, null, 2);
       setStatus("Prettified.");
+      if (optAutoCopyJson.checked) copyText(jsonIn.value, "JSON copied.");
     } catch (e) {
       setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
     }
@@ -408,30 +569,84 @@
       const parsed = JSON.parse(raw);
       jsonIn.value = JSON.stringify(parsed);
       setStatus("Minified.");
+      if (optAutoCopyJson.checked) copyText(jsonIn.value, "JSON copied.");
     } catch (e) {
       setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
     }
   }
 
-  async function copyOut() {
-    const text = tsOut.value;
+  async function copyText(text, okMsg) {
     if (!text) return setStatus("Nothing to copy.");
     try {
       await navigator.clipboard.writeText(text);
-      setStatus("Copied.");
+      setStatus(okMsg || "Copied.");
     } catch {
-      tsOut.focus();
-      tsOut.select();
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
       document.execCommand("copy");
-      setStatus("Copied.");
+      document.body.removeChild(ta);
+      setStatus(okMsg || "Copied.");
+    }
+  }
+
+  function downloadText(filename, text, mime) {
+    const blob = new Blob([text], { type: mime || "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  function downloadTS() {
+    const txt = tsOut.value;
+    if (!txt.trim()) return setStatus("Generate TypeScript first.");
+    const rn = (rootNameEl.value || "Root").trim() || "Root";
+    const name = pascal(rn) || "Types";
+    downloadText(`${name}.types.ts`, txt, "text/typescript;charset=utf-8");
+    setStatus("Downloaded TypeScript.");
+  }
+
+  function downloadJSON() {
+    const raw = jsonIn.value.trim();
+    if (!raw) return setStatus("Paste JSON first.");
+    try {
+      const parsed = JSON.parse(raw);
+      const rn = (rootNameEl.value || "Root").trim() || "Root";
+      const name = pascal(rn) || "data";
+      downloadText(`${name}.json`, JSON.stringify(parsed, null, 2), "application/json;charset=utf-8");
+      setStatus("Downloaded JSON.");
+    } catch (e) {
+      setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
     }
   }
 
   $("btnGenerate").addEventListener("click", (e) => { e.preventDefault(); generate(); });
   $("btnPrettify").addEventListener("click", (e) => { e.preventDefault(); prettify(); });
   $("btnMinify").addEventListener("click", (e) => { e.preventDefault(); minify(); });
+  $("btnCopyJson").addEventListener("click", (e) => { e.preventDefault(); copyText(jsonIn.value.trim(), "JSON copied."); });
+  $("btnDownloadJson").addEventListener("click", (e) => { e.preventDefault(); downloadJSON(); });
   $("btnClear").addEventListener("click", (e) => { e.preventDefault(); jsonIn.value=""; tsOut.value=""; setStatus(""); });
-  $("btnCopy").addEventListener("click", (e) => { e.preventDefault(); copyOut(); });
+
+  $("btnCopyTs").addEventListener("click", (e) => { e.preventDefault(); copyText(tsOut.value, "TypeScript copied."); });
+  $("btnDownloadTs").addEventListener("click", (e) => { e.preventDefault(); downloadTS(); });
+
+  // regen on option change (lightweight)
+  document.querySelectorAll('input[name="outStyle"]').forEach(el => el.addEventListener("change", () => {
+    if (jsonIn.value.trim()) generate();
+  }));
+  [rootNameEl, optIPrefix, optDate, optStrictNull].forEach(el => el.addEventListener("change", () => {
+    if (jsonIn.value.trim()) generate();
+  }));
 
   setStatus("");
 })();
