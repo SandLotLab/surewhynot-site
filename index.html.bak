@@ -43,6 +43,10 @@
           <div class="card">
             <div class="pad">
               <div class="h1">Welcome</div>
+			  <p>
+  Try our <a href="/json2ts">free JSON to TypeScript Interface Generator</a>.
+</p>
+
 
               <div class="muted">
                 A small site with simple stuff people actually play.
