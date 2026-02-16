@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JSON → TypeScript — SureWhyNot</title>
+  <meta name="description" content="Paste JSON and generate TypeScript interfaces/types. Runs locally in your browser." />
+  <link rel="stylesheet" href="/assets/site.css">
+</head>
+
+<body>
+  <div class="page">
+    <header>
+      <div class="wrap topbar">
+        <div class="brand">
+          <span class="dot"></span>
+          <span>SureWhyNot — Social Studio</span>
+        </div>
+        <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
+
+        <nav class="navcenter" aria-label="Site">
+          <a class="pill" href="/index.html">Home</a>
+          <a class="pill" href="/typeracer.html">Type Racer</a>
+          <a class="pill" href="/puzzle.html">Mini Puzzle</a>
+          <a class="pill" href="/utility.html">Utility</a>
+          <a class="pill active" href="/json2ts.html">JSON→TS</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap">
+
+        <section class="grid">
+
+          <div class="card">
+            <div class="pad">
+              <div class="h1">JSON → TypeScript Interface Generator</div>
+
+              <div class="muted">
+                Paste JSON on the left. Click Generate. Copy TypeScript on the right.
+                <div class="hr"></div>
+
+                <textarea id="jsonIn" style="width:100%;min-height:260px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;" spellcheck="false"
+                  placeholder='Example:
+{
+  "id": 123,
+  "name": "Ced",
+  "active": true,
+  "tags": ["a", "b"],
+  "profile": { "rank": "SGT", "years": 10 },
+  "maybe": null
+}'></textarea>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                  <a class="pill" href="#" id="btnGenerate">Generate</a>
+                  <a class="pill" href="#" id="btnPrettify">Prettify JSON</a>
+                  <a class="pill" href="#" id="btnMinify">Minify JSON</a>
+                  <a class="pill" href="#" id="btnClear">Clear</a>
+                </div>
+
+                <div class="hr"></div>
+
+                <div class="muted" id="status" style="margin-top:6px;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="pad">
+              <div class="h1">TypeScript Output</div>
+
+              <div class="muted">
+                <textarea id="tsOut" style="width:100%;min-height:360px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;" spellcheck="false"
+                  placeholder="TypeScript will appear here..."></textarea>
+
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                  <a class="pill" href="#" id="btnCopy">Copy</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+
+    <footer>
+      <div class="footerwrap">
+        <div>© 2026 surewhynot.app</div>
+        <div class="footerlinks">
+          <a href="/about.html">About</a>
+          <span>•</span>
+          <a href="/privacy.html">Privacy</a>
+          <span>•</span>
+          <a href="/contact.html">Contact</a>
+          <span>•</span>
+          <a href="/terms.txt">Terms</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+
+  const jsonIn = $("jsonIn");
+  const tsOut = $("tsOut");
+  const status = $("status");
+
+  function setStatus(msg) { status.textContent = msg || ""; }
+
+  // ---------- naming ----------
+  function pascal(s) {
+    if (!s) return "Root";
+    return String(s)
+      .replace(/[^a-zA-Z0-9_]/g, " ")
+      .split(" ")
+      .filter(Boolean)
+      .map(p => p.charAt(0).toUpperCase() + p.slice(1))
+      .join("");
+  }
+  function singular(s) {
+    if (!s) return "Item";
+    return s.endsWith("s") ? s.slice(0, -1) : s;
+  }
+  function safeKey(k) {
+    return /^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(k) ? k : JSON.stringify(k);
+  }
+
+  // ---------- type helpers ----------
+  function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
+
+  function uniq(arr) {
+    const out = [];
+    for (const x of arr) if (!out.includes(x)) out.push(x);
+    return out;
+  }
+
+  function normalizeUnion(types) {
+    // stable-ish order: primitives first, then interfaces, then unknown; keep null last
+    const order = (t) => {
+      if (t === "string") return 1;
+      if (t === "number") return 2;
+      if (t === "boolean") return 3;
+      if (t === "null") return 99;
+      if (t === "unknown") return 98;
+      if (t.endsWith("[]")) return 50;
+      if (t.startsWith("I")) return 60;
+      return 70;
+    };
+    const u = uniq(types);
+    u.sort((a,b) => order(a) - order(b) || a.localeCompare(b));
+    return u;
+  }
+
+  function unionType(types) {
+    const u = normalizeUnion(types);
+    if (u.length === 0) return "unknown";
+    if (u.length === 1) return u[0];
+    return u.join(" | ");
+  }
+
+  function maybeWrapUnion(t) {
+    return t.includes(" | ") ? `(${t})` : t;
+  }
+
+  // ---------- shape merging for arrays of objects ----------
+  // shape: Map<propName, { types: Set<string>, optional: boolean }>
+  function mergeShapes(a, b) {
+    const out = new Map();
+
+    const keys = new Set([...a.keys(), ...b.keys()]);
+    for (const k of keys) {
+      const inA = a.has(k);
+      const inB = b.has(k);
+
+      const entry = { types: new Set(), optional: false };
+
+      if (inA) {
+        const ea = a.get(k);
+        for (const t of ea.types) entry.types.add(t);
+        entry.optional = entry.optional || ea.optional;
+      }
+      if (inB) {
+        const eb = b.get(k);
+        for (const t of eb.types) entry.types.add(t);
+        entry.optional = entry.optional || eb.optional;
+      }
+
+      if (!(inA && inB)) entry.optional = true; // missing in one item => optional
+      out.set(k, entry);
+    }
+    return out;
+  }
+
+  // ---------- context for collecting interfaces ----------
+  function createCtx() {
+    const ifaceOrder = [];
+    const ifaceByName = new Map(); // name -> shape map
+    const nameCounts = new Map();  // base -> count
+
+    function nameFor(hint) {
+      const base = "I" + pascal(hint || "Root");
+      const n = nameCounts.get(base) || 0;
+      if (n === 0) {
+        nameCounts.set(base, 1);
+        return base;
+      }
+      nameCounts.set(base, n + 1);
+      return base + (n + 1);
+    }
+
+    function captureObject(ifaceName, obj, hintForChildren) {
+      // Build shape for this object
+      const shape = new Map();
+      for (const [k, v] of Object.entries(obj)) {
+        shape.set(k, { types: new Set([inferType(v, k, hintForChildren)]), optional: false });
+      }
+
+      // Merge if already captured (same name)
+      if (!ifaceByName.has(ifaceName)) {
+        ifaceByName.set(ifaceName, shape);
+        ifaceOrder.push(ifaceName);
+      } else {
+        const merged = mergeShapes(ifaceByName.get(ifaceName), shape);
+        ifaceByName.set(ifaceName, merged);
+      }
+
+      // Walk children to capture nested objects
+      for (const [k, v] of Object.entries(obj)) {
+        if (isObj(v)) {
+          const childName = "I" + pascal(k);
+          // ensure stable child naming by using key-based interface
+          captureObject(childName, v, k);
+        } else if (Array.isArray(v)) {
+          // arrays: capture object items if present
+          for (const item of v) {
+            if (isObj(item)) {
+              const childHint = singular(k);
+              const childName = "I" + pascal(childHint);
+              captureObject(childName, item, childHint);
+            }
+          }
+        }
+      }
+    }
+
+    function inferType(v, keyHint, parentHint) {
+      if (v === null) return "null";
+      const t = typeof v;
+      if (t === "string") return "string";
+      if (t === "number") return "number";
+      if (t === "boolean") return "boolean";
+
+      if (Array.isArray(v)) return inferArray(v, keyHint, parentHint);
+
+      if (isObj(v)) {
+        const iface = "I" + pascal(keyHint || parentHint || "Root");
+        captureObject(iface, v, keyHint || parentHint || "Root");
+        return iface;
+      }
+
+      return "unknown";
+    }
+
+    function inferArray(arr, keyHint, parentHint) {
+      if (arr.length === 0) return "unknown[]";
+
+      let elementTypes = [];
+      let objShape = null;         // merged shape for object items, if any
+      let hasObject = false;
+
+      for (const item of arr) {
+        if (isObj(item)) {
+          hasObject = true;
+          // build shape for this object item (without creating an interface yet)
+          const shape = new Map();
+          for (const [k, v] of Object.entries(item)) {
+            shape.set(k, { types: new Set([inferType(v, k, keyHint)]), optional: false });
+          }
+          objShape = objShape ? mergeShapes(objShape, shape) : shape;
+        } else {
+          elementTypes.push(inferType(item, singular(keyHint || "Item"), parentHint));
+        }
+
+        // cap work
+        if (elementTypes.length > 8) break;
+      }
+
+      if (hasObject) {
+        // create/merge a dedicated interface for array objects
+        const hint = singular(keyHint || parentHint || "Item");
+        const iface = "I" + pascal(hint);
+        if (!ifaceByName.has(iface)) {
+          ifaceByName.set(iface, objShape || new Map());
+          ifaceOrder.push(iface);
+        } else {
+          const merged = mergeShapes(ifaceByName.get(iface), objShape || new Map());
+          ifaceByName.set(iface, merged);
+        }
+        elementTypes.push(iface);
+      }
+
+      const u = normalizeUnion(elementTypes);
+      const el = u.length === 1 ? u[0] : maybeWrapUnion(u.join(" | "));
+      return `${el}[]`;
+    }
+
+    function renderInterfaces() {
+      const out = [];
+
+      for (const name of ifaceOrder) {
+        const shape = ifaceByName.get(name) || new Map();
+
+        out.push(`export interface ${name} {`);
+        for (const [k, meta] of shape.entries()) {
+          const prop = safeKey(k);
+          const types = normalizeUnion([...meta.types]);
+          // If null appears, allow it in union; if a prop is optional, use ?.
+          const tsType = unionType(types);
+          const optional = meta.optional ? "?" : "";
+          out.push(`  ${prop}${optional}: ${tsType};`);
+        }
+        out.push("}");
+        out.push("");
+      }
+
+      // remove final extra blank line
+      while (out.length && out[out.length - 1] === "") out.pop();
+      return out.join("\n");
+    }
+
+    function inferRoot(rootValue) {
+      if (rootValue === null) return { rootType: "null", rootIface: null };
+      if (Array.isArray(rootValue)) {
+        // if array has objects, ensure captured
+        const t = inferArray(rootValue, "Root", "Root");
+        return { rootType: t, rootIface: null };
+      }
+      if (isObj(rootValue)) {
+        const rootIface = "IRoot";
+        captureObject(rootIface, rootValue, "Root");
+        return { rootType: rootIface, rootIface };
+      }
+      const t = typeof rootValue;
+      if (t === "string") return { rootType: "string", rootIface: null };
+      if (t === "number") return { rootType: "number", rootIface: null };
+      if (t === "boolean") return { rootType: "boolean", rootIface: null };
+      return { rootType: "unknown", rootIface: null };
+    }
+
+    return {
+      inferRoot,
+      renderInterfaces
+    };
+  }
+
+  // ---------- actions ----------
+  function generate() {
+    const raw = jsonIn.value.trim();
+    if (!raw) {
+      tsOut.value = "";
+      setStatus("Paste JSON first.");
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(raw);
+
+      const ctx = createCtx();
+      const info = ctx.inferRoot(parsed);
+
+      const parts = [];
+      parts.push(`// Generated by surewhynot.app`);
+      parts.push(`export type Root = ${info.rootType};`);
+      parts.push("");
+
+      const ifaces = ctx.renderInterfaces();
+      if (ifaces.trim()) parts.push(ifaces);
+
+      tsOut.value = parts.join("\n");
+      setStatus("Generated.");
+    } catch (e) {
+      tsOut.value = "";
+      setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  function prettify() {
+    const raw = jsonIn.value.trim();
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      jsonIn.value = JSON.stringify(parsed, null, 2);
+      setStatus("Prettified.");
+    } catch (e) {
+      setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  function minify() {
+    const raw = jsonIn.value.trim();
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw);
+      jsonIn.value = JSON.stringify(parsed);
+      setStatus("Minified.");
+    } catch (e) {
+      setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+    }
+  }
+
+  async function copyOut() {
+    const text = tsOut.value;
+    if (!text) return setStatus("Nothing to copy.");
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("Copied.");
+    } catch {
+      tsOut.focus();
+      tsOut.select();
+      document.execCommand("copy");
+      setStatus("Copied.");
+    }
+  }
+
+  $("btnGenerate").addEventListener("click", (e) => { e.preventDefault(); generate(); });
+  $("btnPrettify").addEventListener("click", (e) => { e.preventDefault(); prettify(); });
+  $("btnMinify").addEventListener("click", (e) => { e.preventDefault(); minify(); });
+  $("btnClear").addEventListener("click", (e) => { e.preventDefault(); jsonIn.value=""; tsOut.value=""; setStatus(""); });
+  $("btnCopy").addEventListener("click", (e) => { e.preventDefault(); copyOut(); });
+
+  setStatus("");
+})();
+</script>
+
+</body>
+</html>
