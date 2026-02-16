@@ -161,27 +161,31 @@ async function loadPartials() {
 
   document.getElementById('site-header').innerHTML = await header.text();
   document.getElementById('site-footer').innerHTML = await footer.text();
-}
 
+  if (window.SWY_renderToolUse) window.SWY_renderToolUse();
+}
 loadPartials();
 </script>
 
 <body>
   <div class="page">
-  
     <div id="site-header"></div>
-
 
     <main>
       <div class="wrap">
         <section class="racegrid">
           <div class="card">
             <div class="pad">
-              <div class="h1">Race the car, elephant, airplane, and ant</div>
-              <div class="muted">Click <span class="kbd">Enter Race</span>. Wait for the lobby. Race starts when the timer hits zero.</div>
+              <div class="h1">Type Racer</div>
+              <div class="muted">
+                Multiplayer races only start when at least <span class="kbd">2</span> real players are in the lobby.
+                Practice mode lets you race yourself with no NPC movement.
+              </div>
 
               <div class="btnrow">
-                <button class="primary" id="btnEnter">Enter Race</button>
+                <button class="primary" id="btnEnter">Enter Lobby</button>
+                <button id="btnPractice">Practice Solo</button>
+                <button id="btnLeave" disabled>Leave</button>
                 <button id="btnNew" disabled>New Race</button>
               </div>
 
@@ -196,23 +200,23 @@ loadPartials();
                 </div>
 
                 <div class="lane">
-                  <div class="runner" id="rEle">
-                    <div class="obj ele" title="elephant"></div>
-                    <span class="badge">Elephant</span>
+                  <div class="runner" id="rOpp">
+                    <div class="obj plane" title="opponent"></div>
+                    <span class="badge" id="oppName">Opponent</span>
                   </div>
                 </div>
 
                 <div class="lane">
-                  <div class="runner" id="rPlane">
-                    <div class="obj plane" title="airplane"></div>
-                    <span class="badge">Airplane</span>
+                  <div class="runner" id="rGhost">
+                    <div class="obj ele" title="ghost"></div>
+                    <span class="badge" id="ghostName">Your Best</span>
                   </div>
                 </div>
 
                 <div class="lane">
-                  <div class="runner" id="rAnt">
-                    <div class="obj ant" title="ant"></div>
-                    <span class="badge">Ant</span>
+                  <div class="runner" id="rLine">
+                    <div class="obj ant" title="pace"></div>
+                    <span class="badge">Pace</span>
                   </div>
                 </div>
               </div>
@@ -230,7 +234,7 @@ loadPartials();
 
               <div class="lobbybox" id="lobbyBox">
                 <div><b style="color:var(--text)">Lobby</b></div>
-                <div class="tiny" id="lobbyStatus">Not in a race.</div>
+                <div class="tiny" id="lobbyStatus">Not in a lobby.</div>
                 <ul class="lobbylist" id="lobbyList"></ul>
               </div>
             </div>
@@ -238,22 +242,21 @@ loadPartials();
 
           <div class="card">
             <div class="pad">
-              <div class="h1">Ad slot placeholder</div>
+              <div class="h1">How it works</div>
+              <div class="muted">
+                - Practice mode: only you move. <br>
+                - Multiplayer: race starts only when 2+ real players are present. <br>
+                - “Your Best” is a ghost pace based on your best local WPM. <br>
+                - Everything runs client-side — no accounts, no uploads.
+              </div>
+
+              <div class="hr"></div>
+
               <div class="adslot">
                 <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">
                   Keep this spot consistent so the layout doesn’t jump later.
                 </div>
                 <b>[ AdSense Slot Here ]</b>
-              </div>
-
-              <div class="hr"></div>
-
-              <div class="h1" style="margin-top:0">How it works</div>
-              <div class="muted">
-                - Your object moves based on correct characters typed.<br>
-                - Others move at steady speeds.<br>
-                - Race text is 4 sentences so it feels worth it.<br>
-                - Lobby uses same-device tabs (and bots if you’re alone).
               </div>
             </div>
           </div>
@@ -262,12 +265,11 @@ loadPartials();
     </main>
 
     <div id="site-footer"></div>
-
   </div>
 
 <script>
 (() => {
-  // ====== Race text (4 sentences) ======
+  // ====== Race text ======
   const TEXT = [
     "A quiet site can still feel alive when people choose to play.",
     "Type steady and keep your eyes on the next word, not the finish line.",
@@ -277,7 +279,10 @@ loadPartials();
 
   const elRaceText = document.getElementById("raceText");
   const input = document.getElementById("input");
+
   const btnEnter = document.getElementById("btnEnter");
+  const btnPractice = document.getElementById("btnPractice");
+  const btnLeave = document.getElementById("btnLeave");
   const btnNew = document.getElementById("btnNew");
 
   const wpmEl = document.getElementById("wpm");
@@ -288,75 +293,92 @@ loadPartials();
   const lobbyList = document.getElementById("lobbyList");
 
   const rYou = document.getElementById("rYou");
-  const rEle = document.getElementById("rEle");
-  const rPlane = document.getElementById("rPlane");
-  const rAnt = document.getElementById("rAnt");
+  const rOpp = document.getElementById("rOpp");
+  const rGhost = document.getElementById("rGhost");
+  const rLine = document.getElementById("rLine");
+
+  const oppName = document.getElementById("oppName");
+  const ghostName = document.getElementById("ghostName");
 
   elRaceText.textContent = TEXT;
 
+  // ====== local ghost pace ======
+  const BEST_KEY = "swy_typeracer_best_wpm";
+  function getBestWpm(){ return Number(localStorage.getItem(BEST_KEY) || "0"); }
+  function setBestWpm(n){ localStorage.setItem(BEST_KEY, String(n)); }
+
   // ====== Lobby (same-device tabs) ======
-  // Open multiple browser tabs to surewhynot.app/typeracer.html to simulate real people.
-  const channel = new BroadcastChannel("surewhynot-typeracer-lobby");
+  const channel = new BroadcastChannel("surewhynot-typeracer-lobby-v2");
   const myId = crypto.randomUUID().slice(0, 8);
   const myName = "Guest-" + myId;
 
-  let lobby = new Map(); // id -> name
+  let lobby = new Map(); // id -> {name, ts}
   let inLobby = false;
+
+  // ====== Session/race state ======
+  let mode = "idle"; // idle | lobby | practice | race
   let countdown = 0;
   let countdownTimer = null;
 
-  // ====== Race state ======
   let startedAt = null;
   let finished = false;
-  let lastTick = null;
 
-  const botSpeeds = { ele: 0.55, plane: 0.75, ant: 0.35 }; // chars per 100ms-ish
-  let botProgress = { ele: 0, plane: 0, ant: 0 };
+  // opponent progress (multiplayer)
+  let oppCorrect = 0;
 
+  // ghost/pace
+  let ghostCorrect = 0;
+  let paceCorrect = 0;
+
+  // you
   let youCorrect = 0;
   let youTotal = 0;
 
+  // ---------- UI helpers ----------
+  function setLobbyStatus(text){ lobbyStatus.textContent = text; }
   function renderLobby() {
     lobbyList.innerHTML = "";
-    const names = Array.from(lobby.values());
-    names.forEach(n => {
+    const entries = Array.from(lobby.values()).map(x => x.name).sort();
+    entries.forEach(n => {
       const li = document.createElement("li");
       li.textContent = n;
       lobbyList.appendChild(li);
     });
   }
 
-  function setLobbyStatus(text) {
-    lobbyStatus.textContent = text;
-  }
-
-  function resetTrack() {
-    // 0..1 progress -> pixels
-    setRunner(rYou, 0);
-    setRunner(rEle, 0);
-    setRunner(rPlane, 0);
-    setRunner(rAnt, 0);
-  }
-
   function setRunner(el, progress01) {
     const track = document.querySelector(".track");
     const lanePaddingLeft = 8;
-    const finishPaddingRight = 22; // leave room near finish bar
+    const finishPaddingRight = 22;
     const max = track.clientWidth - lanePaddingLeft - finishPaddingRight;
     const x = Math.max(0, Math.min(1, progress01)) * max;
     el.style.transform = `translateX(${x}px)`;
   }
 
-  function charsDoneToProgress(charsDone) {
-    return charsDone / TEXT.length;
+  function resetTrack() {
+    setRunner(rYou, 0);
+    setRunner(rOpp, 0);
+    setRunner(rGhost, 0);
+    setRunner(rLine, 0);
   }
 
+  function charsDoneToProgress(charsDone){ return charsDone / TEXT.length; }
+
   function calcWPM(charsCorrect, seconds) {
-    // WPM = (chars/5) / minutes
     if (seconds <= 0) return 0;
     const words = charsCorrect / 5;
     const minutes = seconds / 60;
     return Math.round(words / minutes);
+  }
+
+  function computeCorrectChars(typed) {
+    const max = Math.min(typed.length, TEXT.length);
+    let correct = 0;
+    for (let i = 0; i < max; i++) {
+      if (typed[i] === TEXT[i]) correct++;
+      else break;
+    }
+    return correct;
   }
 
   function updateStats() {
@@ -367,102 +389,250 @@ loadPartials();
     accEl.textContent = acc + "%";
   }
 
-  function startCountdown() {
-    countdown = 30;
-    btnEnter.disabled = true;
-    btnNew.disabled = true;
+  function setButtons() {
+    const idle = mode === "idle";
+    btnEnter.disabled = !idle;
+    btnPractice.disabled = !idle;
+    btnLeave.disabled = idle;
+    btnNew.disabled = !(mode === "practice" || mode === "race");
+  }
+
+  function stopCountdown(){
+    if (countdownTimer) clearInterval(countdownTimer);
+    countdownTimer = null;
+    countdown = 0;
+  }
+
+  // ---------- Lobby logic ----------
+  function joinLobby() {
+    lobby.clear();
+    lobby.set(myId, { name: myName, ts: Date.now() });
+    inLobby = true;
+    mode = "lobby";
+    oppName.textContent = "Opponent";
+    setButtons();
+
+    channel.postMessage({ type: "join", id: myId, name: myName, ts: Date.now() });
+    channel.postMessage({ type: "sync", from: myId });
+
+    setLobbyStatus("In lobby. Waiting for another player…");
+    renderLobby();
+
     input.disabled = true;
     input.value = "";
-    youCorrect = 0;
-    youTotal = 0;
-    botProgress = { ele: 0, plane: 0, ant: 0 };
     finished = false;
     startedAt = null;
-    lastTick = null;
+    youCorrect = 0; youTotal = 0;
+    oppCorrect = 0;
     resetTrack();
     updateStats();
-
-    setLobbyStatus(`In lobby. Race starts in ${countdown}s…`);
-
-    if (countdownTimer) clearInterval(countdownTimer);
-    countdownTimer = setInterval(() => {
-      countdown--;
-      if (countdown > 0) {
-        setLobbyStatus(`In lobby. Race starts in ${countdown}s…`);
-        // if you're alone, add 2 bots early so the lobby doesn't feel empty
-        ensureBotsIfAlone();
-        renderLobby();
-        return;
-      }
-      clearInterval(countdownTimer);
-      countdownTimer = null;
-      beginRace();
-    }, 1000);
   }
 
-  function ensureBotsIfAlone() {
-    // If only 1 real player in lobby, add 2 bot “players”
-    const realCount = Array.from(lobby.keys()).filter(id => !id.startsWith("bot-")).length;
-    if (realCount <= 1) {
-      if (!lobby.has("bot-ele")) lobby.set("bot-ele", "Elephant (bot)");
-      if (!lobby.has("bot-plane")) lobby.set("bot-plane", "Airplane (bot)");
-      if (!lobby.has("bot-ant")) lobby.set("bot-ant", "Ant (bot)");
-    }
-  }
-
-  function beginRace() {
-    setLobbyStatus("Race started. Type now.");
-    startedAt = performance.now();
-    input.disabled = false;
-    input.focus();
-    btnNew.disabled = false;
-
-    requestAnimationFrame(tick);
-  }
-
-  function tick(ts) {
-    if (!startedAt || finished) return;
-
-    if (lastTick == null) lastTick = ts;
-    const dt = ts - lastTick;
-    lastTick = ts;
-
-    // bots move steadily
-    botProgress.ele += (botSpeeds.ele * dt) / 100;
-    botProgress.plane += (botSpeeds.plane * dt) / 100;
-    botProgress.ant += (botSpeeds.ant * dt) / 100;
-
-    setRunner(rEle, charsDoneToProgress(botProgress.ele));
-    setRunner(rPlane, charsDoneToProgress(botProgress.plane));
-    setRunner(rAnt, charsDoneToProgress(botProgress.ant));
-
+  function leaveLobby() {
+    stopCountdown();
+    if (inLobby) channel.postMessage({ type: "leave", id: myId });
+    inLobby = false;
+    lobby.clear();
+    renderLobby();
+    mode = "idle";
+    setLobbyStatus("Not in a lobby.");
+    input.disabled = true;
+    input.value = "";
+    finished = false;
+    startedAt = null;
+    resetTrack();
     updateStats();
+    setButtons();
+  }
 
-    // finish checks
-    const youP = charsDoneToProgress(youCorrect);
-    if (youP >= 1) {
-      finished = true;
-      input.disabled = true;
-      setLobbyStatus("Finished. Click New Race to queue again.");
-      // tell lobby you left
-      leaveLobby();
+  function realPlayersCount(){
+    return Array.from(lobby.keys()).length;
+  }
+
+  function pickOpponentName(){
+    const others = Array.from(lobby.entries()).filter(([id]) => id !== myId);
+    if (!others.length) return null;
+    return others[0][1].name;
+  }
+
+  function startCountdownIfReady() {
+    if (mode !== "lobby") return;
+
+    const count = realPlayersCount();
+    if (count < 2) {
+      stopCountdown();
+      setLobbyStatus("In lobby. Waiting for another player…");
       return;
     }
 
-    requestAnimationFrame(tick);
+    // already counting down
+    if (countdownTimer) return;
+
+    countdown = 5;
+    const opp = pickOpponentName();
+    if (opp) oppName.textContent = opp;
+
+    channel.postMessage({ type: "countdown", seconds: countdown, startedBy: myId, ts: Date.now() });
+
+    setLobbyStatus(`Match found. Race starts in ${countdown}s…`);
+    countdownTimer = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        setLobbyStatus(`Match found. Race starts in ${countdown}s…`);
+        channel.postMessage({ type: "countdown", seconds: countdown, startedBy: myId, ts: Date.now() });
+        return;
+      }
+      stopCountdown();
+      // host starts the race (shared start timestamp)
+      const startTs = Date.now() + 200; // small cushion
+      channel.postMessage({ type: "start", startTs, text: TEXT });
+      beginRace(startTs);
+    }, 1000);
   }
 
-  function computeCorrectChars(typed) {
-    // count correct chars from start until mismatch
-    const max = Math.min(typed.length, TEXT.length);
-    let correct = 0;
-    for (let i = 0; i < max; i++) {
-      if (typed[i] === TEXT[i]) correct++;
-      else break;
+  // ---------- Practice mode ----------
+  function beginPractice() {
+    leaveLobby(); // ensures clean state + no lobby
+    mode = "practice";
+    setButtons();
+
+    // show ghost based on best WPM
+    const best = getBestWpm();
+    ghostName.textContent = best > 0 ? `Your Best (${best} wpm)` : "Your Best (set one)";
+    oppName.textContent = "Opponent (multiplayer)";
+
+    finished = false;
+    startedAt = performance.now();
+    youCorrect = 0; youTotal = 0;
+    ghostCorrect = 0;
+    paceCorrect = 0;
+
+    resetTrack();
+    updateStats();
+
+    input.disabled = false;
+    input.value = "";
+    input.focus();
+
+    setLobbyStatus("Practice mode. You vs. yourself.");
+    requestAnimationFrame(tickPractice);
+  }
+
+  function tickPractice(ts) {
+    if (mode !== "practice" || finished) return;
+
+    const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
+
+    // Ghost: pace based on best WPM (chars/sec = (wpm*5)/60)
+    const best = getBestWpm();
+    if (best > 0) {
+      const cps = (best * 5) / 60;
+      ghostCorrect = Math.min(TEXT.length, Math.floor(cps * seconds));
+      setRunner(rGhost, charsDoneToProgress(ghostCorrect));
+    } else {
+      setRunner(rGhost, 0);
     }
-    return correct;
+
+    // Pace line: gentle baseline (25 wpm)
+    const paceWpm = 25;
+    const paceCps = (paceWpm * 5) / 60;
+    paceCorrect = Math.min(TEXT.length, Math.floor(paceCps * seconds));
+    setRunner(rLine, charsDoneToProgress(paceCorrect));
+
+    // Opponent lane stays still in practice
+    setRunner(rOpp, 0);
+
+    updateStats();
+
+    if (charsDoneToProgress(youCorrect) >= 1) {
+      finishRace();
+      return;
+    }
+
+    requestAnimationFrame(tickPractice);
   }
 
+  // ---------- Multiplayer race ----------
+  function beginRace(startTs) {
+    mode = "race";
+    setButtons();
+
+    stopCountdown();
+
+    finished = false;
+    youCorrect = 0; youTotal = 0;
+    oppCorrect = 0;
+
+    resetTrack();
+    updateStats();
+
+    input.disabled = true;
+    input.value = "";
+
+    const delay = Math.max(0, startTs - Date.now());
+    setLobbyStatus(`Race starting…`);
+    setTimeout(() => {
+      if (mode !== "race") return;
+      startedAt = performance.now();
+      input.disabled = false;
+      input.focus();
+      setLobbyStatus("Race started. Type now.");
+      requestAnimationFrame(tickRace);
+    }, delay);
+  }
+
+  function tickRace(ts) {
+    if (mode !== "race" || finished) return;
+
+    // opponent position is driven by messages
+    setRunner(rOpp, charsDoneToProgress(oppCorrect));
+
+    // ghost/pace still helpful even in multiplayer
+    const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
+    const best = getBestWpm();
+    if (best > 0) {
+      const cps = (best * 5) / 60;
+      ghostCorrect = Math.min(TEXT.length, Math.floor(cps * seconds));
+      setRunner(rGhost, charsDoneToProgress(ghostCorrect));
+    } else {
+      setRunner(rGhost, 0);
+    }
+    const paceWpm = 25;
+    const paceCps = (paceWpm * 5) / 60;
+    paceCorrect = Math.min(TEXT.length, Math.floor(paceCps * seconds));
+    setRunner(rLine, charsDoneToProgress(paceCorrect));
+
+    updateStats();
+
+    if (charsDoneToProgress(youCorrect) >= 1) {
+      finishRace();
+      return;
+    }
+
+    requestAnimationFrame(tickRace);
+  }
+
+  function finishRace(){
+    finished = true;
+    input.disabled = true;
+
+    const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
+    const finalWpm = calcWPM(youCorrect, seconds);
+    const best = getBestWpm();
+    if (finalWpm > best) setBestWpm(finalWpm);
+
+    if (mode === "practice") {
+      setLobbyStatus(`Practice finished. WPM: ${finalWpm}. Click New Race to practice again.`);
+    } else if (mode === "race") {
+      setLobbyStatus(`Finished. WPM: ${finalWpm}. Click New Race to re-queue.`);
+      // stay in lobby for rematch? keep simple: leave, re-queue on New Race
+      leaveLobby();
+      mode = "idle";
+      setButtons();
+    }
+  }
+
+  // ---------- Input ----------
   input.addEventListener("input", () => {
     if (!startedAt || finished) return;
 
@@ -470,76 +640,116 @@ loadPartials();
     youTotal = typed.length;
     youCorrect = computeCorrectChars(typed);
 
-    const p = charsDoneToProgress(youCorrect);
-    setRunner(rYou, p);
+    setRunner(rYou, charsDoneToProgress(youCorrect));
+    updateStats();
 
-    // lock extra typing after full length
+    if (mode === "race" && inLobby) {
+      channel.postMessage({ type: "progress", id: myId, correct: youCorrect, ts: Date.now() });
+    }
+
     if (typed.length > TEXT.length) {
       input.value = typed.slice(0, TEXT.length);
     }
   });
 
-  // ====== BroadcastChannel messages ======
+  // ---------- BroadcastChannel messages ----------
   channel.onmessage = (ev) => {
     const msg = ev.data || {};
+
     if (msg.type === "join") {
-      lobby.set(msg.id, msg.name);
+      lobby.set(msg.id, { name: msg.name, ts: msg.ts || Date.now() });
       renderLobby();
+      startCountdownIfReady();
     }
+
     if (msg.type === "leave") {
       lobby.delete(msg.id);
       renderLobby();
+
+      // If someone leaves, cancel countdown/race start conditions
+      if (mode === "lobby") startCountdownIfReady();
+      if (mode === "race" && realPlayersCount() < 2) {
+        finished = true;
+        input.disabled = true;
+        setLobbyStatus("Opponent left. Race cancelled.");
+        leaveLobby();
+      }
     }
+
     if (msg.type === "sync" && inLobby) {
-      // someone asked for roster
-      channel.postMessage({ type: "roster", to: msg.from, roster: Array.from(lobby.entries()) });
+      channel.postMessage({
+        type: "roster",
+        to: msg.from,
+        roster: Array.from(lobby.entries()).map(([id, v]) => [id, v.name, v.ts])
+      });
     }
+
     if (msg.type === "roster" && msg.to === myId) {
-      // merge roster
-      msg.roster.forEach(([id, name]) => lobby.set(id, name));
+      msg.roster.forEach(([id, name, ts]) => {
+        lobby.set(id, { name, ts: ts || Date.now() });
+      });
       renderLobby();
+      startCountdownIfReady();
+    }
+
+    if (msg.type === "countdown" && mode === "lobby") {
+      const count = realPlayersCount();
+      if (count < 2) return; // ignore if not actually ready
+      countdown = Number(msg.seconds || 0);
+      if (countdown > 0) {
+        setLobbyStatus(`Match found. Race starts in ${countdown}s…`);
+      }
+    }
+
+    if (msg.type === "start") {
+      // If I'm in lobby and have >=2 players, start
+      if (mode === "lobby" && realPlayersCount() >= 2) {
+        beginRace(msg.startTs);
+      }
+    }
+
+    if (msg.type === "progress") {
+      if (mode !== "race") return;
+      if (msg.id === myId) return;
+      oppCorrect = Math.max(0, Number(msg.correct || 0));
+      const name = lobby.get(msg.id)?.name;
+      if (name) oppName.textContent = name;
     }
   };
 
-  function joinLobby() {
-    lobby.clear();
-    lobby.set(myId, myName);
-    inLobby = true;
-    channel.postMessage({ type: "join", id: myId, name: myName });
-    channel.postMessage({ type: "sync", from: myId }); // ask others to send roster
-    ensureBotsIfAlone();
-    renderLobby();
-  }
-
-  function leaveLobby() {
-    if (!inLobby) return;
-    inLobby = false;
-    channel.postMessage({ type: "leave", id: myId });
-    lobby.clear();
-    renderLobby();
-  }
-
-  // ====== Buttons ======
+  // ---------- Buttons ----------
   btnEnter.addEventListener("click", () => {
     joinLobby();
-    startCountdown();
+    startCountdownIfReady();
+  });
+
+  btnPractice.addEventListener("click", () => {
+    beginPractice();
+  });
+
+  btnLeave.addEventListener("click", () => {
+    leaveLobby();
   });
 
   btnNew.addEventListener("click", () => {
-    // "New Race" refreshes the lobby (no reset button)
+    // In practice: restart practice. In race/idle: re-queue.
+    if (mode === "practice") {
+      beginPractice();
+      return;
+    }
     leaveLobby();
     joinLobby();
-    startCountdown();
+    startCountdownIfReady();
   });
 
-  // on page close, leave
   window.addEventListener("beforeunload", () => {
-    leaveLobby();
+    if (inLobby) channel.postMessage({ type: "leave", id: myId });
   });
 
-  // initial
+  // init
   resetTrack();
   renderLobby();
+  setButtons();
 })();
 </script>
 </body>
