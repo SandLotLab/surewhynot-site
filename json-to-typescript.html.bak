@@ -3,10 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSON → TypeScript — SureWhyNot</title>
+  <title>JSON to TypeScript Interface Generator (Free, Client-Side)</title>
   <meta name="description" content="Paste JSON and generate TypeScript interfaces/types. Runs locally in your browser." />
   <link rel="stylesheet" href="/assets/site.css">
 
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "JSON to TypeScript Interface Generator",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Free JSON to TypeScript generator that runs entirely in the browser."
+}
+  </script>
+
+  
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline';
@@ -50,7 +62,20 @@
         <section class="grid">
           <div class="card">
             <div class="pad">
-              <div class="h1">JSON → TypeScript Interface Generator</div>
+              <h1>JSON to TypeScript Interface Generator</h1>
+
+              <p>
+              Convert raw JSON into clean TypeScript interfaces or type aliases instantly.
+              This JSON to TypeScript generator runs entirely in your browser — your data never leaves your device.
+              Perfect for frontend developers, API consumers, and TypeScript projects.
+              </p>
+
+              <p>
+              Paste any JSON payload, generate strongly typed TypeScript definitions,
+              and copy or download the results immediately. Supports nested objects,
+              arrays, union types, and ISO date detection.
+              </p>
+
 
               <div class="muted">
                 Paste JSON on the left. Click Generate. Copy/Download TypeScript on the right.
