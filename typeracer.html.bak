@@ -6,289 +6,35 @@
   <title>Type Racer — SureWhyNot</title>
   <link rel="stylesheet" href="/assets/site.css">
 
-  <style>
-    .racegrid{
-      display:grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap:18px;
-      padding:22px 0 26px;
-    }
-    @media (max-width: 900px){ .racegrid{grid-template-columns:1fr} }
+  <!-- 1) DROP THIS CSS into typeracer.html (replace ALL your .veh.* CSS) -->
+<style>
+  /* Unified icon sizing + style */
+  .veh {
+    width: 46px;
+    height: 28px;
+    display: inline-grid;
+    place-items: center;
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,.40));
+  }
+  .veh svg { width: 46px; height: 28px; display:block; }
 
-    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 10px}
-    button{
-      appearance:none;
-      border:1px solid rgba(23,36,59,.85);
-      background: linear-gradient(to bottom, rgba(11,21,40,.85), rgba(11,21,40,.55));
-      color:var(--text);
-      border-radius:12px;
-      padding:10px 12px;
-      font-family:inherit;
-      cursor:pointer;
-      font-size:13px;
-    }
-    button:hover{background: linear-gradient(to bottom, rgba(12,25,49,.9), rgba(12,25,49,.55))}
-    button.primary{border-color: rgba(246,195,74,.55)}
-    button:disabled{opacity:.55; cursor:not-allowed}
+  /* Same look across all icons */
+  .veh .stroke { stroke: rgba(0,0,0,.55); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+  .veh .metal  { fill: rgba(255,255,255,.10); }
+  .veh .glass  { fill: rgba(120,220,255,.35); }
 
-    .track{
-      border:1px solid rgba(23,36,59,.85);
-      border-radius:14px;
-      background: rgba(10,15,24,.35);
-      padding:12px;
-      overflow:hidden;
-      position:relative;
-      height:216px; /* 4 lanes */
-    }
-    .lane{
-      position:relative;
-      height:48px;
-      border-bottom:1px dashed rgba(23,36,59,.55);
-      display:flex;
-      align-items:center;
-      padding-left:8px;
-    }
-    .lane:last-child{border-bottom:none}
+  /* Per-vehicle accent colors (kept consistent + dev-site friendly) */
+  .veh.truck  { --a1:#31d18b; --a2:#157a57; }
+  .veh.plane  { --a1:#6cc7ff; --a2:#2457c6; }
+  .veh.f1     { --a1:#ff4b4b; --a2:#8b1010; }
+  .veh.boat   { --a1:#ffd166; --a2:#b65d00; }
 
-    .runner{
-      position:absolute;
-      left:8px;
-      display:flex;
-      align-items:center;
-      gap:10px;
-      transform: translateX(0);
-      transition: transform 120ms linear;
-      will-change: transform;
-    }
-    .badge{
-      font-size:12px;
-      color:var(--muted);
-      border:1px solid rgba(23,36,59,.85);
-      background: rgba(11,21,40,.75);
-      padding:4px 8px;
-      border-radius:999px;
-    }
+  .veh .accent { fill: url(#gradAccent); }
+  .veh .shade  { fill: rgba(0,0,0,.18); }
+  .veh .tire   { fill: #141414; }
+  .veh .rim    { fill: #a9a9a9; }
+</style>
 
-    /* ====== New race objects (CSS shapes) ====== */
-    /* ====== Replace your entire “New race objects (CSS shapes)” block with this ====== */
-/* Drop this in typeracer.html where the .veh styles are (or override at bottom). */
-
-.veh{
-  position:relative;
-  display:inline-block;
-  box-shadow:
-    0 10px 22px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.10);
-  border:1px solid rgba(0,0,0,.35);
-  background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.12));
-}
-
-/* ---------- Monster Truck ---------- */
-.veh.truck{
-  width:44px; height:18px;
-  border-radius:8px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.25)),
-    linear-gradient(135deg, #3ddc97, #1d7a58);
-}
-.veh.truck::before{
-  /* cab */
-  content:"";
-  position:absolute;
-  left:10px; top:-9px;
-  width:18px; height:11px;
-  border-radius:7px 9px 4px 4px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.22), rgba(0,0,0,.22)),
-    linear-gradient(135deg, #55f0b4, #168a61);
-  border:1px solid rgba(0,0,0,.35);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
-}
-.veh.truck::after{
-  /* wheels + wheel wells */
-  content:"";
-  position:absolute;
-  left:4px; top:8px;
-  width:36px; height:14px;
-  background:
-    radial-gradient(circle at 8px 7px, #111 0 5px, #777 6px 7px, transparent 8px),
-    radial-gradient(circle at 28px 7px, #111 0 5px, #777 6px 7px, transparent 8px),
-    radial-gradient(ellipse at 8px 2px, rgba(0,0,0,.35) 0 9px, transparent 10px),
-    radial-gradient(ellipse at 28px 2px, rgba(0,0,0,.35) 0 9px, transparent 10px);
-  opacity:1;
-  pointer-events:none;
-}
-
-/* ---------- Airplane ---------- */
-/* ---------- Airplane (Top View) ---------- */
-.veh.plane{
-  width:44px; height:44px;
-  border-radius:50%;
-  background: transparent;
-  border:none;
-  box-shadow: none;
-}
-
-/* fuselage */
-.veh.plane::before{
-  content:"";
-  position:absolute;
-  left:20px; top:4px;
-  width:4px; height:36px;
-  border-radius:4px;
-  background:
-    linear-gradient(to right, rgba(255,255,255,.35), rgba(0,0,0,.25)),
-    linear-gradient(135deg, #6cc7ff, #2457c6);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
-}
-
-/* wings + tail */
-.veh.plane::after{
-  content:"";
-  position:absolute;
-  left:4px; top:18px;
-  width:36px; height:8px;
-  border-radius:10px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.28), rgba(0,0,0,.28)),
-    linear-gradient(135deg, #8ad7ff, #2f6de0);
-  box-shadow:
-    0 -12px 0 -4px rgba(140,220,255,.8),   /* top tail wing */
-    0 12px 0 -4px rgba(140,220,255,.8);    /* bottom tail wing */
-}
-
-
-/* ---------- Formula 1 Car ---------- */
-.veh.f1{
-  width:46px; height:12px;
-  border-radius:7px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.28)),
-    linear-gradient(135deg, #ff4b4b, #8b1010);
-}
-.veh.f1::before{
-  /* cockpit + front wing */
-  content:"";
-  position:absolute;
-  left:16px; top:-6px;
-  width:16px; height:8px;
-  border-radius:7px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.20), rgba(0,0,0,.24)),
-    linear-gradient(135deg, #ff7a7a, #b31212);
-  border:1px solid rgba(0,0,0,.28);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
-}
-.veh.f1::after{
-  /* wheels (4) */
-  content:"";
-  position:absolute;
-  left:4px; top:6px;
-  width:40px; height:12px;
-  background:
-    radial-gradient(circle at 6px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
-    radial-gradient(circle at 16px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
-    radial-gradient(circle at 30px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
-    radial-gradient(circle at 40px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px);
-  pointer-events:none;
-}
-
-/* ---------- Boat ---------- */
-/* ---------- Boat (Clean, no dock lines) ---------- */
-.veh.boat{
-  width:44px; height:16px;
-  border-radius:0 0 14px 14px;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.32)),
-    linear-gradient(135deg, #ffd166, #b65d00);
-  box-shadow:
-    0 10px 18px rgba(0,0,0,.45),
-    inset 0 1px 0 rgba(255,255,255,.15);
-}
-
-/* Sail */
-.veh.boat::before{
-  content:"";
-  position:absolute;
-  left:18px; top:-16px;
-  width:0; height:0;
-  border-left:12px solid transparent;
-  border-right:0 solid transparent;
-  border-bottom:18px solid rgba(235,245,255,.95);
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,.35));
-}
-
-/* Mast only (no water shadows) */
-.veh.boat::after{
-  content:"";
-  position:absolute;
-  left:20px; top:-2px;
-  width:2px; height:18px;
-  background: linear-gradient(to bottom, #444, #111);
-}
-
-
-    .finish{
-      position:absolute;
-      right:10px;
-      top:12px;
-      bottom:12px;
-      width:10px;
-      border-radius:8px;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(246,195,74,.85) 0px,
-        rgba(246,195,74,.85) 10px,
-        rgba(246,195,74,.15) 10px,
-        rgba(246,195,74,.15) 20px
-      );
-      opacity:.9;
-    }
-
-    textarea{
-      width:100%;
-      min-height:86px;
-      resize:vertical;
-      border-radius:12px;
-      border:1px solid rgba(23,36,59,.85);
-      background: rgba(11,21,40,.45);
-      color:var(--text);
-      padding:12px;
-      font-family:inherit;
-      font-size:13px;
-      outline:none;
-    }
-    textarea:disabled{opacity:.55}
-
-    .statrow{
-      display:grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap:10px;
-      margin-top:10px;
-    }
-    .stat{
-      border:1px solid rgba(23,36,59,.85);
-      background: rgba(11,21,40,.35);
-      border-radius:12px;
-      padding:10px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    .stat b{display:block; color:var(--text); font-size:14px; margin-top:2px}
-
-    .lobbybox{
-      border:1px solid rgba(23,36,59,.85);
-      background: rgba(11,21,40,.35);
-      border-radius:12px;
-      padding:12px;
-      margin-top:10px;
-      font-size:12.5px;
-      color:var(--muted);
-      line-height:1.5;
-    }
-    .lobbylist{margin:8px 0 0; padding-left:18px}
-    .tiny{font-size:12px;color:var(--muted)}
-  </style>
 </head>
 
 <script>
