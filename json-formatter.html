@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>JSON Formatter & Validator (Free, Client-Side)</title>
+  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, and copy JSON instantly. Runs locally in your browser." />
+  <link rel="stylesheet" href="/assets/site.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "JSON Formatter & Validator",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "description": "Free JSON formatter and validator that runs entirely in the browser."
+  }
+  </script>
+
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self' data:;
+    connect-src 'self';
+    object-src 'none';
+    base-uri 'none';
+    frame-ancestors 'none';
+    form-action 'none';
+    upgrade-insecure-requests
+  ">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+
+  <style>
+    /* Keeps this page consistent even if a browser defaults differ */
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div id="site-header"></div>
+
+    <main>
+      <div class="wrap">
+        <section class="grid">
+
+          <div class="card">
+            <div class="pad">
+              <div class="h1">JSON Formatter & Validator</div>
+
+              <div class="muted" style="margin-top:10px">
+                Prettify, minify, validate, copy, and download JSON. Runs client-side.
+              </div>
+
+              <div class="hr"></div>
+
+              <textarea id="jsonIn"
+                class="mono"
+                style="width:100%;min-height:340px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
+                spellcheck="false"
+                placeholder='Example:
+{
+  "id": 123,
+  "name": "Ced",
+  "active": true,
+  "tags": ["a", "b"],
+  "profile": { "rank": "SGT", "years": 10 },
+  "maybe": null,
+  "createdAt": "2026-02-16T03:41:58.754Z"
+}'></textarea>
+
+              <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
+                <button class="pill" type="button" id="btnValidate">Validate</button>
+                <button class="pill" type="button" id="btnPrettify">Prettify</button>
+                <button class="pill" type="button" id="btnMinify">Minify</button>
+                <button class="pill" type="button" id="btnCopy">Copy</button>
+                <button class="pill" type="button" id="btnDownload">Download .json</button>
+                <button class="pill" type="button" id="btnClear">Clear</button>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted" id="status" style="margin-top:6px;"></div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="pad">
+              <div class="h1">Quick checks</div>
+
+              <div class="muted" style="line-height:1.6">
+                <div style="margin-bottom:10px">
+                  <strong>Valid JSON</strong> means:
+                  <br>• Double quotes for keys/strings
+                  <br>• No trailing commas
+                  <br>• No comments
+                </div>
+
+                <div>
+                  This tool does not upload your data. Everything stays in your browser.
+                </div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted">
+                <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Sample invalid JSON</div>
+                <pre class="mono" style="margin:0;white-space:pre-wrap;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);padding:12px;">{"a":1,}</pre>
+              </div>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+  <script>
+  async function loadPartials() {
+    const header = await fetch('/partials/header.html');
+    const footer = await fetch('/partials/footer.html');
+
+    const h = document.getElementById('site-header');
+    const f = document.getElementById('site-footer');
+
+    if (h) h.innerHTML = await header.text();
+    if (f) f.innerHTML = await footer.text();
+  }
+  loadPartials();
+  </script>
+
+  <script>
+  (function () {
+    const $ = (id) => document.getElementById(id);
+
+    const jsonIn = $("jsonIn");
+    const status = $("status");
+
+    function setStatus(msg) { status.textContent = msg || ""; }
+
+    function parseOrThrow(raw) {
+      return JSON.parse(raw);
+    }
+
+    async function copyText(text, okMsg) {
+      if (!text) return setStatus("Nothing to copy.");
+      try {
+        await navigator.clipboard.writeText(text);
+        setStatus(okMsg || "Copied.");
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        setStatus(okMsg || "Copied.");
+      }
+    }
+
+    function downloadText(filename, text, mime) {
+      const blob = new Blob([text], { type: mime || "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function validate() {
+      const raw = jsonIn.value.trim();
+      if (!raw) return setStatus("Paste JSON first.");
+      try {
+        parseOrThrow(raw);
+        setStatus("Valid JSON.");
+      } catch (e) {
+        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function prettify() {
+      const raw = jsonIn.value.trim();
+      if (!raw) return setStatus("Paste JSON first.");
+      try {
+        const parsed = parseOrThrow(raw);
+        jsonIn.value = JSON.stringify(parsed, null, 2);
+        setStatus("Prettified.");
+      } catch (e) {
+        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function minify() {
+      const raw = jsonIn.value.trim();
+      if (!raw) return setStatus("Paste JSON first.");
+      try {
+        const parsed = parseOrThrow(raw);
+        jsonIn.value = JSON.stringify(parsed);
+        setStatus("Minified.");
+      } catch (e) {
+        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    function download() {
+      const raw = jsonIn.value.trim();
+      if (!raw) return setStatus("Paste JSON first.");
+      try {
+        const parsed = parseOrThrow(raw);
+        downloadText("data.json", JSON.stringify(parsed, null, 2), "application/json;charset=utf-8");
+        setStatus("Downloaded JSON.");
+      } catch (e) {
+        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+      }
+    }
+
+    $("btnValidate").addEventListener("click", validate);
+    $("btnPrettify").addEventListener("click", prettify);
+    $("btnMinify").addEventListener("click", minify);
+    $("btnCopy").addEventListener("click", () => copyText(jsonIn.value.trim(), "JSON copied."));
+    $("btnDownload").addEventListener("click", download);
+    $("btnClear").addEventListener("click", () => { jsonIn.value = ""; setStatus(""); });
+
+    setStatus("");
+  })();
+  </script>
+
+</body>
+</html>
