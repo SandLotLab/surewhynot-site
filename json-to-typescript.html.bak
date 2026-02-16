@@ -37,6 +37,18 @@
   <meta http-equiv="X-Frame-Options" content="DENY">
 </head>
 
+<script>
+async function loadPartials() {
+  const header = await fetch('/partials/header.html');
+  const footer = await fetch('/partials/footer.html');
+
+  document.getElementById('site-header').innerHTML = await header.text();
+  document.getElementById('site-footer').innerHTML = await footer.text();
+}
+
+loadPartials();
+</script>
+
 <body>
   <div class="page">
    
