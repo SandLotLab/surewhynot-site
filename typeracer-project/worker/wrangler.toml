@@ -12,5 +12,5 @@ binding = "ROOM_STATE"
 id = "886fe4f8471d48c5ab6c24f001eb7add"
 
 [[migrations]]
-tag = "v1"
-new_classes = ["RoomDurableObject"]
+tag = "v2"
+new_sqlite_classes = ["RoomDurableObject"]

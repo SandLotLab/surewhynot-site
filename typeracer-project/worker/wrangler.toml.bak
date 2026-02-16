@@ -1,8 +1,7 @@
-name = "typeracer-worker"  # Name of your Worker script
-main = "index.js"          # Entry point for the Worker script
-compatibility_date = "2024-01-01"  # (set to today's date or appropriate)
+name = "typeracer-worker"  # Name of your Worker scriptname = "typeracer-worker"
+main = "index.js"
+compatibility_date = "2024-01-01"
 
-# Define Durable Object binding
 [durable_objects]
 bindings = [
   { name = "ROOM_DO", class_name = "RoomDurableObject" }
@@ -13,5 +12,5 @@ binding = "ROOM_STATE"
 id = "886fe4f8471d48c5ab6c24f001eb7add"
 
 [[migrations]]
-tag = "v1" 
+tag = "v1"
 new_classes = ["RoomDurableObject"]
