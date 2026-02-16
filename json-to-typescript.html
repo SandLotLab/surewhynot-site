@@ -3,11 +3,22 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSON → TypeScript — SureWhyNot</title>
+  <title>JSON to TypeScript Interface Generator (Free, Client-Side)</title>
   <meta name="description" content="Paste JSON and generate TypeScript interfaces/types. Runs locally in your browser." />
   <link rel="stylesheet" href="/assets/site.css">
 
-  <!-- Security / privacy (best-effort via meta; stronger as real HTTP headers) -->
+  <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "JSON to TypeScript Interface Generator",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Web",
+  "description": "Free JSON to TypeScript generator that runs entirely in the browser."
+}
+  </script>
+
+  
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline';
@@ -51,7 +62,20 @@
         <section class="grid">
           <div class="card">
             <div class="pad">
-              <div class="h1">JSON → TypeScript Interface Generator</div>
+              <h1>JSON to TypeScript Interface Generator</h1>
+
+              <p>
+              Convert raw JSON into clean TypeScript interfaces or type aliases instantly.
+              This JSON to TypeScript generator runs entirely in your browser — your data never leaves your device.
+              Perfect for frontend developers, API consumers, and TypeScript projects.
+              </p>
+
+              <p>
+              Paste any JSON payload, generate strongly typed TypeScript definitions,
+              and copy or download the results immediately. Supports nested objects,
+              arrays, union types, and ISO date detection.
+              </p>
+
 
               <div class="muted">
                 Paste JSON on the left. Click Generate. Copy/Download TypeScript on the right.
@@ -60,7 +84,7 @@
                 <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
                   <div style="display:flex;flex-direction:column;gap:6px;min-width:220px;">
                     <div style="font-size:12px;color:var(--muted);">Root name</div>
-                    <input id="rootName" value="Root" maxlength="80" autocomplete="off"
+                    <input id="rootName" value="Root"
                       style="width:100%;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:10px 12px;font-family:inherit;font-size:12.5px;line-height:1.2;outline:none;" />
                   </div>
 
@@ -103,25 +127,7 @@
 
                 <textarea id="jsonIn"
                   style="width:100%;min-height:260px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
-                  spellcheck="false"
-                  autocomplete="off"
-                  autocapitalize="off"
-                  autocorrect="off"
-                  maxlength="200000"
-                  placeholder='Example:
-{
-  "id": 123,
-  "name": "Ced",
-  "active": true,
-  "tags": ["a", "b"],
-  "profile": { "rank": "SGT", "years": 10 },
-  "maybe": null,
-  "createdAt": "2026-02-16T03:41:58.754Z",
-  "items": [
-    {"sku":"A1","qty":2},
-    {"sku":"B2"}
-  ]
-}'></textarea>
+                  spellcheck="false"></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
                   <button class="pill" type="button" id="btnGenerate">Generate</button>
@@ -146,9 +152,6 @@
                 <textarea id="tsOut"
                   style="width:100%;min-height:360px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
                   spellcheck="false"
-                  autocomplete="off"
-                  autocapitalize="off"
-                  autocorrect="off"
                   placeholder="TypeScript will appear here..."></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
@@ -166,15 +169,6 @@
     <footer>
       <div class="footerwrap">
         <div>© 2026 surewhynot.app</div>
-        <div class="footerlinks">
-          <a href="/about.html">About</a>
-          <span>•</span>
-          <a href="/privacy.html">Privacy</a>
-          <span>•</span>
-          <a href="/contact.html">Contact</a>
-          <span>•</span>
-          <a href="/terms.txt">Terms</a>
-        </div>
       </div>
     </footer>
   </div>
@@ -193,7 +187,7 @@
   const optStrictNull = $("optStrictNull");
   const optAutoCopyJson = $("optAutoCopyJson");
 
-    function setStatus(msg) { status.textContent = msg || ""; }
+  function setStatus(msg) { status.textContent = msg || ""; }
 
   function outStyle() {
     const r = document.querySelector('input[name="outStyle"]:checked');
@@ -203,7 +197,6 @@
   function pascal(s) {
     if (!s) return "Root";
     return String(s)
-      .slice(0, 80)
       .replace(/[^a-zA-Z0-9_]/g, " ")
       .split(" ")
       .filter(Boolean)
@@ -299,7 +292,7 @@
 
   function makeName(base, opts) {
     const p = pascal(base || "Root");
-    return opts.iPrefix ? ("I" + p) : p;
+    return opts.iPrefix ? "I" + p : p;
   }
 
   function createCtx(opts) {
@@ -307,7 +300,7 @@
     const shapes = new Map();
     const seenByRef = new WeakMap();
     const nameCounts = new Map();
-    
+
     function uniqName(base) {
       const n = nameCounts.get(base) || 0;
       if (n === 0) { nameCounts.set(base, 1); return base; }
@@ -320,19 +313,16 @@
       return uniqName(makeName(joined, opts));
     }
 
-    function captureObject(obj, pathParts, depth) {
+    function captureObject(obj, pathParts) {
       if (!isObj(obj)) return null;
-
       if (seenByRef.has(obj)) return seenByRef.get(obj);
 
       const ifaceName = nameFromPath(pathParts);
       seenByRef.set(obj, ifaceName);
 
       const shape = new Map();
-      const entries = Object.entries(obj);
-      
-      for (const [k, v] of entries) {
-        shape.set(k, { types: new Set([inferType(v, pathParts.concat([k]), depth + 1)]), optional: false });
+      for (const [k, v] of Object.entries(obj)) {
+        shape.set(k, { types: new Set([inferType(v, pathParts.concat([k]))]), optional: false });
       }
 
       if (!shapes.has(ifaceName)) {
@@ -342,44 +332,34 @@
         shapes.set(ifaceName, mergeShapes(shapes.get(ifaceName), shape));
       }
 
-      for (const [k, v] of entries) {
-        if (isObj(v)) {
-          captureObject(v, pathParts.concat([k]), depth + 1);
-        } else if (Array.isArray(v)) {
-          captureArrayForObjects(v, pathParts.concat([k]), depth + 1);
-        }
+      for (const [k, v] of Object.entries(obj)) {
+        if (isObj(v)) captureObject(v, pathParts.concat([k]));
+        else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([k]));
       }
 
       return ifaceName;
     }
 
-    function captureArrayForObjects(arr, pathParts, depth) {
+    function captureArrayForObjects(arr, pathParts) {
       if (!Array.isArray(arr) || arr.length === 0) return null;
 
       let merged = null;
       let anyObj = false;
 
-      const scan = Math.min(arr.length, MAX_ARRAY_SCAN);
-      for (let i = 0; i < scan; i++) {
-        const item = arr[i];
+      for (const item of arr) {
         if (!isObj(item)) continue;
         anyObj = true;
 
         const itemShape = new Map();
-        const entries = Object.entries(item);
-        
-        for (const [k, v] of entries) {
-          itemShape.set(k, {
-            types: new Set([inferType(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]), depth + 1)]),
-            optional: false
-          });
+        for (const [k, v] of Object.entries(item)) {
+          itemShape.set(k, { types: new Set([inferType(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]))]), optional: false });
         }
 
         merged = merged ? mergeShapes(merged, itemShape) : itemShape;
 
-        for (const [k, v] of entries) {
-          if (isObj(v)) captureObject(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]), depth + 1);
-          else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]), depth + 1);
+        for (const [k, v] of Object.entries(item)) {
+          if (isObj(v)) captureObject(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
+          else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
         }
       }
 
@@ -396,33 +376,28 @@
       return ifaceName;
     }
 
-    function inferType(v, pathParts, depth) {
-      
+    function inferType(v, pathParts) {
       if (v === null) return opts.keepNull ? "null" : "unknown";
 
       const t = typeof v;
       if (t === "string") return (opts.isoAsDate && looksISODate(v)) ? "Date" : "string";
       if (t === "number") return "number";
       if (t === "boolean") return "boolean";
-
-      if (Array.isArray(v)) return inferArray(v, pathParts, depth + 1);
-
-      if (isObj(v)) return captureObject(v, pathParts, depth + 1);
+      if (Array.isArray(v)) return inferArray(v, pathParts);
+      if (isObj(v)) return captureObject(v, pathParts);
 
       return "unknown";
     }
 
-    function inferArray(arr, pathParts, depth) {
-            if (arr.length === 0) return "unknown[]";
+    function inferArray(arr, pathParts) {
+      if (arr.length === 0) return "unknown[]";
 
       const elTypes = [];
-      const objIface = captureArrayForObjects(arr, pathParts, depth + 1);
+      const objIface = captureArrayForObjects(arr, pathParts);
 
-      const scan = Math.min(arr.length, MAX_ARRAY_SCAN);
-      for (let i = 0; i < scan; i++) {
-        const item = arr[i];
+      for (const item of arr) {
         if (isObj(item)) continue;
-        elTypes.push(inferType(item, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item")]), depth + 1));
+        elTypes.push(inferType(item, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item")])));
         if (elTypes.length > 12) break;
       }
 
@@ -473,20 +448,14 @@
       const rootObjName = makeName(opts.rootName, opts);
 
       if (rootVal === null) return { rootExport: `export type ${rootTName} = ${opts.keepNull ? "null" : "unknown"};` };
-
-      if (Array.isArray(rootVal)) {
-        const t = inferType(rootVal, [opts.rootName || "Root"], 0);
-        return { rootExport: `export type ${rootTName} = ${t};` };
-      }
+      if (Array.isArray(rootVal)) return { rootExport: `export type ${rootTName} = ${inferType(rootVal, [opts.rootName || "Root"])};` };
 
       if (isObj(rootVal)) {
         if (!seenByRef.has(rootVal)) seenByRef.set(rootVal, rootObjName);
 
         const shape = new Map();
-        const entries = Object.entries(rootVal);
-        
-        for (const [k, v] of entries) {
-          shape.set(k, { types: new Set([inferType(v, [opts.rootName || "Root", k], 0)]), optional: false });
+        for (const [k, v] of Object.entries(rootVal)) {
+          shape.set(k, { types: new Set([inferType(v, [opts.rootName || "Root", k])]), optional: false });
         }
 
         if (!shapes.has(rootObjName)) {
@@ -496,18 +465,17 @@
           shapes.set(rootObjName, mergeShapes(shapes.get(rootObjName), shape));
         }
 
-        for (const [k, v] of entries) {
-          if (isObj(v)) captureObject(v, [opts.rootName || "Root", k], 0);
-          else if (Array.isArray(v)) captureArrayForObjects(v, [opts.rootName || "Root", k], 0);
+        for (const [k, v] of Object.entries(rootVal)) {
+          if (isObj(v)) captureObject(v, [opts.rootName || "Root", k]);
+          else if (Array.isArray(v)) captureArrayForObjects(v, [opts.rootName || "Root", k]);
         }
 
         return { rootExport: `export type ${rootTName} = ${rootObjName};` };
       }
 
-      const prim = typeof rootVal;
-      if (prim === "string") return { rootExport: `export type ${rootTName} = ${(opts.isoAsDate && looksISODate(rootVal)) ? "Date" : "string"};` };
-      if (prim === "number") return { rootExport: `export type ${rootTName} = number;` };
-      if (prim === "boolean") return { rootExport: `export type ${rootTName} = boolean;` };
+      if (typeof rootVal === "string") return { rootExport: `export type ${rootTName} = ${(opts.isoAsDate && looksISODate(rootVal)) ? "Date" : "string"};` };
+      if (typeof rootVal === "number") return { rootExport: `export type ${rootTName} = number;` };
+      if (typeof rootVal === "boolean") return { rootExport: `export type ${rootTName} = boolean;` };
 
       return { rootExport: `export type ${rootTName} = unknown;` };
     }
@@ -518,12 +486,10 @@
   function generate() {
     const raw = jsonIn.value.trim();
     if (!raw) { tsOut.value = ""; setStatus("Paste JSON first."); return; }
-    if (raw.length > MAX_INPUT_CHARS) { tsOut.value = ""; setStatus("Input too large."); return; }
 
     let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (e) {
+    try { parsed = JSON.parse(raw); }
+    catch (e) {
       tsOut.value = "";
       setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
       return;
@@ -543,21 +509,17 @@
       const body = ctx.render();
       if (body.trim()) out.push(body);
 
-      const final = out.join("\n");
-      if (final.length > MAX_OUTPUT_CHARS) { tsOut.value = ""; setStatus("Output too large."); return; }
-
-      tsOut.value = final;
+      tsOut.value = out.join("\n");
       setStatus("Generated.");
     } catch (e) {
       tsOut.value = "";
-      setStatus("Generation stopped: " + (e && e.message ? e.message : String(e)));
+      setStatus("Generation error: " + (e && e.message ? e.message : String(e)));
     }
   }
 
   function prettify() {
     const raw = jsonIn.value.trim();
     if (!raw) return;
-    if (raw.length > MAX_INPUT_CHARS) return setStatus("Input too large.");
     try {
       const parsed = JSON.parse(raw);
       jsonIn.value = JSON.stringify(parsed, null, 2);
@@ -571,7 +533,6 @@
   function minify() {
     const raw = jsonIn.value.trim();
     if (!raw) return;
-    if (raw.length > MAX_INPUT_CHARS) return setStatus("Input too large.");
     try {
       const parsed = JSON.parse(raw);
       jsonIn.value = JSON.stringify(parsed);
@@ -625,7 +586,6 @@
   function downloadJSON() {
     const raw = jsonIn.value.trim();
     if (!raw) return setStatus("Paste JSON first.");
-    if (raw.length > MAX_INPUT_CHARS) return setStatus("Input too large.");
     try {
       const parsed = JSON.parse(raw);
       const rn = (rootNameEl.value || "Root").trim() || "Root";
