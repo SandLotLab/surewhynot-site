@@ -144,6 +144,13 @@
     .veh .glass{ fill: rgba(120,220,255,.35); }
     .veh .tire{ fill:#141414; }
     .veh .rim{ fill:#a9a9a9; }
+	.veh .rim{ fill:#a9a9a9; }
+
+    /* Rotate airplane 90° clockwise */
+    .veh.plane svg {
+    transform: rotate(90deg);
+    transform-origin: center; }
+
   </style>
 </head>
 
