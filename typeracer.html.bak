@@ -144,13 +144,9 @@
     .veh .glass{ fill: rgba(120,220,255,.35); }
     .veh .tire{ fill:#141414; }
     .veh .rim{ fill:#a9a9a9; }
-	.veh .rim{ fill:#a9a9a9; }
 
     /* Rotate airplane 90° clockwise */
-    .veh.plane svg {
-    transform: rotate(90deg);
-    transform-origin: center; }
-
+    .veh.plane svg { transform: rotate(90deg); transform-origin: center; }
   </style>
 </head>
 
@@ -158,10 +154,8 @@
 async function loadPartials() {
   const header = await fetch('/partials/header.html');
   const footer = await fetch('/partials/footer.html');
-
   document.getElementById('site-header').innerHTML = await header.text();
   document.getElementById('site-footer').innerHTML = await footer.text();
-
   if (window.SWY_renderToolUse) window.SWY_renderToolUse();
 }
 loadPartials();
@@ -182,7 +176,7 @@ loadPartials();
               </div>
 
               <div class="btnrow">
-                <button class="primary" id="btnEnter">Join Lobby</button>
+                <button class="primary" id="btnEnter" disabled>Join Lobby</button>
                 <button id="btnPractice">Practice Solo</button>
                 <button id="btnLeave" disabled>Leave</button>
                 <button id="btnNew" disabled>Try Again</button>
@@ -234,7 +228,6 @@ loadPartials();
                           </linearGradient>
                         </defs>
 
-                        <!-- Top-ish view -->
                         <path d="M8 15 L20 13 L20 17 Z" fill="url(#gradPlane)"/>
                         <path d="M38 15 L26 13 L26 17 Z" fill="url(#gradPlane)"/>
                         <path d="M22 4 Q23 3 24 4 L26 7 L26 21 L24 24 Q23 25 22 24 L20 21 L20 7 Z" fill="url(#metalPlane)"/>
@@ -327,7 +320,7 @@ loadPartials();
 
               <div class="lobbybox" id="lobbyBox">
                 <div><b style="color:var(--text)">Lobby</b></div>
-                <div class="tiny" id="lobbyStatus">Not in a lobby.</div>
+                <div class="tiny" id="lobbyStatus">Connecting…</div>
                 <ul class="lobbylist" id="lobbyList"></ul>
               </div>
             </div>
@@ -337,10 +330,10 @@ loadPartials();
             <div class="pad">
               <div class="h1">How it works</div>
               <div class="muted">
-                - Lobby match timer runs when you join.<br>
+                - Room is shared by URL (?room=...).<br>
                 - Race only starts if 2+ real players are present.<br>
                 - Practice mode is always available.<br>
-                - Everything runs client-side (same-device tabs only for now).
+                - Multiplayer works across devices, incognito, and geos via Cloudflare Worker WS.
               </div>
 
               <div class="hr"></div>
@@ -362,6 +355,14 @@ loadPartials();
 
 <script>
 (() => {
+  // ====== CONFIG ======
+  const WS_BASE = "wss://surewhynot.app/typeracer-ws"; // your Worker route: surewhynot.app/typeracer-ws/*
+
+  // room from URL: /typeracer?room=test123
+  const params = new URLSearchParams(location.search);
+  const roomId = (params.get("room") || "lobby").slice(0, 64);
+
+  // ====== Race text ======
   const TEXT = [
     "Race clean and steady.",
     "Accuracy first, speed second.",
@@ -369,6 +370,7 @@ loadPartials();
     "Finish strong."
   ].join(" ");
 
+  // ====== DOM ======
   const elRaceText = document.getElementById("raceText");
   const input = document.getElementById("input");
 
@@ -399,6 +401,7 @@ loadPartials();
 
   elRaceText.textContent = TEXT;
 
+  // ====== goofy names ======
   const ADJ = ["Sleepy","Spicy","Quantum","Cranky","Sneaky","Turbo","Glitchy","Wobbly","Moody","Cosmic","Rusty","Chaotic","Polite","Ferocious","Tiny","Big","Nervous","Chill","Saucy","Gremlin"];
   const NOUN = ["Nginx","Kernel","Panda","Router","Yeti","Byte","Packet","Goblin","Octopus","Unicorn","Linter","Daemon","Banana","Squirrel","Dragon","Proxy","Hash","Socket","Wombat","Cactus"];
   function randInt(n){
@@ -410,35 +413,73 @@ loadPartials();
     return ADJ[randInt(ADJ.length)] + " " + NOUN[randInt(NOUN.length)];
   }
 
-  const channel = new BroadcastChannel("surewhynot-typeracer-lobby-v3");
-  const myId = crypto.randomUUID().slice(0, 10);
+  const myId = crypto.randomUUID().slice(0, 12);
   const myName = goofyName();
 
-  let lobby = new Map(); // id -> {name, ts}
+  // ====== STATE ======
+  let ws = null;
+  let wsReady = false;
   let inLobby = false;
 
-  let mode = "idle"; // idle | lobby | practice | race
+  // server roster: id -> name
+  const roster = new Map();
+
+  // progress per player id
+  const progress = new Map(); // id -> correct chars
+
+  // modes: idle | lobby | practice | race
+  let mode = "idle";
   let startedAt = null;
   let finished = false;
 
+  // timers
   let matchTimer = null;
   let matchSecondsLeft = 0;
 
   let raceCountdownTimer = null;
   let raceCountdownLeft = 0;
 
-  let progress = new Map(); // id -> correct chars
-
+  // ====== UI helpers ======
   function setLobbyStatus(text){ lobbyStatus.textContent = text; }
+
+  function setButtons() {
+    const idle = mode === "idle";
+    btnEnter.disabled = !idle || !wsReady;
+    btnPractice.disabled = !idle;
+    btnLeave.disabled = idle;
+    btnNew.disabled = !(mode === "lobby" || mode === "practice" || mode === "race");
+  }
 
   function renderLobby() {
     lobbyList.innerHTML = "";
-    const entries = Array.from(lobby.values()).map(x => x.name).sort();
+    const entries = Array.from(roster.values()).sort((a,b)=>a.localeCompare(b));
     entries.forEach(n => {
       const li = document.createElement("li");
       li.textContent = n;
       lobbyList.appendChild(li);
     });
+  }
+
+  function realPlayers(){
+    // array of {id,name} from roster
+    return Array.from(roster.entries()).map(([id, name]) => ({id, name}));
+  }
+
+  function assignLanes(){
+    names[0].textContent = `${myName} (You)`;
+
+    const others = realPlayers()
+      .filter(p => p.id !== myId)
+      .sort((a,b) => a.id.localeCompare(b.id));
+
+    for(let i=0;i<3;i++){
+      names[i+1].textContent = "Waiting…";
+      setRunner(runners[i+1], 0);
+    }
+
+    for(let i=0;i<Math.min(3, others.length);i++){
+      names[i+1].textContent = others[i].name;
+    }
   }
 
   function setRunner(el, progress01) {
@@ -481,14 +522,6 @@ loadPartials();
     accEl.textContent = acc + "%";
   }
 
-  function setButtons() {
-    const idle = mode === "idle";
-    btnEnter.disabled = !idle;
-    btnPractice.disabled = !idle;
-    btnLeave.disabled = idle;
-    btnNew.disabled = !(mode === "lobby" || mode === "practice" || mode === "race");
-  }
-
   function stopMatchTimer(){
     if(matchTimer) clearInterval(matchTimer);
     matchTimer = null;
@@ -501,55 +534,135 @@ loadPartials();
     raceCountdownLeft = 0;
   }
 
-  function realPlayers(){
-    return Array.from(lobby.entries()).map(([id,v]) => ({id, name:v.name}));
+  // ====== WS helpers ======
+  function wsSend(obj){
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj));
   }
 
-  function assignLanes(){
-    names[0].textContent = myName + " (You)";
-    const others = realPlayers().filter(p => p.id !== myId).sort((a,b) => a.id.localeCompare(b.id));
+  function connectWS(){
+    wsReady = false;
+    setButtons();
+    setLobbyStatus(`Connecting… (room: ${roomId})`);
 
-    for(let i=0;i<3;i++){
-      names[i+1].textContent = "Waiting…";
-      setRunner(runners[i+1], 0);
-    }
+    ws = new WebSocket(`${WS_BASE}/room/${encodeURIComponent(roomId)}`);
 
-    for(let i=0;i<Math.min(3, others.length);i++){
-      names[i+1].textContent = others[i].name;
-    }
+    ws.onopen = () => {
+      wsReady = true;
+      setButtons();
+      setLobbyStatus(`Connected. Room: ${roomId}.`);
+    };
+
+    ws.onmessage = (ev) => {
+      let msg = null;
+      try { msg = JSON.parse(ev.data); } catch { return; }
+      if (!msg || typeof msg.type !== "string") return;
+
+      // ---- server -> client ----
+      if (msg.type === "roster") {
+        // msg.players: [{id,name}, ...]
+        roster.clear();
+        (msg.players || []).forEach(p => {
+          if (p && p.id && p.name) roster.set(p.id, p.name);
+        });
+        renderLobby();
+        assignLanes();
+        return;
+      }
+
+      if (msg.type === "joined") {
+        // optional ack
+        return;
+      }
+
+      if (msg.type === "left") {
+        // optional ack
+        return;
+      }
+
+      if (msg.type === "countdown") {
+        if (mode !== "lobby") return;
+        raceCountdownLeft = Number(msg.seconds || 0);
+        if (roster.size < 2) return;
+        if (raceCountdownLeft > 0) setLobbyStatus(`Match found. Race starts in ${raceCountdownLeft}s…`);
+        return;
+      }
+
+      if (msg.type === "start") {
+        // msg.startTs (ms epoch)
+        if (mode === "lobby" && roster.size >= 2) {
+          beginRace(Number(msg.startTs || Date.now()));
+        }
+        return;
+      }
+
+      if (msg.type === "progress") {
+        // msg.id, msg.correct
+        if (mode !== "race") return;
+        if (!msg.id) return;
+        progress.set(msg.id, Math.max(0, Number(msg.correct || 0)));
+        return;
+      }
+
+      if (msg.type === "error") {
+        setLobbyStatus(`Server error: ${String(msg.message || "unknown")}`);
+        return;
+      }
+    };
+
+    ws.onclose = () => {
+      wsReady = false;
+      inLobby = false;
+      roster.clear();
+      progress.clear();
+      renderLobby();
+      assignLanes();
+      if (mode !== "practice") {
+        mode = "idle";
+        input.disabled = true;
+        setLobbyStatus("Disconnected. Refresh the page.");
+      }
+      setButtons();
+    };
+
+    ws.onerror = () => {
+      setLobbyStatus("WebSocket error. Check Worker route and console.");
+    };
   }
 
+  // ====== Lobby logic ======
   function joinLobby() {
+    if (!wsReady) return;
+
+    // clean state
     stopMatchTimer();
     stopRaceCountdown();
     progress.clear();
     resetTrack();
 
-    lobby.clear();
-    lobby.set(myId, { name: myName, ts: Date.now() });
-    inLobby = true;
     mode = "lobby";
-    setButtons();
-
-    channel.postMessage({ type: "join", id: myId, name: myName, ts: Date.now() });
-    channel.postMessage({ type: "sync", from: myId });
-
-    input.disabled = true;
-    input.value = "";
+    inLobby = true;
     finished = false;
     startedAt = null;
 
-    renderLobby();
-    assignLanes();
+    input.disabled = true;
+    input.value = "";
     updateStats(0,0);
 
+    // tell server we joined
+    wsSend({ type: "join", id: myId, name: myName });
+
+    // local UI
+    assignLanes();
+    setButtons();
+
+    // local matchmaking timer (server will also handle; this is just UX)
     matchSecondsLeft = 15;
     setLobbyStatus(`Searching… (${matchSecondsLeft}s)`);
     matchTimer = setInterval(() => {
       matchSecondsLeft--;
-      if (lobby.size >= 2) {
+      if (roster.size >= 2) {
         stopMatchTimer();
-        startRaceCountdownIfReady();
+        setLobbyStatus("Match found. Waiting for countdown…");
         return;
       }
       if (matchSecondsLeft > 0) {
@@ -558,61 +671,44 @@ loadPartials();
       }
       stopMatchTimer();
       setLobbyStatus("No match found. Leave, practice solo, or try again.");
+      // no race starts
     }, 1000);
   }
 
   function leaveLobby() {
     stopMatchTimer();
     stopRaceCountdown();
-    if (inLobby) channel.postMessage({ type: "leave", id: myId });
+
+    if (inLobby) wsSend({ type: "leave", id: myId });
 
     inLobby = false;
-    lobby.clear();
+    roster.clear();
     progress.clear();
     renderLobby();
 
     mode = "idle";
-    setLobbyStatus("Not in a lobby.");
     input.disabled = true;
     input.value = "";
     finished = false;
     startedAt = null;
+
     resetTrack();
     assignLanes();
     updateStats(0,0);
+
+    setLobbyStatus(wsReady ? `Connected. Room: ${roomId}.` : "Disconnected.");
     setButtons();
   }
 
-  function startRaceCountdownIfReady(){
-    if (mode !== "lobby") return;
-    if (lobby.size < 2) return;
-    if (raceCountdownTimer) return;
-
-    raceCountdownLeft = 5;
-    setLobbyStatus(`Match found. Race starts in ${raceCountdownLeft}s…`);
-    channel.postMessage({ type: "countdown", seconds: raceCountdownLeft, ts: Date.now() });
-
-    raceCountdownTimer = setInterval(() => {
-      raceCountdownLeft--;
-      if (raceCountdownLeft > 0) {
-        setLobbyStatus(`Match found. Race starts in ${raceCountdownLeft}s…`);
-        channel.postMessage({ type: "countdown", seconds: raceCountdownLeft, ts: Date.now() });
-        return;
-      }
-      stopRaceCountdown();
-      const startTs = Date.now() + 200;
-      channel.postMessage({ type: "start", startTs, text: TEXT });
-      beginRace(startTs);
-    }, 1000);
-  }
-
+  // ====== Practice ======
   function beginPractice() {
-    leaveLobby();
-    mode = "practice";
-    setButtons();
+    // do NOT depend on WS
+    if (inLobby) leaveLobby();
 
+    mode = "practice";
     finished = false;
     startedAt = performance.now();
+
     resetTrack();
     assignLanes();
     updateStats(0,0);
@@ -622,16 +718,17 @@ loadPartials();
     input.focus();
 
     setLobbyStatus("Practice mode. Just you.");
+    setButtons();
   }
 
-  function beginRace(startTs) {
+  // ====== Multiplayer race ======
+  function beginRace(startTsEpochMs) {
     mode = "race";
-    setButtons();
+    finished = false;
 
     stopMatchTimer();
     stopRaceCountdown();
 
-    finished = false;
     progress.set(myId, 0);
 
     resetTrack();
@@ -641,8 +738,10 @@ loadPartials();
     input.disabled = true;
     input.value = "";
 
-    const delay = Math.max(0, startTs - Date.now());
+    const delay = Math.max(0, startTsEpochMs - Date.now());
     setLobbyStatus("Race starting…");
+    setButtons();
+
     setTimeout(() => {
       if (mode !== "race") return;
       startedAt = performance.now();
@@ -661,9 +760,11 @@ loadPartials();
     const players = realPlayers().sort((a,b)=>a.id.localeCompare(b.id));
     const others = players.filter(p => p.id !== myId);
 
+    // lane1 you
     const youC = progress.get(myId) || 0;
     setRunner(runners[0], charsDoneToProgress(youC));
 
+    // lanes2-4 only move if real players exist
     for(let i=0;i<3;i++){
       const p = others[i];
       if (!p) { setRunner(runners[i+1], 0); continue; }
@@ -688,10 +789,14 @@ loadPartials();
     const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
     const finalWpm = calcWPM(youC, seconds);
 
-    if (mode === "practice") setLobbyStatus(`Practice finished. WPM: ${finalWpm}.`);
-    else setLobbyStatus(`Finished. WPM: ${finalWpm}.`);
+    setLobbyStatus(`Finished. WPM: ${finalWpm}.`);
+    setButtons();
+
+    // tell server you finished (optional)
+    if (inLobby) wsSend({ type: "finish", id: myId, wpm: finalWpm });
   }
 
+  // ====== Input ======
   input.addEventListener("input", () => {
     if (!startedAt || finished) return;
 
@@ -700,96 +805,20 @@ loadPartials();
     const youCorrect = computeCorrectChars(typed);
 
     progress.set(myId, youCorrect);
+
     updateStats(youCorrect, youTotal);
     setRunner(runners[0], charsDoneToProgress(youCorrect));
 
+    if (typed.length > TEXT.length) input.value = typed.slice(0, TEXT.length);
+
     if (mode === "race" && inLobby) {
-      channel.postMessage({ type: "progress", id: myId, correct: youCorrect, ts: Date.now() });
+      wsSend({ type: "progress", id: myId, correct: youCorrect });
     }
 
-    if (typed.length > TEXT.length) input.value = typed.slice(0, TEXT.length);
     if (charsDoneToProgress(youCorrect) >= 1) finishRace();
   });
 
-  channel.onmessage = (ev) => {
-    const msg = ev.data || {};
-
-    if (msg.type === "join") {
-      lobby.set(msg.id, { name: msg.name, ts: msg.ts || Date.now() });
-      renderLobby();
-      assignLanes();
-      if (mode === "lobby" && lobby.size >= 2) {
-        stopMatchTimer();
-        startRaceCountdownIfReady();
-      }
-    }
-
-    if (msg.type === "leave") {
-      lobby.delete(msg.id);
-      progress.delete(msg.id);
-      renderLobby();
-      assignLanes();
-
-      if (mode === "lobby" && lobby.size < 2) {
-        stopRaceCountdown();
-        if (!matchTimer) {
-          matchSecondsLeft = 10;
-          setLobbyStatus(`Searching… (${matchSecondsLeft}s)`);
-          matchTimer = setInterval(() => {
-            matchSecondsLeft--;
-            if (lobby.size >= 2) {
-              stopMatchTimer();
-              startRaceCountdownIfReady();
-              return;
-            }
-            if (matchSecondsLeft > 0) {
-              setLobbyStatus(`Searching… (${matchSecondsLeft}s)`);
-              return;
-            }
-            stopMatchTimer();
-            setLobbyStatus("No match found. Leave, practice solo, or try again.");
-          }, 1000);
-        }
-      }
-    }
-
-    if (msg.type === "sync" && inLobby) {
-      channel.postMessage({
-        type: "roster",
-        to: msg.from,
-        roster: Array.from(lobby.entries()).map(([id, v]) => [id, v.name, v.ts])
-      });
-    }
-
-    if (msg.type === "roster" && msg.to === myId) {
-      msg.roster.forEach(([id, name, ts]) => {
-        lobby.set(id, { name, ts: ts || Date.now() });
-      });
-      renderLobby();
-      assignLanes();
-      if (mode === "lobby" && lobby.size >= 2) {
-        stopMatchTimer();
-        startRaceCountdownIfReady();
-      }
-    }
-
-    if (msg.type === "countdown" && mode === "lobby") {
-      if (lobby.size < 2) return;
-      raceCountdownLeft = Number(msg.seconds || 0);
-      if (raceCountdownLeft > 0) setLobbyStatus(`Match found. Race starts in ${raceCountdownLeft}s…`);
-    }
-
-    if (msg.type === "start") {
-      if (mode === "lobby" && lobby.size >= 2) beginRace(msg.startTs);
-    }
-
-    if (msg.type === "progress") {
-      if (mode !== "race") return;
-      if (!lobby.has(msg.id)) return;
-      progress.set(msg.id, Math.max(0, Number(msg.correct || 0)));
-    }
-  };
-
+  // ====== Buttons ======
   btnEnter.addEventListener("click", joinLobby);
   btnPractice.addEventListener("click", beginPractice);
   btnLeave.addEventListener("click", leaveLobby);
@@ -797,18 +826,19 @@ loadPartials();
   btnNew.addEventListener("click", () => {
     if (mode === "practice") { beginPractice(); return; }
     if (mode === "lobby") { leaveLobby(); joinLobby(); return; }
-    if (mode === "race") { leaveLobby(); joinLobby(); }
+    if (mode === "race") { leaveLobby(); joinLobby(); return; }
   });
 
   window.addEventListener("beforeunload", () => {
-    if (inLobby) channel.postMessage({ type: "leave", id: myId });
+    if (inLobby) wsSend({ type: "leave", id: myId });
   });
 
+  // ====== init ======
   resetTrack();
   assignLanes();
   renderLobby();
   setButtons();
-  setLobbyStatus("Not in a lobby.");
+  connectWS();
 })();
 </script>
 </body>
