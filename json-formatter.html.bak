@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>JSON Formatter & Validator (Free, Client-Side)</title>
-  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, and copy JSON instantly. Runs locally in your browser." />
+  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, sort keys, diff, path extract, and optional schema checks — runs locally in your browser." />
   <link rel="stylesheet" href="/assets/site.css">
 
   <script type="application/ld+json">
@@ -36,14 +36,49 @@
   <meta http-equiv="X-Frame-Options" content="DENY">
 
   <style>
-    /* Keeps this page consistent even if a browser defaults differ */
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .row { display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end; }
+    .col { display:flex; flex-direction:column; gap:6px; min-width:220px; flex: 1 1 220px; }
+    .lbl { font-size:12px; color:var(--muted); }
+    .in {
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(23,36,59,.8);
+      background:rgba(11,21,40,.35);
+      color:var(--text);
+      padding:10px 12px;
+      font-family:inherit;
+      font-size:12.5px;
+      line-height:1.2;
+      outline:none;
+    }
+    .ta {
+      width:100%;
+      border-radius:12px;
+      border:1px solid rgba(23,36,59,.8);
+      background:rgba(11,21,40,.35);
+      color:var(--text);
+      padding:12px;
+      font-family:inherit;
+      font-size:12.5px;
+      line-height:1.55;
+    }
+    .smallpill {
+      border-radius:999px;
+      border:1px solid rgba(23,36,59,.8);
+      background:rgba(11,21,40,.35);
+      color:var(--text);
+      padding:6px 10px;
+      font-family:inherit;
+      font-size:12px;
+      line-height:1;
+      cursor:pointer;
+    }
   </style>
 </head>
 
 <body>
   <div class="page">
-
     <div id="site-header"></div>
 
     <main>
@@ -55,14 +90,50 @@
               <div class="h1">JSON Formatter & Validator</div>
 
               <div class="muted" style="margin-top:10px">
-                Prettify, minify, validate, copy, and download JSON. Runs client-side.
+                Validate, prettify, minify, sort keys, extract by path, and generate a diff. Runs client-side.
               </div>
 
               <div class="hr"></div>
 
+              <div class="row" style="margin-bottom:10px">
+                <div class="col" style="min-width:260px; flex: 2 1 260px;">
+                  <div class="lbl">Find (in input)</div>
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <input id="findText" class="in mono" placeholder="text to find…" />
+                    <button class="pill" type="button" id="btnFindNext">Find next</button>
+                  </div>
+                </div>
+
+                <div class="col">
+                  <div class="lbl">Extract path</div>
+                  <div style="display:flex; gap:8px; align-items:center;">
+                    <input id="pathText" class="in mono" placeholder='e.g. profile.rank OR /profile/rank' />
+                    <button class="pill" type="button" id="btnExtract">Extract</button>
+                  </div>
+                </div>
+
+                <div class="col">
+                  <div class="lbl">Options</div>
+                  <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
+                    <label style="display:flex; gap:8px; align-items:center;">
+                      <input id="optAutoFix" type="checkbox" checked>
+                      <span>Auto-fix common paste issues</span>
+                    </label>
+                    <label style="display:flex; gap:8px; align-items:center;">
+                      <input id="optJson5ish" type="checkbox">
+                      <span>Allow comments + trailing commas (optional)</span>
+                    </label>
+                    <label style="display:flex; gap:8px; align-items:center;">
+                      <input id="optSortKeys" type="checkbox">
+                      <span>Sort keys when prettifying</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
               <textarea id="jsonIn"
-                class="mono"
-                style="width:100%;min-height:340px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
+                class="ta mono"
+                style="min-height:320px;"
                 spellcheck="false"
                 placeholder='Example:
 {
@@ -79,40 +150,75 @@
                 <button class="pill" type="button" id="btnValidate">Validate</button>
                 <button class="pill" type="button" id="btnPrettify">Prettify</button>
                 <button class="pill" type="button" id="btnMinify">Minify</button>
+                <button class="pill" type="button" id="btnSortOnly">Sort Keys</button>
                 <button class="pill" type="button" id="btnCopy">Copy</button>
                 <button class="pill" type="button" id="btnDownload">Download .json</button>
                 <button class="pill" type="button" id="btnClear">Clear</button>
               </div>
 
               <div class="hr"></div>
-
               <div class="muted" id="status" style="margin-top:6px;"></div>
             </div>
           </div>
 
           <div class="card">
             <div class="pad">
-              <div class="h1">Quick checks</div>
+              <div class="h1">Output / Diff / Schema (optional)</div>
 
-              <div class="muted" style="line-height:1.6">
-                <div style="margin-bottom:10px">
-                  <strong>Valid JSON</strong> means:
-                  <br>• Double quotes for keys/strings
-                  <br>• No trailing commas
-                  <br>• No comments
-                </div>
-
-                <div>
-                  This tool does not upload your data. Everything stays in your browser.
-                </div>
+              <div class="muted" style="margin-top:8px">
+                Output updates when you prettify/minify/sort/extract. Diff compares current input vs last “snapshot”.
               </div>
 
               <div class="hr"></div>
 
-              <div class="muted">
-                <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Sample invalid JSON</div>
-                <pre class="mono" style="margin:0;white-space:pre-wrap;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);padding:12px;">{"a":1,}</pre>
+              <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:10px;">
+                <button class="pill" type="button" id="btnSnapshot">Snapshot input</button>
+                <button class="pill" type="button" id="btnDiff">Generate diff</button>
+                <button class="pill" type="button" id="btnCopyOut">Copy output</button>
+                <button class="pill" type="button" id="btnClearOut">Clear output</button>
               </div>
+
+              <textarea id="outBox"
+                class="ta mono"
+                style="min-height:220px;"
+                spellcheck="false"
+                placeholder="Output appears here…"></textarea>
+
+              <div class="hr"></div>
+
+              <div class="row" style="margin-bottom:10px;">
+                <div class="col" style="flex: 1 1 320px;">
+                  <div class="lbl">JSON Schema (subset) — optional</div>
+                  <textarea id="schemaBox" class="ta mono" style="min-height:160px;" spellcheck="false"
+                    placeholder='Example schema subset:
+{
+  "type": "object",
+  "required": ["id","name"],
+  "properties": {
+    "id": { "type": "number" },
+    "name": { "type": "string", "minLength": 1 }
+  }
+}'></textarea>
+                </div>
+
+                <div class="col" style="flex: 1 1 220px; min-width:220px;">
+                  <div class="lbl">Schema tools</div>
+                  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <button class="pill" type="button" id="btnSchemaValidate">Validate against schema</button>
+                    <button class="pill" type="button" id="btnSchemaExample">Insert example schema</button>
+                  </div>
+
+                  <div class="muted" style="margin-top:10px; line-height:1.6;">
+                    Supports a practical subset:
+                    <br>• type, enum, const
+                    <br>• required, properties, items
+                    <br>• min/max (number), minLength/maxLength
+                    <br>• minimum/maximum
+                  </div>
+                </div>
+              </div>
+
+              <div class="muted" id="schemaStatus"></div>
             </div>
           </div>
 
@@ -142,12 +248,195 @@
     const $ = (id) => document.getElementById(id);
 
     const jsonIn = $("jsonIn");
+    const outBox = $("outBox");
     const status = $("status");
+    const schemaStatus = $("schemaStatus");
+
+    const optAutoFix = $("optAutoFix");
+    const optJson5ish = $("optJson5ish");
+    const optSortKeys = $("optSortKeys");
+
+    let snapshotText = "";
+
+    // Worker to keep UI responsive (prevents easy "freeze the tab" games)
+    const workerCode = `
+      function stripBOM(s){ return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
+
+      function replaceSmartQuotes(s){
+        return s
+          .replace(/[\\u201C\\u201D]/g, '"')
+          .replace(/[\\u2018\\u2019]/g, "'");
+      }
+
+      function stripComments(s){
+        // Removes //... and /*...*/ while preserving strings
+        let out = "";
+        let i = 0;
+        let inStr = false;
+        let strCh = "";
+        let esc = false;
+
+        while (i < s.length) {
+          const c = s[i];
+          const n = s[i+1];
+
+          if (inStr) {
+            out += c;
+            if (esc) { esc = false; i++; continue; }
+            if (c === "\\\\") { esc = true; i++; continue; }
+            if (c === strCh) { inStr = false; strCh = ""; }
+            i++; continue;
+          }
+
+          if (c === '"' || c === "'") { inStr = true; strCh = c; out += c; i++; continue; }
+
+          if (c === "/" && n === "/") {
+            // line comment
+            i += 2;
+            while (i < s.length && s[i] !== "\\n") i++;
+            continue;
+          }
+
+          if (c === "/" && n === "*") {
+            // block comment
+            i += 2;
+            while (i < s.length && !(s[i] === "*" && s[i+1] === "/")) i++;
+            i += 2;
+            continue;
+          }
+
+          out += c;
+          i++;
+        }
+        return out;
+      }
+
+      function removeTrailingCommas(s){
+        // Removes trailing commas in objects/arrays while preserving strings
+        let out = "";
+        let i = 0;
+        let inStr = false;
+        let strCh = "";
+        let esc = false;
+
+        while (i < s.length) {
+          const c = s[i];
+
+          if (inStr) {
+            out += c;
+            if (esc) { esc = false; i++; continue; }
+            if (c === "\\\\") { esc = true; i++; continue; }
+            if (c === strCh) { inStr = false; strCh = ""; }
+            i++; continue;
+          }
+
+          if (c === '"' || c === "'") { inStr = true; strCh = c; out += c; i++; continue; }
+
+          if (c === ",") {
+            // look ahead for only whitespace then ] or }
+            let j = i + 1;
+            while (j < s.length && /\\s/.test(s[j])) j++;
+            if (s[j] === "]" || s[j] === "}") {
+              // skip this comma
+              i++;
+              continue;
+            }
+          }
+
+          out += c;
+          i++;
+        }
+        return out;
+      }
+
+      function stableSortKeys(v){
+        if (Array.isArray(v)) return v.map(stableSortKeys);
+        if (v && typeof v === "object") {
+          const keys = Object.keys(v).sort((a,b)=>a.localeCompare(b));
+          const o = {};
+          for (const k of keys) o[k] = stableSortKeys(v[k]);
+          return o;
+        }
+        return v;
+      }
+
+      function lineColFromIndex(s, idx){
+        // idx is 0-based
+        let line = 1, col = 1;
+        for (let i=0; i<idx && i<s.length; i++){
+          if (s[i] === "\\n") { line++; col = 1; }
+          else col++;
+        }
+        return { line, col };
+      }
+
+      function bestEffortErrorLocation(raw, errMsg){
+        // Try to extract "position N" from V8 error messages.
+        const m = /position\\s+(\\d+)/i.exec(errMsg || "");
+        if (!m) return null;
+        const pos = parseInt(m[1],10);
+        if (!Number.isFinite(pos)) return null;
+        return { pos, ...lineColFromIndex(raw, pos) };
+      }
+
+      self.onmessage = (e) => {
+        const { op, text, autoFix, json5ish, sortKeys } = e.data;
+        try {
+          let raw = text == null ? "" : String(text);
+
+          if (autoFix) {
+            raw = stripBOM(raw);
+            raw = replaceSmartQuotes(raw);
+          }
+
+          let parseTarget = raw;
+          if (json5ish) {
+            parseTarget = stripComments(parseTarget);
+            parseTarget = removeTrailingCommas(parseTarget);
+          }
+
+          const parsed = JSON.parse(parseTarget);
+
+          if (op === "validate") {
+            self.postMessage({ ok:true, op, parsed: null, output: null });
+            return;
+          }
+
+          let finalObj = parsed;
+          if ((op === "prettify" || op === "sort") && sortKeys) {
+            finalObj = stableSortKeys(finalObj);
+          }
+
+          let output = "";
+          if (op === "prettify" || op === "sort") output = JSON.stringify(finalObj, null, 2);
+          else if (op === "minify") output = JSON.stringify(finalObj);
+          else if (op === "extract") output = ""; // extract handled on main thread
+          else output = JSON.stringify(finalObj, null, 2);
+
+          self.postMessage({ ok:true, op, parsed: finalObj, output });
+        } catch (err) {
+          const msg = (err && err.message) ? err.message : String(err);
+          const loc = bestEffortErrorLocation(text || "", msg);
+          self.postMessage({ ok:false, op, error: msg, loc });
+        }
+      };
+    `;
+
+    const workerBlob = new Blob([workerCode], { type: "application/javascript" });
+    const worker = new Worker(URL.createObjectURL(workerBlob));
 
     function setStatus(msg) { status.textContent = msg || ""; }
+    function setSchemaStatus(msg) { schemaStatus.textContent = msg || ""; }
 
-    function parseOrThrow(raw) {
-      return JSON.parse(raw);
+    function withWorker(op, payload) {
+      return new Promise((resolve) => {
+        const onMsg = (e) => {
+          worker.removeEventListener("message", onMsg);
+          resolve(e.data);
+        };
+        worker.addEventListener("message", onMsg);
+        worker.postMessage(payload);
+      });
     }
 
     async function copyText(text, okMsg) {
@@ -181,63 +470,363 @@
       URL.revokeObjectURL(url);
     }
 
-    function validate() {
-      const raw = jsonIn.value.trim();
-      if (!raw) return setStatus("Paste JSON first.");
-      try {
-        parseOrThrow(raw);
-        setStatus("Valid JSON.");
-      } catch (e) {
-        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+    function showParseError(data) {
+      if (!data || data.ok) return;
+      if (data.loc && Number.isFinite(data.loc.line) && Number.isFinite(data.loc.col)) {
+        setStatus(`JSON error (line ${data.loc.line}, col ${data.loc.col}). ${data.error}`);
+      } else {
+        setStatus(`JSON error: ${data.error}`);
       }
     }
 
-    function prettify() {
-      const raw = jsonIn.value.trim();
-      if (!raw) return setStatus("Paste JSON first.");
-      try {
-        const parsed = parseOrThrow(raw);
-        jsonIn.value = JSON.stringify(parsed, null, 2);
-        setStatus("Prettified.");
-      } catch (e) {
-        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
-      }
+    async function validate() {
+      const raw = jsonIn.value;
+      if (!raw.trim()) return setStatus("Paste JSON first.");
+      const data = await withWorker("validate", {
+        op:"validate",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: !!optSortKeys.checked
+      });
+      if (data.ok) setStatus("Valid JSON.");
+      else showParseError(data);
     }
 
-    function minify() {
-      const raw = jsonIn.value.trim();
-      if (!raw) return setStatus("Paste JSON first.");
-      try {
-        const parsed = parseOrThrow(raw);
-        jsonIn.value = JSON.stringify(parsed);
-        setStatus("Minified.");
-      } catch (e) {
-        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
+    async function prettify() {
+      const raw = jsonIn.value;
+      if (!raw.trim()) return setStatus("Paste JSON first.");
+      const data = await withWorker("prettify", {
+        op:"prettify",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: !!optSortKeys.checked
+      });
+      if (!data.ok) return showParseError(data);
+      jsonIn.value = data.output;
+      outBox.value = data.output;
+      setStatus(optSortKeys.checked ? "Prettified (sorted keys)." : "Prettified.");
+    }
+
+    async function minify() {
+      const raw = jsonIn.value;
+      if (!raw.trim()) return setStatus("Paste JSON first.");
+      const data = await withWorker("minify", {
+        op:"minify",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: !!optSortKeys.checked
+      });
+      if (!data.ok) return showParseError(data);
+      jsonIn.value = data.output;
+      outBox.value = data.output;
+      setStatus("Minified.");
+    }
+
+    async function sortOnly() {
+      // Sort keys but keep pretty format (always pretty output)
+      const raw = jsonIn.value;
+      if (!raw.trim()) return setStatus("Paste JSON first.");
+      const data = await withWorker("sort", {
+        op:"sort",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: true
+      });
+      if (!data.ok) return showParseError(data);
+      jsonIn.value = data.output;
+      outBox.value = data.output;
+      setStatus("Sorted keys.");
+    }
+
+    function snapshot() {
+      snapshotText = jsonIn.value;
+      setStatus("Snapshot saved.");
+    }
+
+    function makeUnifiedDiff(a, b) {
+      // small, safe, line-based diff (not fancy; robust enough)
+      const A = (a || "").split("\n");
+      const B = (b || "").split("\n");
+
+      // LCS dynamic programming (O(n*m)) – keep it bounded by line count
+      const maxLines = 2000;
+      if (A.length > maxLines || B.length > maxLines) {
+        return "Diff too large to compute safely. Snapshot smaller content.";
       }
+
+      const n = A.length, m = B.length;
+      const dp = Array.from({ length: n+1 }, () => new Uint16Array(m+1));
+
+      for (let i=1;i<=n;i++){
+        for (let j=1;j<=m;j++){
+          dp[i][j] = (A[i-1] === B[j-1]) ? (dp[i-1][j-1] + 1) : Math.max(dp[i-1][j], dp[i][j-1]);
+        }
+      }
+
+      let i=n, j=m;
+      const out = [];
+      while (i>0 && j>0) {
+        if (A[i-1] === B[j-1]) { out.push(" " + A[i-1]); i--; j--; }
+        else if (dp[i-1][j] >= dp[i][j-1]) { out.push("-" + A[i-1]); i--; }
+        else { out.push("+" + B[j-1]); j--; }
+      }
+      while (i>0) { out.push("-" + A[i-1]); i--; }
+      while (j>0) { out.push("+" + B[j-1]); j--; }
+
+      out.reverse();
+      return out.join("\n");
+    }
+
+    function diffNow() {
+      if (!snapshotText) return setStatus("Take a snapshot first.");
+      const d = makeUnifiedDiff(snapshotText, jsonIn.value);
+      outBox.value = d;
+      setStatus("Diff generated.");
+    }
+
+    function findNext() {
+      const q = ($("findText").value || "");
+      if (!q) return setStatus("Enter find text.");
+      const t = jsonIn.value;
+      const start = jsonIn.selectionEnd || 0;
+      const idx = t.indexOf(q, start);
+      const hit = (idx >= 0) ? idx : t.indexOf(q, 0);
+      if (hit < 0) return setStatus("Not found.");
+      jsonIn.focus();
+      jsonIn.setSelectionRange(hit, hit + q.length);
+      setStatus("Found.");
+    }
+
+    function decodeJsonPointer(ptr) {
+      // /a/b~1c -> ["a","b/c"]
+      if (!ptr) return [];
+      if (ptr[0] !== "/") return null;
+      return ptr.split("/").slice(1).map(s => s.replace(/~1/g, "/").replace(/~0/g, "~"));
+    }
+
+    function parseDotPath(p) {
+      // simple a.b[0].c
+      const parts = [];
+      let i = 0;
+      while (i < p.length) {
+        if (p[i] === ".") { i++; continue; }
+        if (p[i] === "[") {
+          const j = p.indexOf("]", i+1);
+          if (j < 0) return null;
+          const inside = p.slice(i+1, j).trim();
+          if (!inside) return null;
+          const n = Number(inside);
+          if (!Number.isInteger(n)) return null;
+          parts.push(n);
+          i = j + 1;
+          continue;
+        }
+        // read key
+        let j = i;
+        while (j < p.length && /[A-Za-z0-9_$-]/.test(p[j])) j++;
+        if (j === i) return null;
+        parts.push(p.slice(i, j));
+        i = j;
+      }
+      return parts;
+    }
+
+    function getByPath(obj, pathParts) {
+      let cur = obj;
+      for (const part of pathParts) {
+        if (cur == null) return undefined;
+        if (typeof part === "number") {
+          if (!Array.isArray(cur)) return undefined;
+          cur = cur[part];
+        } else {
+          if (typeof cur !== "object") return undefined;
+          cur = cur[part];
+        }
+      }
+      return cur;
+    }
+
+    async function extractPath() {
+      const raw = jsonIn.value;
+      const p = ($("pathText").value || "").trim();
+      if (!raw.trim()) return setStatus("Paste JSON first.");
+      if (!p) return setStatus("Enter a path.");
+
+      const data = await withWorker("prettify", {
+        op:"prettify",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: false
+      });
+      if (!data.ok) return showParseError(data);
+
+      let parts = null;
+      if (p.startsWith("/")) parts = decodeJsonPointer(p);
+      else parts = parseDotPath(p);
+
+      if (!parts) return setStatus("Path format not recognized.");
+
+      const val = getByPath(data.parsed, parts);
+      if (val === undefined) {
+        outBox.value = "";
+        return setStatus("Path not found.");
+      }
+
+      outBox.value = (typeof val === "string") ? val : JSON.stringify(val, null, 2);
+      setStatus("Extracted.");
+    }
+
+    // JSON Schema subset validator (client-side, no external libs)
+    function schemaValidateValue(value, schema, path) {
+      const errors = [];
+
+      function err(msg) { errors.push(`${path || "/"}: ${msg}`); }
+
+      if (!schema || typeof schema !== "object") return errors;
+
+      if (schema.const !== undefined) {
+        const same = JSON.stringify(value) === JSON.stringify(schema.const);
+        if (!same) err("must equal const");
+      }
+
+      if (Array.isArray(schema.enum)) {
+        const ok = schema.enum.some(x => JSON.stringify(x) === JSON.stringify(value));
+        if (!ok) err("must be one of enum");
+      }
+
+      if (schema.type) {
+        const t = schema.type;
+        const typeOk =
+          (t === "null" && value === null) ||
+          (t === "array" && Array.isArray(value)) ||
+          (t === "object" && value && typeof value === "object" && !Array.isArray(value)) ||
+          (t === "string" && typeof value === "string") ||
+          (t === "number" && typeof value === "number") ||
+          (t === "integer" && Number.isInteger(value)) ||
+          (t === "boolean" && typeof value === "boolean");
+        if (!typeOk) err(`type must be ${t}`);
+      }
+
+      if (typeof value === "string") {
+        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(`minLength ${schema.minLength}`);
+        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(`maxLength ${schema.maxLength}`);
+      }
+
+      if (typeof value === "number") {
+        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(`minimum ${schema.minimum}`);
+        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(`maximum ${schema.maximum}`);
+        if (Number.isFinite(schema.min) && value < schema.min) err(`min ${schema.min}`);
+        if (Number.isFinite(schema.max) && value > schema.max) err(`max ${schema.max}`);
+      }
+
+      if (Array.isArray(value)) {
+        if (schema.items && typeof schema.items === "object") {
+          for (let i=0; i<value.length; i++) {
+            errors.push(...schemaValidateValue(value[i], schema.items, `${path || ""}/${i}`));
+          }
+        }
+      }
+
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        if (Array.isArray(schema.required)) {
+          for (const k of schema.required) {
+            if (!(k in value)) errors.push(`${path || "/"}: missing required "${k}"`);
+          }
+        }
+        if (schema.properties && typeof schema.properties === "object") {
+          for (const [k, sub] of Object.entries(schema.properties)) {
+            if (k in value) errors.push(...schemaValidateValue(value[k], sub, `${path || ""}/${k}`));
+          }
+        }
+      }
+
+      return errors;
+    }
+
+    async function schemaValidate() {
+      setSchemaStatus("");
+      const raw = jsonIn.value;
+      const schRaw = ($("schemaBox").value || "").trim();
+      if (!raw.trim()) return setSchemaStatus("Paste JSON first.");
+      if (!schRaw) return setSchemaStatus("Paste schema JSON (subset) first.");
+
+      const data = await withWorker("prettify", {
+        op:"prettify",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: false
+      });
+      if (!data.ok) { setSchemaStatus(status.textContent || "JSON invalid."); return; }
+
+      let schema;
+      try { schema = JSON.parse(schRaw); }
+      catch (e) { return setSchemaStatus("Schema JSON error: " + (e && e.message ? e.message : String(e))); }
+
+      const errs = schemaValidateValue(data.parsed, schema, "");
+      if (errs.length === 0) setSchemaStatus("Schema check: PASS (subset).");
+      else setSchemaStatus("Schema check: FAIL\n" + errs.slice(0, 60).join("\n"));
+    }
+
+    function insertExampleSchema() {
+      $("schemaBox").value = JSON.stringify({
+        type: "object",
+        required: ["id","name"],
+        properties: {
+          id: { type: "number", minimum: 0 },
+          name: { type: "string", minLength: 1 },
+          active: { type: "boolean" },
+          tags: { type: "array", items: { type: "string" } }
+        }
+      }, null, 2);
+      setSchemaStatus("Example schema inserted.");
     }
 
     function download() {
       const raw = jsonIn.value.trim();
       if (!raw) return setStatus("Paste JSON first.");
-      try {
-        const parsed = parseOrThrow(raw);
-        downloadText("data.json", JSON.stringify(parsed, null, 2), "application/json;charset=utf-8");
+      // Use prettify worker to ensure valid JSON before download
+      withWorker("prettify", {
+        op:"prettify",
+        text: raw,
+        autoFix: !!optAutoFix.checked,
+        json5ish: !!optJson5ish.checked,
+        sortKeys: !!optSortKeys.checked
+      }).then((data) => {
+        if (!data.ok) return showParseError(data);
+        downloadText("data.json", data.output, "application/json;charset=utf-8");
         setStatus("Downloaded JSON.");
-      } catch (e) {
-        setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
-      }
+      });
     }
 
+    // Wire up
     $("btnValidate").addEventListener("click", validate);
     $("btnPrettify").addEventListener("click", prettify);
     $("btnMinify").addEventListener("click", minify);
+    $("btnSortOnly").addEventListener("click", sortOnly);
     $("btnCopy").addEventListener("click", () => copyText(jsonIn.value.trim(), "JSON copied."));
     $("btnDownload").addEventListener("click", download);
     $("btnClear").addEventListener("click", () => { jsonIn.value = ""; setStatus(""); });
 
+    $("btnSnapshot").addEventListener("click", snapshot);
+    $("btnDiff").addEventListener("click", diffNow);
+    $("btnCopyOut").addEventListener("click", () => copyText(outBox.value.trim(), "Output copied."));
+    $("btnClearOut").addEventListener("click", () => { outBox.value = ""; setStatus(""); });
+
+    $("btnFindNext").addEventListener("click", findNext);
+    $("btnExtract").addEventListener("click", extractPath);
+
+    $("btnSchemaValidate").addEventListener("click", schemaValidate);
+    $("btnSchemaExample").addEventListener("click", insertExampleSchema);
+
     setStatus("");
+    setSchemaStatus("");
   })();
   </script>
-
 </body>
 </html>
