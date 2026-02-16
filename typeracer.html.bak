@@ -6,35 +6,145 @@
   <title>Type Racer — SureWhyNot</title>
   <link rel="stylesheet" href="/assets/site.css">
 
-  <!-- 1) DROP THIS CSS into typeracer.html (replace ALL your .veh.* CSS) -->
-<style>
-  /* Unified icon sizing + style */
-  .veh {
-    width: 46px;
-    height: 28px;
-    display: inline-grid;
-    place-items: center;
-    filter: drop-shadow(0 8px 16px rgba(0,0,0,.40));
-  }
-  .veh svg { width: 46px; height: 28px; display:block; }
+  <style>
+    .racegrid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:18px;
+      padding:22px 0 26px;
+    }
+    @media (max-width: 900px){ .racegrid{grid-template-columns:1fr} }
 
-  /* Same look across all icons */
-  .veh .stroke { stroke: rgba(0,0,0,.55); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
-  .veh .metal  { fill: rgba(255,255,255,.10); }
-  .veh .glass  { fill: rgba(120,220,255,.35); }
+    .btnrow{display:flex; gap:10px; flex-wrap:wrap; margin:12px 0 10px}
+    button{
+      appearance:none;
+      border:1px solid rgba(23,36,59,.85);
+      background: linear-gradient(to bottom, rgba(11,21,40,.85), rgba(11,21,40,.55));
+      color:var(--text);
+      border-radius:12px;
+      padding:10px 12px;
+      font-family:inherit;
+      cursor:pointer;
+      font-size:13px;
+    }
+    button:hover{background: linear-gradient(to bottom, rgba(12,25,49,.9), rgba(12,25,49,.55))}
+    button.primary{border-color: rgba(246,195,74,.55)}
+    button:disabled{opacity:.55; cursor:not-allowed}
 
-  /* Per-vehicle accent colors (kept consistent + dev-site friendly) */
-  .veh.truck  { --a1:#31d18b; --a2:#157a57; }
-  .veh.plane  { --a1:#6cc7ff; --a2:#2457c6; }
-  .veh.f1     { --a1:#ff4b4b; --a2:#8b1010; }
-  .veh.boat   { --a1:#ffd166; --a2:#b65d00; }
+    .track{
+      border:1px solid rgba(23,36,59,.85);
+      border-radius:14px;
+      background: rgba(10,15,24,.35);
+      padding:12px;
+      overflow:hidden;
+      position:relative;
+      height:220px;
+    }
+    .lane{
+      position:relative;
+      height:50px;
+      border-bottom:1px dashed rgba(23,36,59,.55);
+      display:flex;
+      align-items:center;
+      padding-left:8px;
+    }
+    .lane:last-child{border-bottom:none}
 
-  .veh .accent { fill: url(#gradAccent); }
-  .veh .shade  { fill: rgba(0,0,0,.18); }
-  .veh .tire   { fill: #141414; }
-  .veh .rim    { fill: #a9a9a9; }
-</style>
+    .runner{
+      position:absolute;
+      left:8px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      transform: translateX(0);
+      transition: transform 120ms linear;
+      will-change: transform;
+    }
+    .badge{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(23,36,59,.85);
+      background: rgba(11,21,40,.75);
+      padding:4px 8px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
 
+    .finish{
+      position:absolute;
+      right:10px;
+      top:12px;
+      bottom:12px;
+      width:10px;
+      border-radius:8px;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(246,195,74,.85) 0px,
+        rgba(246,195,74,.85) 10px,
+        rgba(246,195,74,.15) 10px,
+        rgba(246,195,74,.15) 20px
+      );
+      opacity:.9;
+    }
+
+    textarea{
+      width:100%;
+      min-height:86px;
+      resize:vertical;
+      border-radius:12px;
+      border:1px solid rgba(23,36,59,.85);
+      background: rgba(11,21,40,.45);
+      color:var(--text);
+      padding:12px;
+      font-family:inherit;
+      font-size:13px;
+      outline:none;
+    }
+    textarea:disabled{opacity:.55}
+
+    .statrow{
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap:10px;
+      margin-top:10px;
+    }
+    .stat{
+      border:1px solid rgba(23,36,59,.85);
+      background: rgba(11,21,40,.35);
+      border-radius:12px;
+      padding:10px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .stat b{display:block; color:var(--text); font-size:14px; margin-top:2px}
+
+    .lobbybox{
+      border:1px solid rgba(23,36,59,.85);
+      background: rgba(11,21,40,.35);
+      border-radius:12px;
+      padding:12px;
+      margin-top:10px;
+      font-size:12.5px;
+      color:var(--muted);
+      line-height:1.5;
+    }
+    .lobbylist{margin:8px 0 0; padding-left:18px}
+    .tiny{font-size:12px;color:var(--muted)}
+
+    /* ===== Unified SVG icon style ===== */
+    .veh{
+      width:46px;
+      height:28px;
+      display:inline-grid;
+      place-items:center;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,.40));
+    }
+    .veh svg{ width:46px; height:28px; display:block; }
+    .veh .stroke{ stroke: rgba(0,0,0,.55); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+    .veh .glass{ fill: rgba(120,220,255,.35); }
+    .veh .tire{ fill:#141414; }
+    .veh .rim{ fill:#a9a9a9; }
+  </style>
 </head>
 
 <script>
@@ -76,28 +186,122 @@ loadPartials();
 
                 <div class="lane">
                   <div class="runner" id="r1">
-                    <div class="veh truck" title="monster truck"></div>
+                    <div class="veh truck" title="monster truck" aria-label="monster truck">
+                      <svg viewBox="0 0 46 28" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="gradTruck" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#31d18b"/><stop offset="1" stop-color="#157a57"/>
+                          </linearGradient>
+                          <linearGradient id="metalTruck" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset="1" stop-color="rgba(0,0,0,.22)"/>
+                          </linearGradient>
+                        </defs>
+
+                        <circle cx="12" cy="22" r="5.6" class="tire"/>
+                        <circle cx="34" cy="22" r="5.6" class="tire"/>
+                        <circle cx="12" cy="22" r="2.5" class="rim"/>
+                        <circle cx="34" cy="22" r="2.5" class="rim"/>
+
+                        <path d="M7 18 L10 12 Q12 9 16 9 L22 9 L26 12 L38 12 Q41 12 42 15 L42 18 Z" fill="url(#gradTruck)"/>
+                        <path d="M10 12 Q12 10 15 10 L21 10 L24 12 Z" fill="url(#metalTruck)"/>
+                        <rect x="17.5" y="10.5" width="6.5" height="4.2" rx="1.4" class="glass"/>
+
+                        <path d="M7 18 L10 12 Q12 9 16 9 L22 9 L26 12 L38 12 Q41 12 42 15 L42 18 Z" class="stroke" fill="none"/>
+                        <path d="M9 18 L41 18" class="stroke" fill="none"/>
+                      </svg>
+                    </div>
                     <span class="badge" id="n1">You</span>
                   </div>
                 </div>
 
                 <div class="lane">
                   <div class="runner" id="r2">
-                    <div class="veh plane" title="airplane"></div>
+                    <div class="veh plane" title="airplane" aria-label="airplane">
+                      <svg viewBox="0 0 46 28" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="gradPlane" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#6cc7ff"/><stop offset="1" stop-color="#2457c6"/>
+                          </linearGradient>
+                          <linearGradient id="metalPlane" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="rgba(255,255,255,.26)"/><stop offset="1" stop-color="rgba(0,0,0,.20)"/>
+                          </linearGradient>
+                        </defs>
+
+                        <!-- Top-ish view -->
+                        <path d="M8 15 L20 13 L20 17 Z" fill="url(#gradPlane)"/>
+                        <path d="M38 15 L26 13 L26 17 Z" fill="url(#gradPlane)"/>
+                        <path d="M22 4 Q23 3 24 4 L26 7 L26 21 L24 24 Q23 25 22 24 L20 21 L20 7 Z" fill="url(#metalPlane)"/>
+                        <path d="M21.5 6 L24.5 6 L25.3 8 L20.7 8 Z" fill="url(#gradPlane)"/>
+                        <path d="M20 20 L23 18 L26 20 L23 22 Z" fill="url(#gradPlane)"/>
+
+                        <path d="M8 15 L20 13 L20 17 Z" class="stroke" fill="none"/>
+                        <path d="M38 15 L26 13 L26 17 Z" class="stroke" fill="none"/>
+                        <path d="M22 4 Q23 3 24 4 L26 7 L26 21 L24 24 Q23 25 22 24 L20 21 L20 7 Z" class="stroke" fill="none"/>
+                        <path d="M20 20 L23 18 L26 20 L23 22 Z" class="stroke" fill="none"/>
+                      </svg>
+                    </div>
                     <span class="badge" id="n2">Waiting…</span>
                   </div>
                 </div>
 
                 <div class="lane">
                   <div class="runner" id="r3">
-                    <div class="veh f1" title="formula 1"></div>
+                    <div class="veh f1" title="formula 1" aria-label="formula 1 car">
+                      <svg viewBox="0 0 46 28" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="gradF1" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#ff4b4b"/><stop offset="1" stop-color="#8b1010"/>
+                          </linearGradient>
+                          <linearGradient id="metalF1" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset="1" stop-color="rgba(0,0,0,.24)"/>
+                          </linearGradient>
+                        </defs>
+
+                        <circle cx="12" cy="21.5" r="5.0" class="tire"/>
+                        <circle cx="34" cy="21.5" r="5.0" class="tire"/>
+                        <circle cx="12" cy="21.5" r="2.2" class="rim"/>
+                        <circle cx="34" cy="21.5" r="2.2" class="rim"/>
+
+                        <path d="M6 18 L12 15 L19 14 L28 14 L36 15 L42 18 L42 19 L6 19 Z" fill="url(#gradF1)"/>
+                        <path d="M12 15 L18 10 Q19 9 21 9 L25 9 Q27 9 28 10 L32 14 Z" fill="url(#metalF1)"/>
+                        <rect x="21" y="10.5" width="6" height="3.5" rx="1.2" class="glass"/>
+
+                        <rect x="5.2" y="17.4" width="6" height="2.6" rx="1.0" fill="rgba(255,255,255,.10)"/>
+                        <rect x="34.8" y="17.4" width="6" height="2.6" rx="1.0" fill="rgba(255,255,255,.10)"/>
+
+                        <path d="M6 18 L12 15 L19 14 L28 14 L36 15 L42 18 L42 19 L6 19 Z" class="stroke" fill="none"/>
+                        <path d="M12 15 L18 10 Q19 9 21 9 L25 9 Q27 9 28 10 L32 14 Z" class="stroke" fill="none"/>
+                      </svg>
+                    </div>
                     <span class="badge" id="n3">Waiting…</span>
                   </div>
                 </div>
 
                 <div class="lane">
                   <div class="runner" id="r4">
-                    <div class="veh boat" title="boat"></div>
+                    <div class="veh boat" title="boat" aria-label="boat">
+                      <svg viewBox="0 0 46 28" role="img" aria-hidden="true">
+                        <defs>
+                          <linearGradient id="gradBoat" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0" stop-color="#ffd166"/><stop offset="1" stop-color="#b65d00"/>
+                          </linearGradient>
+                          <linearGradient id="metalBoat" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0" stop-color="rgba(255,255,255,.22)"/><stop offset="1" stop-color="rgba(0,0,0,.26)"/>
+                          </linearGradient>
+                        </defs>
+
+                        <path d="M23 6 L23 19 L14 19 Z" fill="url(#metalBoat)"/>
+                        <path d="M23 6 L33 18 L23 18 Z" fill="url(#gradBoat)"/>
+                        <rect x="22.3" y="6" width="1.4" height="14" rx="0.7" fill="rgba(0,0,0,.35)"/>
+
+                        <path d="M8 19 L38 19 Q36 24 23 25 Q10 24 8 19 Z" fill="url(#gradBoat)"/>
+                        <path d="M10 20 Q23 22 36 20 Q34 23 23 24 Q12 23 10 20 Z" fill="rgba(255,255,255,.10)"/>
+
+                        <path d="M8 19 L38 19 Q36 24 23 25 Q10 24 8 19 Z" class="stroke" fill="none"/>
+                        <path d="M23 6 L23 19 L14 19 Z" class="stroke" fill="none"/>
+                        <path d="M23 6 L33 18 L23 18 Z" class="stroke" fill="none"/>
+                      </svg>
+                    </div>
                     <span class="badge" id="n4">Waiting…</span>
                   </div>
                 </div>
@@ -126,9 +330,9 @@ loadPartials();
             <div class="pad">
               <div class="h1">How it works</div>
               <div class="muted">
-                - Lobby match timer runs when you join. <br>
-                - Race only starts if 2+ real players are present. <br>
-                - Practice mode is always available. <br>
+                - Lobby match timer runs when you join.<br>
+                - Race only starts if 2+ real players are present.<br>
+                - Practice mode is always available.<br>
                 - Everything runs client-side (same-device tabs only for now).
               </div>
 
@@ -151,7 +355,6 @@ loadPartials();
 
 <script>
 (() => {
-  // ====== Race text ======
   const TEXT = [
     "Race clean and steady.",
     "Accuracy first, speed second.",
@@ -174,7 +377,6 @@ loadPartials();
   const lobbyStatus = document.getElementById("lobbyStatus");
   const lobbyList = document.getElementById("lobbyList");
 
-  // lanes
   const runners = [
     document.getElementById("r1"),
     document.getElementById("r2"),
@@ -190,7 +392,6 @@ loadPartials();
 
   elRaceText.textContent = TEXT;
 
-  // ====== goofy names ======
   const ADJ = ["Sleepy","Spicy","Quantum","Cranky","Sneaky","Turbo","Glitchy","Wobbly","Moody","Cosmic","Rusty","Chaotic","Polite","Ferocious","Tiny","Big","Nervous","Chill","Saucy","Gremlin"];
   const NOUN = ["Nginx","Kernel","Panda","Router","Yeti","Byte","Packet","Goblin","Octopus","Unicorn","Linter","Daemon","Banana","Squirrel","Dragon","Proxy","Hash","Socket","Wombat","Cactus"];
   function randInt(n){
@@ -202,7 +403,6 @@ loadPartials();
     return ADJ[randInt(ADJ.length)] + " " + NOUN[randInt(NOUN.length)];
   }
 
-  // ====== Lobby (same-device tabs only) ======
   const channel = new BroadcastChannel("surewhynot-typeracer-lobby-v3");
   const myId = crypto.randomUUID().slice(0, 10);
   const myName = goofyName();
@@ -210,23 +410,20 @@ loadPartials();
   let lobby = new Map(); // id -> {name, ts}
   let inLobby = false;
 
-  // ====== Session/race state ======
   let mode = "idle"; // idle | lobby | practice | race
   let startedAt = null;
   let finished = false;
 
-  // lobby timers
   let matchTimer = null;
   let matchSecondsLeft = 0;
 
   let raceCountdownTimer = null;
   let raceCountdownLeft = 0;
 
-  // progress per player id
   let progress = new Map(); // id -> correct chars
 
-  // ---------- UI helpers ----------
   function setLobbyStatus(text){ lobbyStatus.textContent = text; }
+
   function renderLobby() {
     lobbyList.innerHTML = "";
     const entries = Array.from(lobby.values()).map(x => x.name).sort();
@@ -302,16 +499,12 @@ loadPartials();
   }
 
   function assignLanes(){
-    // lane 1 is always "You"
     names[0].textContent = myName + " (You)";
-
-    // other lanes are other real players in deterministic order
     const others = realPlayers().filter(p => p.id !== myId).sort((a,b) => a.id.localeCompare(b.id));
 
-    const labels = ["Waiting…", "Waiting…", "Waiting…"];
     for(let i=0;i<3;i++){
-      names[i+1].textContent = labels[i];
-      setRunner(runners[i+1], 0); // ensure they don't move unless real player has progress
+      names[i+1].textContent = "Waiting…";
+      setRunner(runners[i+1], 0);
     }
 
     for(let i=0;i<Math.min(3, others.length);i++){
@@ -319,9 +512,7 @@ loadPartials();
     }
   }
 
-  // ---------- Lobby logic ----------
   function joinLobby() {
-    // clean state
     stopMatchTimer();
     stopRaceCountdown();
     progress.clear();
@@ -345,13 +536,11 @@ loadPartials();
     assignLanes();
     updateStats(0,0);
 
-    // Start matchmaking timer even if you're alone
     matchSecondsLeft = 15;
     setLobbyStatus(`Searching… (${matchSecondsLeft}s)`);
     matchTimer = setInterval(() => {
       matchSecondsLeft--;
-      const count = lobby.size;
-      if (count >= 2) {
+      if (lobby.size >= 2) {
         stopMatchTimer();
         startRaceCountdownIfReady();
         return;
@@ -362,7 +551,6 @@ loadPartials();
       }
       stopMatchTimer();
       setLobbyStatus("No match found. Leave, practice solo, or try again.");
-      // no race starts
     }, 1000);
   }
 
@@ -391,7 +579,6 @@ loadPartials();
   function startRaceCountdownIfReady(){
     if (mode !== "lobby") return;
     if (lobby.size < 2) return;
-
     if (raceCountdownTimer) return;
 
     raceCountdownLeft = 5;
@@ -406,13 +593,12 @@ loadPartials();
         return;
       }
       stopRaceCountdown();
-      const startTs = Date.now() + 200; // cushion
+      const startTs = Date.now() + 200;
       channel.postMessage({ type: "start", startTs, text: TEXT });
       beginRace(startTs);
     }, 1000);
   }
 
-  // ---------- Practice mode ----------
   function beginPractice() {
     leaveLobby();
     mode = "practice";
@@ -431,7 +617,6 @@ loadPartials();
     setLobbyStatus("Practice mode. Just you.");
   }
 
-  // ---------- Multiplayer race ----------
   function beginRace(startTs) {
     mode = "race";
     setButtons();
@@ -464,18 +649,14 @@ loadPartials();
   function tickRace() {
     if (mode !== "race" || finished) return;
 
-    // update lane progress for real players only
     assignLanes();
 
     const players = realPlayers().sort((a,b)=>a.id.localeCompare(b.id));
-    // lane mapping: you lane1, then first 3 others lanes 2-4
     const others = players.filter(p => p.id !== myId);
 
-    // lane1 you
     const youC = progress.get(myId) || 0;
     setRunner(runners[0], charsDoneToProgress(youC));
 
-    // lanes 2-4 for actual others, otherwise stay still
     for(let i=0;i<3;i++){
       const p = others[i];
       if (!p) { setRunner(runners[i+1], 0); continue; }
@@ -483,7 +664,6 @@ loadPartials();
       setRunner(runners[i+1], charsDoneToProgress(c));
     }
 
-    // finish if you done
     if (charsDoneToProgress(youC) >= 1) {
       finishRace();
       return;
@@ -501,15 +681,10 @@ loadPartials();
     const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
     const finalWpm = calcWPM(youC, seconds);
 
-    if (mode === "practice") {
-      setLobbyStatus(`Practice finished. WPM: ${finalWpm}.`);
-    } else {
-      setLobbyStatus(`Finished. WPM: ${finalWpm}.`);
-      // keep lobby simple: you can leave or try again
-    }
+    if (mode === "practice") setLobbyStatus(`Practice finished. WPM: ${finalWpm}.`);
+    else setLobbyStatus(`Finished. WPM: ${finalWpm}.`);
   }
 
-  // ---------- Input ----------
   input.addEventListener("input", () => {
     if (!startedAt || finished) return;
 
@@ -518,26 +693,17 @@ loadPartials();
     const youCorrect = computeCorrectChars(typed);
 
     progress.set(myId, youCorrect);
-
-    // update stats
     updateStats(youCorrect, youTotal);
-
-    // move you immediately
     setRunner(runners[0], charsDoneToProgress(youCorrect));
 
-    // broadcast progress only in race+lobby
     if (mode === "race" && inLobby) {
       channel.postMessage({ type: "progress", id: myId, correct: youCorrect, ts: Date.now() });
     }
 
-    if (typed.length > TEXT.length) {
-      input.value = typed.slice(0, TEXT.length);
-    }
-
+    if (typed.length > TEXT.length) input.value = typed.slice(0, TEXT.length);
     if (charsDoneToProgress(youCorrect) >= 1) finishRace();
   });
 
-  // ---------- BroadcastChannel messages ----------
   channel.onmessage = (ev) => {
     const msg = ev.data || {};
 
@@ -545,8 +711,6 @@ loadPartials();
       lobby.set(msg.id, { name: msg.name, ts: msg.ts || Date.now() });
       renderLobby();
       assignLanes();
-
-      // if match timer still running and we now have 2+, start countdown
       if (mode === "lobby" && lobby.size >= 2) {
         stopMatchTimer();
         startRaceCountdownIfReady();
@@ -559,10 +723,8 @@ loadPartials();
       renderLobby();
       assignLanes();
 
-      // if we were counting down and lost players, stop countdown
       if (mode === "lobby" && lobby.size < 2) {
         stopRaceCountdown();
-        // restart match timer if you want to keep searching
         if (!matchTimer) {
           matchSecondsLeft = 10;
           setLobbyStatus(`Searching… (${matchSecondsLeft}s)`);
@@ -598,7 +760,6 @@ loadPartials();
       });
       renderLobby();
       assignLanes();
-
       if (mode === "lobby" && lobby.size >= 2) {
         stopMatchTimer();
         startRaceCountdownIfReady();
@@ -612,48 +773,30 @@ loadPartials();
     }
 
     if (msg.type === "start") {
-      if (mode === "lobby" && lobby.size >= 2) {
-        beginRace(msg.startTs);
-      }
+      if (mode === "lobby" && lobby.size >= 2) beginRace(msg.startTs);
     }
 
     if (msg.type === "progress") {
-      // only track real players; ignore if not in race
       if (mode !== "race") return;
       if (!lobby.has(msg.id)) return;
       progress.set(msg.id, Math.max(0, Number(msg.correct || 0)));
     }
   };
 
-  // ---------- Buttons ----------
   btnEnter.addEventListener("click", joinLobby);
   btnPractice.addEventListener("click", beginPractice);
   btnLeave.addEventListener("click", leaveLobby);
 
   btnNew.addEventListener("click", () => {
-    // Try Again behavior:
-    if (mode === "practice") {
-      beginPractice();
-      return;
-    }
-    // From lobby: restart search
-    if (mode === "lobby") {
-      leaveLobby();
-      joinLobby();
-      return;
-    }
-    // From race: leave and rejoin lobby search
-    if (mode === "race") {
-      leaveLobby();
-      joinLobby();
-    }
+    if (mode === "practice") { beginPractice(); return; }
+    if (mode === "lobby") { leaveLobby(); joinLobby(); return; }
+    if (mode === "race") { leaveLobby(); joinLobby(); }
   });
 
   window.addEventListener("beforeunload", () => {
     if (inLobby) channel.postMessage({ type: "leave", id: myId });
   });
 
-  // init
   resetTrack();
   assignLanes();
   renderLobby();
