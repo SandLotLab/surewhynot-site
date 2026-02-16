@@ -1,6 +1,12 @@
 <footer>
   <div class="footerwrap">
+
     <div>© 2026 surewhynot.app</div>
+
+    <div class="footercounter">
+      <span id="toolUseCounter">0</span>
+    </div>
+
     <div class="footerlinks">
       <a href="/about.html">About</a>
       <span>•</span>
@@ -10,5 +16,23 @@
       <span>•</span>
       <a href="/terms.html">Terms</a>
     </div>
+
   </div>
 </footer>
+
+<script>
+(() => {
+  const path = location.pathname.replace(/\/$/, "") || "/";
+  const KEY = "swy_tool_uses:" + path;
+
+  function get(){ return Number(localStorage.getItem(KEY) || "0"); }
+  function set(n){ localStorage.setItem(KEY, String(n)); }
+
+  // increment on load (counts page tool interaction presence)
+  const newCount = get() + 1;
+  set(newCount);
+
+  const el = document.getElementById("toolUseCounter");
+  if(el) el.textContent = newCount.toLocaleString();
+})();
+</script>

@@ -151,3 +151,19 @@ footer{
 }
 .footerlinks a{color:var(--muted); text-decoration:none}
 .footerlinks a:hover{color:var(--text)}
+
+/* centered footer counter */
+.footerwrap{
+  position:relative;
+}
+
+.footercounter{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  font-size:11px;
+  color:rgba(255,255,255,.25);
+  letter-spacing:.5px;
+  user-select:none;
+  pointer-events:none;
+}
