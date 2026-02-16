@@ -24,7 +24,7 @@
           <a class="pill" href="/typeracer.html">Type Racer</a>
           <a class="pill" href="/puzzle.html">Mini Puzzle</a>
           <a class="pill" href="/json-formatter.html">JSON Formatter</a>
-          <a class="pill" href="/json2ts.html">JSON→TS</a>
+          <a class="pill" href="/json-to-typescript.html">JSON→TS</a>
         </nav>
       </div>
     </header>
