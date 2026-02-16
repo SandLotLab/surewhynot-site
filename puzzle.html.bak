@@ -51,6 +51,7 @@
           <a class="pill" href="/typeracer.html">Type Racer</a>
           <a class="pill active" href="/puzzle.html">Mini Puzzle</a>
           <a class="pill" href="/utility.html">Utility</a>
+		  <a class="pill" href="/json2ts.html">JSON→TS</a>
         </nav>
       </div>
     </header>
