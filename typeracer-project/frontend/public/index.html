@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TypeRacer Multiplayer</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2em auto; }
+    #race { display: none; }
+    .finished { color: green; font-weight: bold; }
+  </style>
+</head>
+<body>
+
+<h1>⚡ Cloudflare TypeRacer</h1>
+
+<div id="lobby">
+  <!-- Shown when not in a room -->
+  <button id="createBtn">Start a New Race</button>
+  <p>Share the race URL with up to 3 other friends to race together.</p>
+</div>
+
+<div id="race">
+  <!-- Shown when in a race -->
+  <p><strong>Race Text:</strong> <span id="raceText"></span></p>
+  <input type="text" id="typingInput" placeholder="Type here..." autocomplete="off" />
+  <div id="playersStatus"></div>
+  <p id="result" style="display:none;"></p>
+  <button id="retryBtn" style="display:none;">Try Again</button>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
