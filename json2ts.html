@@ -6,6 +6,23 @@
   <title>JSON → TypeScript — SureWhyNot</title>
   <meta name="description" content="Paste JSON and generate TypeScript interfaces/types. Runs locally in your browser." />
   <link rel="stylesheet" href="/assets/site.css">
+
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self' data:;
+    connect-src 'self';
+    object-src 'none';
+    base-uri 'none';
+    frame-ancestors 'none';
+    form-action 'none';
+    upgrade-insecure-requests
+  ">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()">
+  <meta http-equiv="X-Frame-Options" content="DENY">
 </head>
 
 <body>
@@ -30,9 +47,7 @@
 
     <main>
       <div class="wrap">
-
         <section class="grid">
-
           <div class="card">
             <div class="pad">
               <div class="h1">JSON → TypeScript Interface Generator</div>
@@ -87,33 +102,18 @@
 
                 <textarea id="jsonIn"
                   style="width:100%;min-height:260px;border-radius:12px;border:1px solid rgba(23,36,59,.8);background:rgba(11,21,40,.35);color:var(--text);padding:12px;font-family:inherit;font-size:12.5px;line-height:1.55;"
-                  spellcheck="false"
-                  placeholder='Example:
-{
-  "id": 123,
-  "name": "Ced",
-  "active": true,
-  "tags": ["a", "b"],
-  "profile": { "rank": "SGT", "years": 10 },
-  "maybe": null,
-  "createdAt": "2026-02-16T03:41:58.754Z",
-  "items": [
-    {"sku":"A1","qty":2},
-    {"sku":"B2"}
-  ]
-}'></textarea>
+                  spellcheck="false"></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                  <a class="pill" href="#" id="btnGenerate">Generate</a>
-                  <a class="pill" href="#" id="btnPrettify">Prettify JSON</a>
-                  <a class="pill" href="#" id="btnMinify">Minify JSON</a>
-                  <a class="pill" href="#" id="btnCopyJson">Copy JSON</a>
-                  <a class="pill" href="#" id="btnDownloadJson">Download JSON</a>
-                  <a class="pill" href="#" id="btnClear">Clear</a>
+                  <button class="pill" type="button" id="btnGenerate">Generate</button>
+                  <button class="pill" type="button" id="btnPrettify">Prettify JSON</button>
+                  <button class="pill" type="button" id="btnMinify">Minify JSON</button>
+                  <button class="pill" type="button" id="btnCopyJson">Copy JSON</button>
+                  <button class="pill" type="button" id="btnDownloadJson">Download JSON</button>
+                  <button class="pill" type="button" id="btnClear">Clear</button>
                 </div>
 
                 <div class="hr"></div>
-
                 <div class="muted" id="status" style="margin-top:6px;"></div>
               </div>
             </div>
@@ -130,30 +130,20 @@
                   placeholder="TypeScript will appear here..."></textarea>
 
                 <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;">
-                  <a class="pill" href="#" id="btnCopyTs">Copy TS</a>
-                  <a class="pill" href="#" id="btnDownloadTs">Download types.ts</a>
+                  <button class="pill" type="button" id="btnCopyTs">Copy TS</button>
+                  <button class="pill" type="button" id="btnDownloadTs">Download types.ts</button>
                 </div>
               </div>
             </div>
           </div>
 
         </section>
-
       </div>
     </main>
 
     <footer>
       <div class="footerwrap">
         <div>© 2026 surewhynot.app</div>
-        <div class="footerlinks">
-          <a href="/about.html">About</a>
-          <span>•</span>
-          <a href="/privacy.html">Privacy</a>
-          <span>•</span>
-          <a href="/contact.html">Contact</a>
-          <span>•</span>
-          <a href="/terms.txt">Terms</a>
-        </div>
       </div>
     </footer>
   </div>
@@ -186,7 +176,7 @@
       .split(" ")
       .filter(Boolean)
       .map(p => p.charAt(0).toUpperCase() + p.slice(1))
-      .join("");
+      .join("") || "Root";
   }
 
   function safeKey(k) {
@@ -200,10 +190,8 @@
 
   function isObj(v) { return v && typeof v === "object" && !Array.isArray(v); }
 
-  // ISO 8601 date/time-ish (strict enough to be useful, loose enough for real-world)
   function looksISODate(s) {
     if (typeof s !== "string") return false;
-    // Examples: 2026-02-16, 2026-02-16T03:41:58Z, 2026-02-16T03:41:58.754Z, 2026-02-16T03:41:58+00:00
     return /^\d{4}-\d{2}-\d{2}(?:[T ]\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+\-]\d{2}:\d{2})?)?$/.test(s);
   }
 
@@ -214,7 +202,6 @@
   }
 
   function normalizeUnion(types) {
-    // stable order, keep null last
     const order = (t) => {
       if (t === "string") return 1;
       if (t === "number") return 2;
@@ -242,7 +229,6 @@
     return t.includes(" | ") ? `(${t})` : t;
   }
 
-  // shape: Map<propKey, { types:Set<string>, optional:boolean }>
   function mergeShapes(a, b) {
     const out = new Map();
     const keys = new Set([...a.keys(), ...b.keys()]);
@@ -281,15 +267,14 @@
 
   function makeName(base, opts) {
     const p = pascal(base || "Root");
-    if (opts.iPrefix) return "I" + p;
-    return p;
+    return opts.iPrefix ? "I" + p : p;
   }
 
   function createCtx(opts) {
     const order = [];
-    const shapes = new Map();     // name -> shape map
-    const seenByRef = new WeakMap(); // object ref -> name (prevents infinite recursion)
-    const nameCounts = new Map(); // base -> count
+    const shapes = new Map();
+    const seenByRef = new WeakMap();
+    const nameCounts = new Map();
 
     function uniqName(base) {
       const n = nameCounts.get(base) || 0;
@@ -299,14 +284,12 @@
     }
 
     function nameFromPath(pathParts) {
-      // e.g. ["Root","profile"] -> IRootProfile
       const joined = pathParts.map(pascal).join("");
       return uniqName(makeName(joined, opts));
     }
 
     function captureObject(obj, pathParts) {
       if (!isObj(obj)) return null;
-
       if (seenByRef.has(obj)) return seenByRef.get(obj);
 
       const ifaceName = nameFromPath(pathParts);
@@ -324,13 +307,9 @@
         shapes.set(ifaceName, mergeShapes(shapes.get(ifaceName), shape));
       }
 
-      // walk children
       for (const [k, v] of Object.entries(obj)) {
-        if (isObj(v)) {
-          captureObject(v, pathParts.concat([k]));
-        } else if (Array.isArray(v)) {
-          captureArrayForObjects(v, pathParts.concat([k]));
-        }
+        if (isObj(v)) captureObject(v, pathParts.concat([k]));
+        else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([k]));
       }
 
       return ifaceName;
@@ -353,7 +332,6 @@
 
         merged = merged ? mergeShapes(merged, itemShape) : itemShape;
 
-        // walk nested children
         for (const [k, v] of Object.entries(item)) {
           if (isObj(v)) captureObject(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
           else if (Array.isArray(v)) captureArrayForObjects(v, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item"), k]));
@@ -377,18 +355,11 @@
       if (v === null) return opts.keepNull ? "null" : "unknown";
 
       const t = typeof v;
-      if (t === "string") {
-        if (opts.isoAsDate && looksISODate(v)) return "Date";
-        return "string";
-      }
+      if (t === "string") return (opts.isoAsDate && looksISODate(v)) ? "Date" : "string";
       if (t === "number") return "number";
       if (t === "boolean") return "boolean";
-
       if (Array.isArray(v)) return inferArray(v, pathParts);
-
-      if (isObj(v)) {
-        return captureObject(v, pathParts);
-      }
+      if (isObj(v)) return captureObject(v, pathParts);
 
       return "unknown";
     }
@@ -397,13 +368,10 @@
       if (arr.length === 0) return "unknown[]";
 
       const elTypes = [];
-      let objIface = null;
-
-      // capture objects first (merge shapes across array object items)
-      objIface = captureArrayForObjects(arr, pathParts);
+      const objIface = captureArrayForObjects(arr, pathParts);
 
       for (const item of arr) {
-        if (isObj(item)) continue; // handled via merged interface
+        if (isObj(item)) continue;
         elTypes.push(inferType(item, pathParts.concat([singular(pathParts[pathParts.length-1] || "Item")])));
         if (elTypes.length > 12) break;
       }
@@ -411,8 +379,6 @@
       if (objIface) elTypes.push(objIface);
 
       let u = normalizeUnion(elTypes);
-
-      // if keepNull is off, drop null from unions (but still keep unknown)
       if (!opts.keepNull) u = u.filter(x => x !== "null");
 
       const el = u.length === 1 ? u[0] : maybeWrapUnion(u.join(" | "));
@@ -421,7 +387,6 @@
 
     function render() {
       const lines = [];
-
       for (const name of order) {
         const shape = shapes.get(name) || new Map();
 
@@ -430,28 +395,18 @@
           for (const [k, meta] of shape.entries()) {
             const prop = safeKey(k);
             let tsT = unionType([...meta.types]);
-
-            if (!opts.keepNull) {
-              tsT = unionType([...meta.types].filter(x => x !== "null"));
-            }
-
+            if (!opts.keepNull) tsT = unionType([...meta.types].filter(x => x !== "null"));
             const optional = meta.optional ? "?" : "";
             lines.push(`  ${prop}${optional}: ${tsT};`);
           }
           lines.push("}");
           lines.push("");
         } else {
-          // type alias object form
           lines.push(`export type ${name} = {`);
           for (const [k, meta] of shape.entries()) {
             const prop = safeKey(k);
             let tsT = unionType([...meta.types]);
-
-            if (!opts.keepNull) {
-              tsT = unionType([...meta.types].filter(x => x !== "null"));
-            }
-
-            // in type alias object, optional props still use ?
+            if (!opts.keepNull) tsT = unionType([...meta.types].filter(x => x !== "null"));
             const optional = meta.optional ? "?" : "";
             lines.push(`  ${prop}${optional}: ${tsT};`);
           }
@@ -459,58 +414,45 @@
           lines.push("");
         }
       }
-
       while (lines.length && lines[lines.length - 1] === "") lines.pop();
       return lines.join("\n");
     }
 
     function inferRoot(rootVal) {
-      // Root type alias should always be named Root (user asked)
       const rootTName = "Root";
       const rootObjName = makeName(opts.rootName, opts);
 
-      if (rootVal === null) return { rootExport: `export type ${rootTName} = ${opts.keepNull ? "null" : "unknown"};`, rootObjName: null };
-
-      if (Array.isArray(rootVal)) {
-        const t = inferType(rootVal, [opts.rootName || "Root"]);
-        return { rootExport: `export type ${rootTName} = ${t};`, rootObjName: null };
-      }
+      if (rootVal === null) return { rootExport: `export type ${rootTName} = ${opts.keepNull ? "null" : "unknown"};` };
+      if (Array.isArray(rootVal)) return { rootExport: `export type ${rootTName} = ${inferType(rootVal, [opts.rootName || "Root"])};` };
 
       if (isObj(rootVal)) {
-        // force root object name to exactly match root name setting (stable)
-        // capture root using pathParts that produce that name
-        const desired = rootObjName;
-        // temporarily map root ref to desired name to keep stable
-        if (!seenByRef.has(rootVal)) seenByRef.set(rootVal, desired);
+        if (!seenByRef.has(rootVal)) seenByRef.set(rootVal, rootObjName);
 
-        // build/merge shape under desired
         const shape = new Map();
         for (const [k, v] of Object.entries(rootVal)) {
           shape.set(k, { types: new Set([inferType(v, [opts.rootName || "Root", k])]), optional: false });
         }
 
-        if (!shapes.has(desired)) {
-          shapes.set(desired, shape);
-          order.unshift(desired);
+        if (!shapes.has(rootObjName)) {
+          shapes.set(rootObjName, shape);
+          order.unshift(rootObjName);
         } else {
-          shapes.set(desired, mergeShapes(shapes.get(desired), shape));
+          shapes.set(rootObjName, mergeShapes(shapes.get(rootObjName), shape));
         }
 
-        // walk children
         for (const [k, v] of Object.entries(rootVal)) {
           if (isObj(v)) captureObject(v, [opts.rootName || "Root", k]);
           else if (Array.isArray(v)) captureArrayForObjects(v, [opts.rootName || "Root", k]);
         }
 
-        return { rootExport: `export type ${rootTName} = ${desired};`, rootObjName: desired };
+        return { rootExport: `export type ${rootTName} = ${rootObjName};` };
       }
 
-      const prim = typeof rootVal;
-      if (prim === "string") return { rootExport: `export type ${rootTName} = ${opts.isoAsDate && looksISODate(rootVal) ? "Date" : "string"};`, rootObjName: null };
-      if (prim === "number") return { rootExport: `export type ${rootTName} = number;`, rootObjName: null };
-      if (prim === "boolean") return { rootExport: `export type ${rootTName} = boolean;`, rootObjName: null };
+      if (typeof rootVal === "string") return { rootExport: `export type ${rootTName} = ${(opts.isoAsDate && looksISODate(rootVal)) ? "Date" : "string"};` };
+      if (typeof rootVal === "number") return { rootExport: `export type ${rootTName} = number;` };
+      if (typeof rootVal === "boolean") return { rootExport: `export type ${rootTName} = boolean;` };
 
-      return { rootExport: `export type ${rootTName} = unknown;`, rootObjName: null };
+      return { rootExport: `export type ${rootTName} = unknown;` };
     }
 
     return { inferRoot, render };
@@ -518,35 +460,36 @@
 
   function generate() {
     const raw = jsonIn.value.trim();
-    if (!raw) {
-      tsOut.value = "";
-      setStatus("Paste JSON first.");
-      return;
-    }
+    if (!raw) { tsOut.value = ""; setStatus("Paste JSON first."); return; }
 
     let parsed;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (e) {
+    try { parsed = JSON.parse(raw); }
+    catch (e) {
       tsOut.value = "";
       setStatus("JSON error: " + (e && e.message ? e.message : String(e)));
       return;
     }
 
-    const opts = buildGeneratorOptions();
-    const ctx = createCtx(opts);
-    const rootInfo = ctx.inferRoot(parsed);
+    try {
+      const opts = buildGeneratorOptions();
+      const ctx = createCtx(opts);
+      const rootInfo = ctx.inferRoot(parsed);
 
-    const out = [];
-    out.push(`// Generated by surewhynot.app`);
-    out.push(`// Options: style=${opts.style}, iPrefix=${opts.iPrefix}, isoAsDate=${opts.isoAsDate}, keepNull=${opts.keepNull}`);
-    out.push(rootInfo.rootExport);
-    out.push("");
-    const body = ctx.render();
-    if (body.trim()) out.push(body);
+      const out = [];
+      out.push(`// Generated by surewhynot.app`);
+      out.push(`// Options: style=${opts.style}, iPrefix=${opts.iPrefix}, isoAsDate=${opts.isoAsDate}, keepNull=${opts.keepNull}`);
+      out.push(rootInfo.rootExport);
+      out.push("");
 
-    tsOut.value = out.join("\n");
-    setStatus("Generated.");
+      const body = ctx.render();
+      if (body.trim()) out.push(body);
+
+      tsOut.value = out.join("\n");
+      setStatus("Generated.");
+    } catch (e) {
+      tsOut.value = "";
+      setStatus("Generation error: " + (e && e.message ? e.message : String(e)));
+    }
   }
 
   function prettify() {
@@ -581,7 +524,6 @@
       await navigator.clipboard.writeText(text);
       setStatus(okMsg || "Copied.");
     } catch {
-      // fallback
       const ta = document.createElement("textarea");
       ta.value = text;
       ta.style.position = "fixed";
@@ -630,17 +572,16 @@
     }
   }
 
-  $("btnGenerate").addEventListener("click", (e) => { e.preventDefault(); generate(); });
-  $("btnPrettify").addEventListener("click", (e) => { e.preventDefault(); prettify(); });
-  $("btnMinify").addEventListener("click", (e) => { e.preventDefault(); minify(); });
-  $("btnCopyJson").addEventListener("click", (e) => { e.preventDefault(); copyText(jsonIn.value.trim(), "JSON copied."); });
-  $("btnDownloadJson").addEventListener("click", (e) => { e.preventDefault(); downloadJSON(); });
-  $("btnClear").addEventListener("click", (e) => { e.preventDefault(); jsonIn.value=""; tsOut.value=""; setStatus(""); });
+  $("btnGenerate").addEventListener("click", generate);
+  $("btnPrettify").addEventListener("click", prettify);
+  $("btnMinify").addEventListener("click", minify);
+  $("btnCopyJson").addEventListener("click", () => copyText(jsonIn.value.trim(), "JSON copied."));
+  $("btnDownloadJson").addEventListener("click", downloadJSON);
+  $("btnClear").addEventListener("click", () => { jsonIn.value=""; tsOut.value=""; setStatus(""); });
 
-  $("btnCopyTs").addEventListener("click", (e) => { e.preventDefault(); copyText(tsOut.value, "TypeScript copied."); });
-  $("btnDownloadTs").addEventListener("click", (e) => { e.preventDefault(); downloadTS(); });
+  $("btnCopyTs").addEventListener("click", () => copyText(tsOut.value, "TypeScript copied."));
+  $("btnDownloadTs").addEventListener("click", downloadTS);
 
-  // regen on option change (lightweight)
   document.querySelectorAll('input[name="outStyle"]').forEach(el => el.addEventListener("change", () => {
     if (jsonIn.value.trim()) generate();
   }));
