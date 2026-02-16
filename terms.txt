@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Privacy — SureWhyNot</title>
+  <title>Terms — SureWhyNot</title>
   <link rel="stylesheet" href="/assets/site.css">
 </head>
 
@@ -32,45 +32,47 @@
         <section class="grid" style="grid-template-columns:1fr;">
           <div class="card">
             <div class="pad">
-              <div class="h1">Privacy</div>
+              <div class="h1">Terms and Conditions</div>
               <div class="muted">
 
-                SureWhyNot is designed to operate with minimal data collection.
+                By using surewhynot.app, you agree to the following terms.
 
                 <div class="hr"></div>
 
-                Data Collection:
-                <br>- No account registration required.
-                <br>- No personal information collected.
-                <br>- No payment details stored.
+                Site Use:
+                <br>- Personal, non-commercial use only.
+                <br>- No malicious activity or automated abuse.
+                <br>- No attempts to disrupt or exploit site functionality.
 
                 <div class="hr"></div>
 
-                Local Storage:
+                Tool Output:
                 <br>
-                Some tools or games may use browser local storage to save preferences or progress.
-                This information remains on your device.
+                Tools generate results based on user input.
+                Accuracy is not guaranteed.
+                Users are responsible for verifying outputs.
 
                 <div class="hr"></div>
 
-                Analytics:
+                Games:
                 <br>
-                Basic analytics may be used to measure traffic and performance.
-                No personally identifiable information is intentionally stored.
+                Browser games are provided for entertainment.
+                Progress may be lost if browser storage is cleared.
+                No virtual items have monetary value.
 
                 <div class="hr"></div>
 
                 Advertising:
                 <br>
-                This site may display advertising, including Google AdSense.
-                Advertising providers may use cookies or similar technologies to serve ads.
-                Users can manage ad preferences through browser settings or Google ad controls.
+                Advertising may be displayed to support hosting and development.
+                Ads are served by third-party providers.
 
                 <div class="hr"></div>
 
-                Contact:
+                Limitation of Liability:
                 <br>
-                Privacy questions: <span class="kbd">privacy@surewhynot.app</span>
+                The site is provided “as is.”
+                SureWhyNot is not liable for data loss or service interruption.
 
               </div>
             </div>
@@ -89,7 +91,8 @@
   <span>•</span>
   <a href="/contact.html">Contact</a>
   <span>•</span>
-  <a href="/terms.html">Terms</a>
+  <a href="terms.html">Terms</a>
+
 </div>
 
       </div>
