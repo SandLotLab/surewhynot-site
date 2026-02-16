@@ -13,6 +13,7 @@
       <a class="pill" href="/json-formatter.html">JSON Formatter</a>
       <a class="pill" href="/json-to-typescript.html">JSON→TS</a>
 	  <a class="pill" href="/hash-generator.html">Hash-Generator</a>
+	  <a class="pill" href="/uuid-generator.html">UUID-Generator</a>
     </nav>
   </div>
 </header>
