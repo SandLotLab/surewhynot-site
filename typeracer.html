@@ -154,25 +154,23 @@
   </style>
 </head>
 
+<script>
+async function loadPartials() {
+  const header = await fetch('/partials/header.html');
+  const footer = await fetch('/partials/footer.html');
+
+  document.getElementById('site-header').innerHTML = await header.text();
+  document.getElementById('site-footer').innerHTML = await footer.text();
+}
+
+loadPartials();
+</script>
+
 <body>
   <div class="page">
-    <header>
-      <div class="wrap topbar">
-        <div class="brand">
-          <span class="dot"></span>
-          <span>SureWhyNot — Social Studio</span>
-        </div>
-        <div class="subtitle">tiny, privacy-forward, ad-friendly</div>
+  
+    <div id="site-header"></div>
 
-        <nav class="navcenter" aria-label="Site">
-          <a class="pill" href="/index.html">Home</a>
-          <a class="pill active" href="/typeracer.html">Type Racer</a>
-          <a class="pill" href="/puzzle.html">Mini Puzzle</a>
-          <a class="pill" href="/json-to-typescript.html">JSON→TS</a>
-
-        </nav>
-      </div>
-    </header>
 
     <main>
       <div class="wrap">
@@ -263,21 +261,8 @@
       </div>
     </main>
 
-    <footer>
-      <div class="footerwrap">
-        <div>© 2026 surewhynot.app</div>
-       <div class="footerlinks">
-  <a href="/about.html">About</a>
-  <span>•</span>
-  <a href="/privacy.html">Privacy</a>
-  <span>•</span>
-  <a href="/contact.html">Contact</a>
-  <span>•</span>
-  <a href="/terms.html">Terms</a>
-</div>
+    <div id="site-footer"></div>
 
-      </div>
-    </footer>
   </div>
 
 <script>
