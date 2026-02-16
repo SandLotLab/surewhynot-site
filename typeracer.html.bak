@@ -70,117 +70,163 @@
     }
 
     /* ====== New race objects (CSS shapes) ====== */
-    .veh{
-      position:relative;
-      display:inline-block;
-      border:1px solid rgba(23,36,59,.85);
-      background: rgba(246,195,74,.18);
-      box-shadow: 0 8px 20px rgba(0,0,0,.35);
-    }
+    /* ====== Replace your entire “New race objects (CSS shapes)” block with this ====== */
+/* Drop this in typeracer.html where the .veh styles are (or override at bottom). */
 
-    /* Monster truck */
-    .veh.truck{
-      width:34px; height:16px;
-      border-radius:7px;
-    }
-    .veh.truck::before{
-      content:"";
-      position:absolute;
-      left:7px; top:-7px;
-      width:16px; height:10px;
-      border-radius:6px 8px 4px 4px;
-      background: rgba(246,195,74,.26);
-      border:1px solid rgba(23,36,59,.85);
-    }
-    .veh.truck::after{
-      content:"";
-      position:absolute;
-      left:5px; top:10px;
-      width:26px; height:10px;
-      background:
-        radial-gradient(circle at 6px 6px, rgba(246,195,74,.55) 0 3px, transparent 4px),
-        radial-gradient(circle at 20px 6px, rgba(246,195,74,.55) 0 3px, transparent 4px);
-      opacity:.95;
-      pointer-events:none;
-    }
+.veh{
+  position:relative;
+  display:inline-block;
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.10);
+  border:1px solid rgba(0,0,0,.35);
+  background: linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.12));
+}
 
-    /* Airplane */
-    .veh.plane{
-      width:30px; height:16px;
-      border-radius:8px;
-      background: rgba(246,195,74,.14);
-    }
-    .veh.plane::before{
-      content:"";
-      position:absolute;
-      left:-2px; top:3px;
-      width:34px; height:10px;
-      background: rgba(246,195,74,.18);
-      border:1px solid rgba(23,36,59,.85);
-      border-radius:10px;
-      transform: skewX(-18deg);
-    }
-    .veh.plane::after{
-      content:"";
-      position:absolute;
-      right:-6px; top:5px;
-      width:10px; height:6px;
-      border-radius:0 6px 6px 0;
-      background: rgba(246,195,74,.28);
-      border:1px solid rgba(23,36,59,.85);
-    }
+/* ---------- Monster Truck ---------- */
+.veh.truck{
+  width:44px; height:18px;
+  border-radius:8px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.25)),
+    linear-gradient(135deg, #3ddc97, #1d7a58);
+}
+.veh.truck::before{
+  /* cab */
+  content:"";
+  position:absolute;
+  left:10px; top:-9px;
+  width:18px; height:11px;
+  border-radius:7px 9px 4px 4px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.22), rgba(0,0,0,.22)),
+    linear-gradient(135deg, #55f0b4, #168a61);
+  border:1px solid rgba(0,0,0,.35);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+}
+.veh.truck::after{
+  /* wheels + wheel wells */
+  content:"";
+  position:absolute;
+  left:4px; top:8px;
+  width:36px; height:14px;
+  background:
+    radial-gradient(circle at 8px 7px, #111 0 5px, #777 6px 7px, transparent 8px),
+    radial-gradient(circle at 28px 7px, #111 0 5px, #777 6px 7px, transparent 8px),
+    radial-gradient(ellipse at 8px 2px, rgba(0,0,0,.35) 0 9px, transparent 10px),
+    radial-gradient(ellipse at 28px 2px, rgba(0,0,0,.35) 0 9px, transparent 10px);
+  opacity:1;
+  pointer-events:none;
+}
 
-    /* Formula 1 car */
-    .veh.f1{
-      width:36px; height:12px;
-      border-radius:6px;
-      background: rgba(246,195,74,.16);
-    }
-    .veh.f1::before{
-      content:"";
-      position:absolute;
-      left:10px; top:-5px;
-      width:14px; height:7px;
-      border-radius:6px;
-      background: rgba(246,195,74,.22);
-      border:1px solid rgba(23,36,59,.85);
-    }
-    .veh.f1::after{
-      content:"";
-      position:absolute;
-      left:6px; top:7px;
-      width:28px; height:10px;
-      background:
-        radial-gradient(circle at 5px 5px, rgba(246,195,74,.55) 0 2px, transparent 3px),
-        radial-gradient(circle at 23px 5px, rgba(246,195,74,.55) 0 2px, transparent 3px);
-      opacity:.95;
-      pointer-events:none;
-    }
+/* ---------- Airplane ---------- */
+/* ---------- Airplane (Top View) ---------- */
+.veh.plane{
+  width:44px; height:44px;
+  border-radius:50%;
+  background: transparent;
+  border:none;
+  box-shadow: none;
+}
 
-    /* Boat */
-    .veh.boat{
-      width:34px; height:14px;
-      border-radius:0 0 10px 10px;
-      background: rgba(246,195,74,.16);
-    }
-    .veh.boat::before{
-      content:"";
-      position:absolute;
-      left:8px; top:-10px;
-      width:0;height:0;
-      border-left:8px solid transparent;
-      border-right:8px solid transparent;
-      border-bottom:12px solid rgba(246,195,74,.28);
-      filter: drop-shadow(0 0 0 rgba(23,36,59,.85));
-    }
-    .veh.boat::after{
-      content:"";
-      position:absolute;
-      left:6px; top:-1px;
-      width:2px; height:12px;
-      background: rgba(23,36,59,.85);
-      opacity:.9;
-    }
+/* fuselage */
+.veh.plane::before{
+  content:"";
+  position:absolute;
+  left:20px; top:4px;
+  width:4px; height:36px;
+  border-radius:4px;
+  background:
+    linear-gradient(to right, rgba(255,255,255,.35), rgba(0,0,0,.25)),
+    linear-gradient(135deg, #6cc7ff, #2457c6);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+/* wings + tail */
+.veh.plane::after{
+  content:"";
+  position:absolute;
+  left:4px; top:18px;
+  width:36px; height:8px;
+  border-radius:10px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.28), rgba(0,0,0,.28)),
+    linear-gradient(135deg, #8ad7ff, #2f6de0);
+  box-shadow:
+    0 -12px 0 -4px rgba(140,220,255,.8),   /* top tail wing */
+    0 12px 0 -4px rgba(140,220,255,.8);    /* bottom tail wing */
+}
+
+
+/* ---------- Formula 1 Car ---------- */
+.veh.f1{
+  width:46px; height:12px;
+  border-radius:7px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.28)),
+    linear-gradient(135deg, #ff4b4b, #8b1010);
+}
+.veh.f1::before{
+  /* cockpit + front wing */
+  content:"";
+  position:absolute;
+  left:16px; top:-6px;
+  width:16px; height:8px;
+  border-radius:7px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.20), rgba(0,0,0,.24)),
+    linear-gradient(135deg, #ff7a7a, #b31212);
+  border:1px solid rgba(0,0,0,.28);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+.veh.f1::after{
+  /* wheels (4) */
+  content:"";
+  position:absolute;
+  left:4px; top:6px;
+  width:40px; height:12px;
+  background:
+    radial-gradient(circle at 6px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
+    radial-gradient(circle at 16px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
+    radial-gradient(circle at 30px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px),
+    radial-gradient(circle at 40px 6px, #111 0 3px, #8a8a8a 4px 5px, transparent 6px);
+  pointer-events:none;
+}
+
+/* ---------- Boat ---------- */
+/* ---------- Boat (Clean, no dock lines) ---------- */
+.veh.boat{
+  width:44px; height:16px;
+  border-radius:0 0 14px 14px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.18), rgba(0,0,0,.32)),
+    linear-gradient(135deg, #ffd166, #b65d00);
+  box-shadow:
+    0 10px 18px rgba(0,0,0,.45),
+    inset 0 1px 0 rgba(255,255,255,.15);
+}
+
+/* Sail */
+.veh.boat::before{
+  content:"";
+  position:absolute;
+  left:18px; top:-16px;
+  width:0; height:0;
+  border-left:12px solid transparent;
+  border-right:0 solid transparent;
+  border-bottom:18px solid rgba(235,245,255,.95);
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,.35));
+}
+
+/* Mast only (no water shadows) */
+.veh.boat::after{
+  content:"";
+  position:absolute;
+  left:20px; top:-2px;
+  width:2px; height:18px;
+  background: linear-gradient(to bottom, #444, #111);
+}
+
 
     .finish{
       position:absolute;
