@@ -265,9 +265,9 @@ loadPartials();
 <script>
 (() => {
   // ===== Worker mount (your CF route) =====
-  // Your Worker is mounted at: https://surewhynot.app/typeracer-ws/*
+  // Worker mounted at: https://surewhynot.app/typeracer-ws/*
   const API_BASE = "https://surewhynot.app/typeracer-ws";
-  const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
+const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
 
 
   // ===== UI =====
@@ -285,10 +285,35 @@ loadPartials();
   const accEl = document.getElementById("acc");
   const timeEl = document.getElementById("time");
 
-  const runners = [document.getElementById("r1"),document.getElementById("r2"),document.getElementById("r3"),document.getElementById("r4")];
-  const names   = [document.getElementById("n1"),document.getElementById("n2"),document.getElementById("n3"),document.getElementById("n4")];
+  const runners = [
+    document.getElementById("r1"),
+    document.getElementById("r2"),
+    document.getElementById("r3"),
+    document.getElementById("r4")
+  ];
+  const names = [
+    document.getElementById("n1"),
+    document.getElementById("n2"),
+    document.getElementById("n3"),
+    document.getElementById("n4")
+  ];
 
   function setLobbyStatus(t){ lobbyStatus.textContent = t; }
+
+  function getRoomFromURL() {
+    const m = window.location.pathname.match(/^\/room\/([^\/?#]+)/);
+    return m ? decodeURIComponent(m[1]) : null;
+}
+
+  }
+  function setRoomInURL(code) {
+    window.location.href = `/room/${encodeURIComponent(code)}`;
+  }
+  function clearRoomInURL() {
+    if (window.location.pathname.startsWith("/room/")) {
+      window.history.replaceState({}, "", "/typeracer.html");
+    }
+  }
 
   function setRunner(el, progress01) {
     const track = document.querySelector(".track");
@@ -325,17 +350,14 @@ loadPartials();
   }
 
   function renderRoster(playersObj) {
-    // playersObj: { "Player 1": 10, "Player 2": 7, ... }
     lobbyList.innerHTML = "";
-    const keys = Object.keys(playersObj || {}); // keep join order
+    const keys = Object.keys(playersObj || {}); // join order
     keys.forEach(k => {
       const li = document.createElement("li");
       li.textContent = k;
       lobbyList.appendChild(li);
     });
-
-    // lane labels
-    for(let i=0;i<4;i++) names[i].textContent = keys[i] || "—";
+    for (let i = 0; i < 4; i++) names[i].textContent = keys[i] || "—";
   }
 
   // ===== State =====
@@ -356,21 +378,6 @@ loadPartials();
     btnPractice.disabled = !idle;
     btnLeave.disabled = idle;
     btnNew.disabled = !(mode === "race" || mode === "practice");
-  }
-
-  // ===== Room URL helpers =====
-  function getRoomFromURL() {
-  const m = window.location.pathname.match(/^\/room\/([^\/?#]+)/);
-  return m ? decodeURIComponent(m[1]) : null;
-}
-
-function setRoomInURL(code) {
-  window.location.href = `/room/${encodeURIComponent(code)}`;
-}
-
-function clearRoomInURL() {
-  if (window.location.pathname.startsWith("/room/")) {
-    window.history.replaceState({}, "", "/typeracer.html"); // or "/" if that’s your typeracer page
   }
 
   // ===== Practice mode =====
@@ -412,7 +419,7 @@ function clearRoomInURL() {
   }
 
   function connectRoom(code){
-    leaveRoom(); // ensure clean
+    leaveRoom();
     roomCode = code;
 
     const wsUrl = `${WS_BASE}/room/${encodeURIComponent(code)}`;
@@ -446,7 +453,6 @@ function clearRoomInURL() {
         resetTrack();
         updateStats(0,0);
 
-        // Start typing immediately when init arrives
         startedAt = performance.now();
         input.disabled = false;
         input.value = "";
@@ -455,8 +461,6 @@ function clearRoomInURL() {
       }
 
       if (msg.event === "join") {
-        // server only tells "player" string; roster comes via next update/init payloads,
-        // so just show a friendly status
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
       }
 
@@ -485,7 +489,7 @@ function clearRoomInURL() {
   }
 
   function tickLanes(){
-    const keys = Object.keys(players || {}); // keep join order
+    const keys = Object.keys(players || {}); // join order
     const total = text.length || 1;
 
     for(let i=0;i<4;i++){
@@ -496,9 +500,7 @@ function clearRoomInURL() {
   }
 
   function leaveRoom(){
-    if (ws) {
-      try { ws.close(1000, "bye"); } catch {}
-    }
+    if (ws) { try { ws.close(1000, "bye"); } catch {} }
     ws = null;
 
     roomCode = null;
@@ -535,6 +537,7 @@ function clearRoomInURL() {
       updateStats(youCorrect, youTotalTyped);
       players["You"] = youCorrect;
       tickLanes();
+
       if (youCorrect >= text.length) {
         finished = true;
         input.disabled = true;
@@ -569,8 +572,8 @@ function clearRoomInURL() {
   btnEnter.addEventListener("click", async () => {
     try {
       const code = await createRoom();
-      setRoomInURL(code); // navigation happens here
-    } catch (e) {
+      setRoomInURL(code);
+    } catch {
       setLobbyStatus("Failed to create room.");
     }
   });
@@ -583,7 +586,6 @@ function clearRoomInURL() {
   });
 
   btnNew.addEventListener("click", async () => {
-    // Try Again = new room or restart practice
     if (mode === "practice") { beginPractice(); return; }
     clearRoomInURL();
     leaveRoom();
@@ -599,7 +601,7 @@ function clearRoomInURL() {
     if (ws) { try { ws.close(1000, "unload"); } catch {} }
   });
 
-  // ===== Boot: auto-join if link has ?room= =====
+  // ===== Boot: auto-join if URL is /room/<code> =====
   setButtons();
   resetTrack();
   const urlRoom = getRoomFromURL();

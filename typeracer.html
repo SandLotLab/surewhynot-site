@@ -267,7 +267,8 @@ loadPartials();
   // ===== Worker mount (your CF route) =====
   // Worker mounted at: https://surewhynot.app/typeracer-ws/*
   const API_BASE = "https://surewhynot.app/typeracer-ws";
-  const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
+const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
+
 
   // ===== UI =====
   const input = document.getElementById("input");
@@ -302,6 +303,8 @@ loadPartials();
   function getRoomFromURL() {
     const m = window.location.pathname.match(/^\/room\/([^\/?#]+)/);
     return m ? decodeURIComponent(m[1]) : null;
+}
+
   }
   function setRoomInURL(code) {
     window.location.href = `/room/${encodeURIComponent(code)}`;
@@ -604,6 +607,7 @@ loadPartials();
   const urlRoom = getRoomFromURL();
   if (urlRoom) connectRoom(urlRoom);
   else setLobbyStatus("Not connected.");
+
 })();
 </script>
 </body>
