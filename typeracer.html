@@ -266,8 +266,9 @@ loadPartials();
 (() => {
   // ===== Worker mount (your CF route) =====
   // Worker mounted at: https://surewhynot.app/typeracer-ws/*
-  const API_BASE = "https://surewhynot.app/typeracer-ws";
-const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
+  const API_BASE = window.location.origin + "/typeracer-ws";
+  const WS_BASE  = (window.location.protocol === "https:" ? "wss://" : "ws://") 
+                   + window.location.host + "/typeracer-ws";
 
 
   // ===== UI =====
@@ -461,8 +462,12 @@ const WS_BASE  = "wss://surewhynot.app/typeracer-ws";
       }
 
       if (msg.event === "join") {
+        players[msg.player] = players[msg.player] ?? 0;
+        renderRoster(players);
+        tickLanes();
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
-      }
+}
+
 
       if (msg.event === "update") {
         players[msg.player] = msg.charsTyped;
