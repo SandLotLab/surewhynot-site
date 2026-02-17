@@ -100,7 +100,7 @@ function setupWebSocket() {
 // If URL contains a room ID, join that room; otherwise show lobby
 const pathMatch = window.location.pathname.match(/^\/room\/(.+)$/);
 let players = {};
-const API_BASE = "https://<YOUR_WORKER_DOMAIN>";      // base URL of the Worker (e.g., https://typeracer-api.example.workers.dev)
+const API_BASE = "https://typeracer-worker.cloudflare-handprint600.workers.dev";      // base URL of the Worker (e.g., https://typeracer-api.example.workers.dev)
 const API_WS_BASE = API_BASE.replace(/^http/, "ws");   // WebSocket base (ws:// or wss://)
 if (pathMatch) {
   roomId = pathMatch[1];

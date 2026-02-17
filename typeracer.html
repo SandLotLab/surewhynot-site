@@ -327,7 +327,7 @@ loadPartials();
   function renderRoster(playersObj) {
     // playersObj: { "Player 1": 10, "Player 2": 7, ... }
     lobbyList.innerHTML = "";
-    const keys = Object.keys(playersObj || {}).sort((a,b) => a.localeCompare(b));
+    const keys = Object.keys(playersObj || {}); // keep join order
     keys.forEach(k => {
       const li = document.createElement("li");
       li.textContent = k;

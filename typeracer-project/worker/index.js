@@ -8,6 +8,29 @@ export class RoomDurableObject {
     this.raceFinished = false;
   }
 
+  pickGoofyName() {
+  const pool = [
+    "CaptainWaffles","SirTyposALot","QuantumBanana","TurboHamster","ByteMeBro",
+    "404SpeedNotFound","MajesticToaster","ColonelKeyboard","SpaceSausage",
+    "LintWizard","NeonPotato","PanicAtTheDiscoKey","FuzzyFirewall","CryptoPenguin",
+    "LatencyLlama","PacketPirate","SyntaxSamurai","WPMWarlock","GremlinGears",
+    "GlitchGoblin","ChonkChampion","SnackOps","NullPointerNinja","MemeMachine"
+  ];
+
+  const used = new Set(Object.keys(this.players));
+  const available = pool.filter(n => !used.has(n));
+
+  if (available.length) {
+    return available[Math.floor(Math.random() * available.length)];
+  }
+
+  // fallback if pool exhausted
+  let n = Object.keys(this.players).length + 1;
+  let candidate = `ChaosGoblin${n}`;
+  while (used.has(candidate)) { n++; candidate = `ChaosGoblin${n}`; }
+  return candidate;
+}
+
   async fetch(request) {
     if (request.headers.get("Upgrade") !== "websocket") {
       return new Response("Expected WebSocket", { status: 426 });
@@ -41,7 +64,7 @@ export class RoomDurableObject {
     const server = pair[1];
     server.accept();
 
-    const playerId = `Player ${Object.keys(this.players).length + 1}`;
+    const playerId = this.pickGoofyName();
     this.players[playerId] = 0;
     this.clients.push(server);
 
