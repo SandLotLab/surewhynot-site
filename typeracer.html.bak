@@ -462,8 +462,12 @@ loadPartials();
       }
 
       if (msg.event === "join") {
+        players[msg.player] = players[msg.player] ?? 0;
+        renderRoster(players);
+        tickLanes();
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
-      }
+}
+
 
       if (msg.event === "update") {
         players[msg.player] = msg.charsTyped;
@@ -482,7 +486,7 @@ loadPartials();
     ws.onclose = () => {
       if (mode !== "idle") setLobbyStatus("Disconnected.");
       input.disabled = true;
-    };
+    };1
 
     ws.onerror = () => {
       setLobbyStatus("WebSocket error.");
