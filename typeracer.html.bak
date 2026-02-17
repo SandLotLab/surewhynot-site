@@ -303,18 +303,29 @@ loadPartials();
   function setLobbyStatus(t){ lobbyStatus.textContent = t; }
 
   function getRoomFromURL() {
-    const m = window.location.pathname.match(/^\/room\/([^\/?#]+)/);
+    const url = new URL(window.location.href);
+
+  // preferred: ?room=CODE
+    const q = url.searchParams.get("room");
+  if (q) return q;
+
+  // backward compat: /room/CODE
+    const m = url.pathname.match(/^\/room\/([^\/?#]+)/);
     return m ? decodeURIComponent(m[1]) : null;
 }
 
   function setRoomInURL(code) {
-    window.location.href = `/room/${encodeURIComponent(code)}`;
-  }
+    const url = new URL(window.location.href);
+    url.pathname = "/typeracer";          // match your live route
+    url.searchParams.set("room", code);
+    window.location.href = url.toString();
+}
+
   function clearRoomInURL() {
-    if (window.location.pathname.startsWith("/room/")) {
-      window.history.replaceState({}, "", "/typeracer");
-    }
-  }
+    const url = new URL(window.location.href);
+    url.searchParams.delete("room");
+    window.history.replaceState({}, "", url.pathname + url.search);
+}
 
   function setRunner(el, progress01) {
     const track = document.querySelector(".track");
