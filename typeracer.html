@@ -110,18 +110,15 @@ loadPartials();
             <div class="pad">
               <div class="h1">Type Racer</div>
               <div class="muted">
-                Multiplayer works across devices + private windows. Click Join Lobby to create a room link, share it, then race.
+                Multiplayer works across devices + private windows. Join Lobby to enter matchmaking, then race.
               </div>
 
               <div class="btnrow">
                 <button type="button" class="primary" id="btnEnter">Join Lobby</button>
+                <button type="button" id="btnStart" disabled>Start Race</button>
                 <button type="button" id="btnPractice">Practice Solo</button>
                 <button type="button" id="btnLeave" disabled>Leave</button>
                 <button type="button" id="btnNew" disabled>Try Again</button>
-				<button type="button" id="btnStart" disabled>Start Race</button>
-
-				
-
               </div>
 
               <div class="track" aria-label="Race track">
@@ -252,9 +249,9 @@ loadPartials();
             <div class="pad">
               <div class="h1">How it works</div>
               <div class="muted">
-                - Join Lobby creates a room link.<br>
-                - Share the link: up to 4 players can join.<br>
-                - Works across devices + private windows.<br>
+                - Join Lobby enters matchmaking.<br>
+                - Up to 4 players per room.<br>
+                - Host presses Start Race.<br>
                 - Practice mode is always available.
               </div>
             </div>
@@ -268,12 +265,11 @@ loadPartials();
 
 <script>
 (() => {
-  // ===== Worker mount (your CF route) =====
+  // ===== Worker mount =====
   // Worker mounted at: https://surewhynot.app/typeracer-ws/*
   const API_BASE = window.location.origin + "/typeracer-ws";
-  const WS_BASE  = (window.location.protocol === "https:" ? "wss://" : "ws://") 
-                   + window.location.host + "/typeracer-ws";
-
+  const WS_BASE  = (window.location.protocol === "https:" ? "wss://" : "ws://")
+                 + window.location.host + "/typeracer-ws";
 
   // ===== UI =====
   const input = document.getElementById("input");
@@ -282,10 +278,10 @@ loadPartials();
   const lobbyList = document.getElementById("lobbyList");
 
   const btnEnter = document.getElementById("btnEnter");
+  const btnStart = document.getElementById("btnStart");
   const btnPractice = document.getElementById("btnPractice");
   const btnLeave = document.getElementById("btnLeave");
   const btnNew = document.getElementById("btnNew");
-  const btnStart = document.getElementById("btnStart");
 
   const wpmEl = document.getElementById("wpm");
   const accEl = document.getElementById("acc");
@@ -308,28 +304,25 @@ loadPartials();
 
   function getRoomFromURL() {
     const url = new URL(window.location.href);
-
-  // preferred: ?room=CODE
     const q = url.searchParams.get("room");
-  if (q) return q;
+    if (q) return q;
 
-  // backward compat: /room/CODE
     const m = url.pathname.match(/^\/room\/([^\/?#]+)/);
     return m ? decodeURIComponent(m[1]) : null;
-}
+  }
 
   function setRoomInURL(code) {
-  const url = new URL(window.location.href);
-  url.pathname = "/typeracer"; // keep your live route
-  url.searchParams.set("room", code);
-  window.history.pushState({}, "", url.toString());
-}
+    const url = new URL(window.location.href);
+    url.pathname = "/typeracer";
+    url.searchParams.set("room", code);
+    window.history.pushState({}, "", url.toString());
+  }
 
   function clearRoomInURL() {
     const url = new URL(window.location.href);
     url.searchParams.delete("room");
     window.history.replaceState({}, "", url.pathname + url.search);
-}
+  }
 
   function setRunner(el, progress01) {
     const track = document.querySelector(".track");
@@ -339,6 +332,7 @@ loadPartials();
     const x = Math.max(0, Math.min(1, progress01)) * max;
     el.style.transform = `translateX(${x}px)`;
   }
+
   function resetTrack(){ runners.forEach(r => setRunner(r, 0)); }
   function charsDoneToProgress(charsDone, total){ return total ? (charsDone / total) : 0; }
 
@@ -348,6 +342,7 @@ loadPartials();
     const minutes = seconds / 60;
     return Math.round(words / minutes);
   }
+
   function computeCorrectChars(typed, text) {
     const max = Math.min(typed.length, text.length);
     let correct = 0;
@@ -357,6 +352,7 @@ loadPartials();
     }
     return correct;
   }
+
   function updateStats(youCorrect, youTotal) {
     const seconds = startedAt ? (performance.now() - startedAt) / 1000 : 0;
     timeEl.textContent = seconds.toFixed(1) + "s";
@@ -367,7 +363,7 @@ loadPartials();
 
   function renderRoster(playersObj) {
     lobbyList.innerHTML = "";
-    const keys = Object.keys(playersObj || {}); // join order
+    const keys = Object.keys(playersObj || {});
     keys.forEach(k => {
       const li = document.createElement("li");
       li.textContent = k;
@@ -385,6 +381,7 @@ loadPartials();
   let roomCode = null;
   let text = "";
   let you = null;
+  let host = null;
   let players = {}; // name -> chars
   let youTotalTyped = 0;
 
@@ -394,6 +391,9 @@ loadPartials();
     btnPractice.disabled = !idle;
     btnLeave.disabled = idle;
     btnNew.disabled = !(mode === "race" || mode === "practice");
+
+    // Start is only meaningful in race mode, enabled by init() if you're host
+    if (idle || mode === "practice") btnStart.disabled = true;
   }
 
   // ===== Practice mode =====
@@ -427,33 +427,36 @@ loadPartials();
     setLobbyStatus("Practice mode.");
   }
 
-  // ===== Multiplayer (Durable Objects + WS) =====
+  // ===== Multiplayer (Matchmaking + Room) =====
   async function createRoom(){
     const r = await fetch(`${API_BASE}/createRoom`, { method: "GET" });
     if (!r.ok) throw new Error("createRoom failed");
     return (await r.text()).trim();
   }
 
-   function joinMatchmakingLobby() {
-  setLobbyStatus("Finding match…");
+  function joinMatchmakingLobby() {
+    setLobbyStatus("Finding match…");
+    input.disabled = true;
+    input.value = "";
+    btnStart.disabled = true;
 
-  const lobby = new WebSocket(`${WS_BASE}/lobby`);
+    const lobby = new WebSocket(`${WS_BASE}/lobby`);
 
-  lobby.onmessage = (ev) => {
-    let msg;
-    try { msg = JSON.parse(ev.data); } catch { return; }
+    lobby.onmessage = (ev) => {
+      let msg;
+      try { msg = JSON.parse(ev.data); } catch { return; }
 
-    if (msg.event === "assigned") {
-      const code = msg.room;
-      setRoomInURL(code);
-      connectRoom(code);
-    }
-  };
+      if (msg.event === "assigned") {
+        const code = msg.room;
+        setRoomInURL(code);
+        connectRoom(code);
+      }
+    };
 
-  lobby.onerror = () => {
-    setLobbyStatus("Lobby error.");
-  };
-}
+    lobby.onerror = () => {
+      setLobbyStatus("Lobby error.");
+    };
+  }
 
   function connectRoom(code){
     leaveRoom();
@@ -471,9 +474,9 @@ loadPartials();
     updateStats(0,0);
 
     ws.onopen = () => {
-      setLobbyStatus(`Connected. Room: ${roomCode}`);
       mode = "race";
       setButtons();
+      setLobbyStatus(`Connected. Room: ${roomCode}`);
     };
 
     ws.onmessage = (ev) => {
@@ -481,32 +484,52 @@ loadPartials();
       try { msg = JSON.parse(ev.data); } catch { return; }
 
       if (msg.event === "init") {
-  text = msg.text || "";
-  you = msg.you || null;
-  players = msg.players || {};
-  elRaceText.textContent = text;
+        text = msg.text || "";
+        you = msg.you || null;
+        host = msg.host || null;
+        players = msg.players || {};
+        elRaceText.textContent = text;
 
-  renderRoster(players);
-  resetTrack();
-  updateStats(0,0);
+        renderRoster(players);
+        resetTrack();
+        updateStats(0,0);
 
-  // DO NOT start yet
-  startedAt = null;
-  finished = false;
-  input.disabled = true;
-  input.value = "";
+        // lobby state: DO NOT start yet
+        startedAt = null;
+        finished = false;
+        input.disabled = true;
+        input.value = "";
 
-  setLobbyStatus(`Lobby open. Room: ${roomCode}. Waiting for host to start.`);
+        const amHost = (you && host && you === host);
+        btnStart.disabled = !amHost;
 
-
+        setLobbyStatus(amHost
+          ? `Lobby open. Room: ${roomCode}. You are host — press Start Race.`
+          : `Lobby open. Room: ${roomCode}. Waiting for host to start.`);
       }
 
       if (msg.event === "join") {
-        players[msg.player] = players[msg.player] ?? 0;
+        // prefer server roster if present
+        if (msg.players) players = msg.players;
+        else if (msg.player) players[msg.player] = players[msg.player] ?? 0;
+
         renderRoster(players);
         tickLanes();
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
-}
+      }
+
+      if (msg.event === "leave") {
+        if (msg.players) players = msg.players;
+        renderRoster(players);
+        tickLanes();
+        setLobbyStatus(`Player left. Room: ${roomCode}`);
+        // host may change
+        if (msg.host) {
+          host = msg.host;
+          const amHost = (you && host && you === host);
+          btnStart.disabled = !amHost;
+        }
+      }
 
       if (msg.event === "start") {
         startedAt = performance.now();
@@ -514,11 +537,15 @@ loadPartials();
         input.disabled = false;
         input.value = "";
         input.focus();
+        btnStart.disabled = true;
         setLobbyStatus(`Race started. Room: ${roomCode}`);
-}
+      }
 
       if (msg.event === "update") {
-        players[msg.player] = msg.charsTyped;
+        // prefer server roster if present
+        if (msg.players) players = msg.players;
+        else players[msg.player] = msg.charsTyped;
+
         renderRoster(players);
         tickLanes();
       }
@@ -534,6 +561,7 @@ loadPartials();
     ws.onclose = () => {
       if (mode !== "idle") setLobbyStatus("Disconnected.");
       input.disabled = true;
+      btnStart.disabled = true;
     };
 
     ws.onerror = () => {
@@ -542,7 +570,7 @@ loadPartials();
   }
 
   function tickLanes(){
-    const keys = Object.keys(players || {}); // join order
+    const keys = Object.keys(players || {});
     const total = text.length || 1;
 
     for(let i=0;i<4;i++){
@@ -558,6 +586,7 @@ loadPartials();
 
     roomCode = null;
     you = null;
+    host = null;
     players = {};
     text = "";
     youTotalTyped = 0;
@@ -623,16 +652,16 @@ loadPartials();
 
   // ===== Buttons =====
   btnEnter.addEventListener("click", (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-  joinMatchmakingLobby();
-});
+    e.preventDefault();
+    e.stopPropagation();
+    joinMatchmakingLobby();
+  });
 
   btnStart.addEventListener("click", () => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-  ws.send(JSON.stringify({ event: "start", player: you }));
-});
-
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    if (!you) return;
+    ws.send(JSON.stringify({ event: "start", player: you }));
+  });
 
   btnPractice.addEventListener("click", beginPractice);
 
@@ -642,23 +671,22 @@ loadPartials();
   });
 
   btnNew.addEventListener("click", () => {
-  if (mode === "practice") { beginPractice(); return; }
-  clearRoomInURL();
-  leaveRoom();
-  joinMatchmakingLobby();
-});
+    if (mode === "practice") { beginPractice(); return; }
+    clearRoomInURL();
+    leaveRoom();
+    joinMatchmakingLobby();
+  });
 
   window.addEventListener("beforeunload", () => {
     if (ws) { try { ws.close(1000, "unload"); } catch {} }
   });
 
-  // ===== Boot: auto-join if URL is /room/<code> =====
+  // ===== Boot =====
   setButtons();
   resetTrack();
   const urlRoom = getRoomFromURL();
   if (urlRoom) connectRoom(urlRoom);
   else setLobbyStatus("Not connected.");
-
 })();
 </script>
 </body>

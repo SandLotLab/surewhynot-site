@@ -508,6 +508,14 @@ loadPartials();
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
 }
 
+      if (msg.event === "start") {
+        startedAt = performance.now();
+        finished = false;
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+        setLobbyStatus(`Race started. Room: ${roomCode}`);
+}
 
       if (msg.event === "update") {
         players[msg.player] = msg.charsTyped;
@@ -620,6 +628,10 @@ loadPartials();
   joinMatchmakingLobby();
 });
 
+  btnStart.addEventListener("click", () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ event: "start", player: you }));
+});
 
 
   btnPractice.addEventListener("click", beginPractice);
