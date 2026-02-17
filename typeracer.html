@@ -430,6 +430,27 @@ loadPartials();
     return (await r.text()).trim();
   }
 
+   function joinMatchmakingLobby() {
+  setLobbyStatus("Finding match…");
+
+  const lobby = new WebSocket(`${WS_BASE}/lobby`);
+
+  lobby.onmessage = (ev) => {
+    let msg;
+    try { msg = JSON.parse(ev.data); } catch { return; }
+
+    if (msg.event === "assigned") {
+      const code = msg.room;
+      setRoomInURL(code);
+      connectRoom(code);
+    }
+  };
+
+  lobby.onerror = () => {
+    setLobbyStatus("Lobby error.");
+  };
+}
+
   function connectRoom(code){
     leaveRoom();
     roomCode = code;
@@ -585,18 +606,12 @@ loadPartials();
   });
 
   // ===== Buttons =====
-  btnEnter.addEventListener("click", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  btnEnter.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  joinMatchmakingLobby();
+});
 
-    try {
-      const code = await createRoom();
-      setRoomInURL(code);     // updates URL, no reload
-      connectRoom(code);      // actually joins now
-    } catch {
-      setLobbyStatus("Failed to create room.");
-    }
-  });
 
 
   btnPractice.addEventListener("click", beginPractice);
@@ -606,17 +621,12 @@ loadPartials();
     leaveRoom();
   });
 
-  btnNew.addEventListener("click", async () => {
-    if (mode === "practice") { beginPractice(); return; }
-    clearRoomInURL();
-    leaveRoom();
-    try {
-      const code = await createRoom();
-      setRoomInURL(code);
-    } catch {
-      setLobbyStatus("Failed to create room.");
-    }
-  });
+  btnNew.addEventListener("click", () => {
+  if (mode === "practice") { beginPractice(); return; }
+  clearRoomInURL();
+  leaveRoom();
+  joinMatchmakingLobby();
+});
 
   window.addEventListener("beforeunload", () => {
     if (ws) { try { ws.close(1000, "unload"); } catch {} }

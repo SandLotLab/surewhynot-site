@@ -315,10 +315,10 @@ loadPartials();
 }
 
   function setRoomInURL(code) {
-    const url = new URL(window.location.href);
-    url.pathname = "/typeracer";          // match your live route
-    url.searchParams.set("room", code);
-    window.location.href = url.toString();
+  const url = new URL(window.location.href);
+  url.pathname = "/typeracer"; // keep your live route
+  url.searchParams.set("room", code);
+  window.history.pushState({}, "", url.toString());
 }
 
   function clearRoomInURL() {
@@ -585,14 +585,19 @@ loadPartials();
   });
 
   // ===== Buttons =====
-  btnEnter.addEventListener("click", async () => {
+  btnEnter.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
       const code = await createRoom();
-      setRoomInURL(code);
+      setRoomInURL(code);     // updates URL, no reload
+      connectRoom(code);      // actually joins now
     } catch {
       setLobbyStatus("Failed to create room.");
     }
   });
+
 
   btnPractice.addEventListener("click", beginPractice);
 

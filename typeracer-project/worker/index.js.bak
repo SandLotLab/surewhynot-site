@@ -64,7 +64,7 @@ export class RoomDurableObject {
     const server = pair[1];
     server.accept();
 
-    const playerId = `Player ${Object.keys(this.players).length + 1}`;
+    const playerId = this.pickGoofyName();
     this.players[playerId] = 0;
     this.clients.push(server);
 

@@ -1,10 +1,11 @@
-name = "typeracer-worker"  # Name of your Worker scriptname = "typeracer-worker"
+name = "typeracer-worker"
 main = "index.js"
 compatibility_date = "2024-01-01"
 
 [durable_objects]
 bindings = [
-  { name = "ROOM_DO", class_name = "RoomDurableObject" }
+  { name = "ROOM_DO", class_name = "RoomDurableObject" },
+  { name = "LOBBY_DO", class_name = "LobbyDurableObject" }
 ]
 
 [[kv_namespaces]]
@@ -12,5 +13,5 @@ binding = "ROOM_STATE"
 id = "886fe4f8471d48c5ab6c24f001eb7add"
 
 [[migrations]]
-tag = "v2"
-new_sqlite_classes = ["RoomDurableObject"]
+tag = "v3"
+new_sqlite_classes = ["LobbyDurableObject"]
