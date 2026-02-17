@@ -3,11 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>SureWhyNot — Developer Tools & Mini Games</title>
-  <meta name="description" content="Lightweight developer tools and simple web games. Privacy-first, no accounts, no tracking." />
+
+  <title>SureWhyNot — Developer Tools, Security Utilities, and Mini Games</title>
+  <meta name="description" content="Privacy-forward developer tools and security utilities that run locally in your browser: JSON, JWT, CSP, hashing, UUIDs, and more — plus a few mini games." />
+  <link rel="canonical" href="https://surewhynot.app/" />
+  <meta name="robots" content="index,follow" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="SureWhyNot — Developer Tools & Security Utilities" />
+  <meta property="og:description" content="Local-first tools for devs: JSON, JWT, CSP, hashes, UUIDs — plus mini games. No accounts. No uploads." />
+  <meta property="og:url" content="https://surewhynot.app/" />
+
   <link rel="stylesheet" href="/assets/site.css">
 </head>
-
 
 <script>
 async function loadPartials() {
@@ -16,8 +24,9 @@ async function loadPartials() {
 
   document.getElementById('site-header').innerHTML = await header.text();
   document.getElementById('site-footer').innerHTML = await footer.text();
-}
 
+  if (window.SWY_renderToolUse) window.SWY_renderToolUse();
+}
 loadPartials();
 </script>
 
@@ -26,62 +35,115 @@ loadPartials();
 
     <div id="site-header"></div>
 
-
     <main>
       <div class="wrap">
         <section class="grid">
 
-          <div class="card">
-  <div class="pad">
-    <div class="h1">Welcome</div>
-
-<p>
-A collection of lightweight developer tools and simple browser games.
-Everything runs client-side — no accounts, no tracking, no uploads.
-</p>
-
-<ul style="margin-top:10px; line-height:1.6;">
-  <li>
-    <a href="/typeracer.html">Type Racer</a> — measure typing speed and accuracy.
-  </li>
-  <li>
-    <a href="/mini-puzzle.html">Mini Puzzle</a> — fast brain snack.
-  </li>
-  <li>
-    <a href="/json-formatter.html">JSON Formatter &amp; Validator</a> — format, minify, and validate JSON instantly in your browser.
-  </li>
-  <li>
-    <a href="/json-to-typescript.html">JSON → TypeScript Generator</a> — convert JSON into TypeScript interfaces or type aliases.
-  </li>
-  <li>
-    <a href="/hash-generator.html">Hash Generator &amp; Encoders</a> — MD5, SHA-1, SHA-256, SHA-512, Base64, URL encode/decode, and more.
-  </li>
-  <li>
-    <a href="/uuid-generator.html">UUID Generator &amp; Validator</a> — generate UUID v4, v5, v7 with bulk export, search, and validation.
-  </li>
-  <li>
-  <a href="/jwt-decoder.html">JWT Decoder &amp; Inspector</a> — decode header/payload, exp/iat/nbf checks, optional HS* verify.
-  </li>
-  <li>
-  <a href="/csp-analyzer.html">CSP &amp; Security Headers Analyzer</a> — parse CSP, score risk, and generate a report.
-</li>
-
-</ul>
-
-  </div>
-</div>
-
-
+          <!-- LEFT: real publisher content -->
           <div class="card">
             <div class="pad">
-              <div class="h1">Ad slot placeholder</div>
+              <div class="h1">Welcome</div>
 
-              <div style="border:1px dashed rgba(255,255,255,.2);padding:24px;text-align:center;">
-                Keep this spot consistent so the layout doesn’t jump later.
+              <p class="muted" style="margin-top:6px">
+                Local-first developer tools and security utilities you can trust with real data — because your data never leaves your browser.
+              </p>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:14px">What this site is</div>
+              <p class="muted" style="margin-top:6px">
+                SureWhyNot is a small collection of practical tools for software engineers, DevOps, and security-minded builders.
+                Every tool runs client-side. No accounts. No tracking scripts. No uploads. If you can paste it, you can process it locally and copy the result out.
+              </p>
+
+              <div class="h1" style="font-size:14px; margin-top:14px">Tools</div>
+
+              <ul style="margin-top:10px; line-height:1.7;">
+                <li>
+                  <a href="/json-formatter.html">JSON Formatter &amp; Validator</a> — format, minify, validate, and spot broken JSON fast.
+                </li>
+                <li>
+                  <a href="/json-to-typescript.html">JSON → TypeScript Generator</a> — convert JSON into interfaces/types for quick prototyping.
+                </li>
+                <li>
+                  <a href="/jwt-decoder.html">JWT Decoder &amp; Inspector</a> — decode header/payload, check exp/iat/nbf, and optionally verify HS* tokens.
+                </li>
+                <li>
+                  <a href="/csp-analyzer.html">CSP &amp; Security Headers Analyzer</a> — parse CSP, flag risky directives, and export a report.
+                </li>
+                <li>
+                  <a href="/hash-generator.html">Hash Generator &amp; Encoders</a> — SHA-family, Base64, URL encode/decode, and other daily drivers.
+                </li>
+                <li>
+                  <a href="/uuid-generator.html">UUID Generator &amp; Validator</a> — generate UUIDs, bulk export, search, and validate.
+                </li>
+                <li>
+                  <a href="/typeracer.html">Type Racer</a> — measure typing speed and accuracy.
+                </li>
+                <li>
+                  <a href="/mini-puzzle.html">Mini Puzzle</a> — quick deduction puzzle with a dev-flavored vibe.
+                </li>
+              </ul>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:14px">How to use (quick examples)</div>
+              <div class="muted" style="margin-top:8px; line-height:1.65">
+                <b>JWT:</b> paste a bearer token to instantly view header + payload JSON and see whether it’s expired.
                 <br><br>
-                <strong>[ AdSense Slot Here ]</strong>
+                <b>CSP:</b> paste a Content-Security-Policy header to spot common pitfalls like <span class="kbd">'unsafe-inline'</span>, missing <span class="kbd">frame-ancestors</span>, or weak defaults.
+                <br><br>
+                <b>JSON → TS:</b> paste a sample API response to generate TypeScript types you can drop into a project.
               </div>
 
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:14px">Privacy-forward by design</div>
+              <div class="muted" style="margin-top:8px; line-height:1.65">
+                These tools are built to be safe to use with sensitive values (tokens, headers, configs) because processing happens locally in your browser.
+                Copy or download results when you’re done. Nothing is uploaded.
+              </div>
+
+              <div class="hr"></div>
+
+              <!-- small SEO paragraph -->
+              <div class="muted" style="line-height:1.65">
+                Keywords: developer tools, JSON formatter, JWT decoder, CSP analyzer, security headers checker, hash generator, UUID generator, browser-based utilities.
+              </div>
+
+            </div>
+          </div>
+
+          <!-- RIGHT: replace placeholder with real content (not "under construction") -->
+          <div class="card">
+            <div class="pad">
+              <div class="h1">Tool of the Week</div>
+              <div class="muted" style="margin-top:6px; line-height:1.6">
+                <b>JWT Decoder &amp; Inspector</b> — paste a token, verify time claims, and optionally validate HS256/384/512 signatures.
+                Useful for debugging auth flows, API gateways, and on-call incidents.
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:14px">Latest updates</div>
+              <ul style="margin-top:10px; line-height:1.7;">
+                <li><b>JWT Decoder:</b> header/payload decoding + exp/iat/nbf checks + export.</li>
+                <li><b>CSP Analyzer:</b> severity findings + report download (.txt/.json).</li>
+                <li><b>Hash Generator:</b> common hashes + encoders/decoders with local processing.</li>
+              </ul>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:14px">What’s coming next</div>
+              <div class="muted" style="margin-top:8px; line-height:1.6">
+                More small utilities built for engineers: fast, private, and copy/paste friendly.
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted" style="line-height:1.6">
+                This site is intentionally lightweight: fewer dependencies, fewer surprises, faster load times.
+              </div>
             </div>
           </div>
 
@@ -90,7 +152,6 @@ Everything runs client-side — no accounts, no tracking, no uploads.
     </main>
 
     <div id="site-footer"></div>
-
 
   </div>
 </body>

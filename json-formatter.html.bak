@@ -3,8 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSON Formatter & Validator (Free, Client-Side)</title>
-  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, sort keys, diff, path extract, and optional schema checks — runs locally in your browser." />
+
+  <title>JSON Formatter & Validator — Prettify, Minify, Validate (Free)</title>
+  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, sort keys, and extract paths. Runs locally in your browser — no uploads." />
+  <link rel="canonical" href="https://surewhynot.app/json-formatter.html">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JSON Formatter & Validator (Free, Client-Side)">
+  <meta property="og:description" content="Prettify, minify, validate JSON instantly. Runs in your browser — no uploads.">
+  <meta property="og:url" content="https://surewhynot.app/json-formatter.html">
+
   <link rel="stylesheet" href="/assets/site.css">
 
   <script type="application/ld+json">
@@ -14,13 +22,16 @@
     "name": "JSON Formatter & Validator",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Web",
-    "description": "Free JSON formatter and validator that runs entirely in the browser."
+    "url": "https://surewhynot.app/json-formatter.html",
+    "description": "Free JSON formatter and validator. Prettify, minify, validate, sort keys, and extract paths. Runs locally in your browser — no uploads."
   }
   </script>
 
+  <!-- CSP MUST allow blob workers for this single-file version -->
   <meta http-equiv="Content-Security-Policy" content="
     default-src 'self';
     script-src 'self' 'unsafe-inline' blob:;
+    worker-src 'self' blob:;
     style-src 'self' 'unsafe-inline';
     img-src 'self' data:;
     font-src 'self' data:;
@@ -63,17 +74,6 @@
       font-size:12.5px;
       line-height:1.55;
     }
-    .smallpill {
-      border-radius:999px;
-      border:1px solid rgba(23,36,59,.8);
-      background:rgba(11,21,40,.35);
-      color:var(--text);
-      padding:6px 10px;
-      font-family:inherit;
-      font-size:12px;
-      line-height:1;
-      cursor:pointer;
-    }
   </style>
 </head>
 
@@ -87,10 +87,14 @@
 
           <div class="card">
             <div class="pad">
-              <div class="h1">JSON Formatter & Validator</div>
+              <div class="h1">JSON Formatter &amp; Validator</div>
 
+              <!-- SEO paragraphs (styled to match your site) -->
               <div class="muted" style="margin-top:10px">
-                Validate, prettify, minify, sort keys, extract by path, and generate a diff. Runs client-side.
+                Format and validate JSON instantly. This JSON formatter runs entirely in your browser — no uploads.
+              </div>
+              <div class="muted" style="margin-top:10px">
+                Prettify, minify, sort keys, extract values by path, and optionally validate against a JSON Schema subset.
               </div>
 
               <div class="hr"></div>
@@ -121,7 +125,7 @@
                     </label>
                     <label style="display:flex; gap:8px; align-items:center;">
                       <input id="optJson5ish" type="checkbox">
-                      <span>Allow comments + trailing commas (optional)</span>
+                      <span>Allow comments + trailing commas</span>
                     </label>
                     <label style="display:flex; gap:8px; align-items:center;">
                       <input id="optSortKeys" type="checkbox">
@@ -163,10 +167,10 @@
 
           <div class="card">
             <div class="pad">
-              <div class="h1">Output / Diff / Schema (optional)</div>
+              <div class="h1">Output / Diff / Schema</div>
 
               <div class="muted" style="margin-top:8px">
-                Output updates when you prettify/minify/sort/extract. Diff compares current input vs last “snapshot”.
+                Output updates when you prettify/minify/sort/extract. Diff compares current input vs last snapshot.
               </div>
 
               <div class="hr"></div>
@@ -209,7 +213,7 @@
                   </div>
 
                   <div class="muted" style="margin-top:10px; line-height:1.6;">
-                    Supports a practical subset:
+                    Supports subset:
                     <br>• type, enum, const
                     <br>• required, properties, items
                     <br>• min/max (number), minLength/maxLength
@@ -258,10 +262,8 @@
 
     let snapshotText = "";
 
-    // Worker to keep UI responsive (prevents easy "freeze the tab" games)
     const workerCode = `
       function stripBOM(s){ return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
-
       function replaceSmartQuotes(s){
         return s
           .replace(/[\\u201C\\u201D]/g, '"')
@@ -269,7 +271,6 @@
       }
 
       function stripComments(s){
-        // Removes //... and /*...*/ while preserving strings
         let out = "";
         let i = 0;
         let inStr = false;
@@ -291,14 +292,12 @@
           if (c === '"' || c === "'") { inStr = true; strCh = c; out += c; i++; continue; }
 
           if (c === "/" && n === "/") {
-            // line comment
             i += 2;
             while (i < s.length && s[i] !== "\\n") i++;
             continue;
           }
 
           if (c === "/" && n === "*") {
-            // block comment
             i += 2;
             while (i < s.length && !(s[i] === "*" && s[i+1] === "/")) i++;
             i += 2;
@@ -312,7 +311,6 @@
       }
 
       function removeTrailingCommas(s){
-        // Removes trailing commas in objects/arrays while preserving strings
         let out = "";
         let i = 0;
         let inStr = false;
@@ -333,14 +331,9 @@
           if (c === '"' || c === "'") { inStr = true; strCh = c; out += c; i++; continue; }
 
           if (c === ",") {
-            // look ahead for only whitespace then ] or }
             let j = i + 1;
             while (j < s.length && /\\s/.test(s[j])) j++;
-            if (s[j] === "]" || s[j] === "}") {
-              // skip this comma
-              i++;
-              continue;
-            }
+            if (s[j] === "]" || s[j] === "}") { i++; continue; }
           }
 
           out += c;
@@ -361,7 +354,6 @@
       }
 
       function lineColFromIndex(s, idx){
-        // idx is 0-based
         let line = 1, col = 1;
         for (let i=0; i<idx && i<s.length; i++){
           if (s[i] === "\\n") { line++; col = 1; }
@@ -371,7 +363,6 @@
       }
 
       function bestEffortErrorLocation(raw, errMsg){
-        // Try to extract "position N" from V8 error messages.
         const m = /position\\s+(\\d+)/i.exec(errMsg || "");
         if (!m) return null;
         const pos = parseInt(m[1],10);
@@ -410,7 +401,6 @@
           let output = "";
           if (op === "prettify" || op === "sort") output = JSON.stringify(finalObj, null, 2);
           else if (op === "minify") output = JSON.stringify(finalObj);
-          else if (op === "extract") output = ""; // extract handled on main thread
           else output = JSON.stringify(finalObj, null, 2);
 
           self.postMessage({ ok:true, op, parsed: finalObj, output });
@@ -428,12 +418,9 @@
     function setStatus(msg) { status.textContent = msg || ""; }
     function setSchemaStatus(msg) { schemaStatus.textContent = msg || ""; }
 
-    function withWorker(op, payload) {
+    function withWorker(payload) {
       return new Promise((resolve) => {
-        const onMsg = (e) => {
-          worker.removeEventListener("message", onMsg);
-          resolve(e.data);
-        };
+        const onMsg = (e) => { worker.removeEventListener("message", onMsg); resolve(e.data); };
         worker.addEventListener("message", onMsg);
         worker.postMessage(payload);
       });
@@ -482,7 +469,7 @@
     async function validate() {
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
-      const data = await withWorker("validate", {
+      const data = await withWorker({
         op:"validate",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -496,7 +483,7 @@
     async function prettify() {
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
-      const data = await withWorker("prettify", {
+      const data = await withWorker({
         op:"prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -512,7 +499,7 @@
     async function minify() {
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
-      const data = await withWorker("minify", {
+      const data = await withWorker({
         op:"minify",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -526,10 +513,9 @@
     }
 
     async function sortOnly() {
-      // Sort keys but keep pretty format (always pretty output)
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
-      const data = await withWorker("sort", {
+      const data = await withWorker({
         op:"sort",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -548,11 +534,9 @@
     }
 
     function makeUnifiedDiff(a, b) {
-      // small, safe, line-based diff (not fancy; robust enough)
       const A = (a || "").split("\n");
       const B = (b || "").split("\n");
 
-      // LCS dynamic programming (O(n*m)) – keep it bounded by line count
       const maxLines = 2000;
       if (A.length > maxLines || B.length > maxLines) {
         return "Diff too large to compute safely. Snapshot smaller content.";
@@ -583,8 +567,7 @@
 
     function diffNow() {
       if (!snapshotText) return setStatus("Take a snapshot first.");
-      const d = makeUnifiedDiff(snapshotText, jsonIn.value);
-      outBox.value = d;
+      outBox.value = makeUnifiedDiff(snapshotText, jsonIn.value);
       setStatus("Diff generated.");
     }
 
@@ -602,14 +585,12 @@
     }
 
     function decodeJsonPointer(ptr) {
-      // /a/b~1c -> ["a","b/c"]
       if (!ptr) return [];
       if (ptr[0] !== "/") return null;
       return ptr.split("/").slice(1).map(s => s.replace(/~1/g, "/").replace(/~0/g, "~"));
     }
 
     function parseDotPath(p) {
-      // simple a.b[0].c
       const parts = [];
       let i = 0;
       while (i < p.length) {
@@ -625,7 +606,6 @@
           i = j + 1;
           continue;
         }
-        // read key
         let j = i;
         while (j < p.length && /[A-Za-z0-9_$-]/.test(p[j])) j++;
         if (j === i) return null;
@@ -656,7 +636,7 @@
       if (!raw.trim()) return setStatus("Paste JSON first.");
       if (!p) return setStatus("Enter a path.");
 
-      const data = await withWorker("prettify", {
+      const data = await withWorker({
         op:"prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -672,21 +652,15 @@
       if (!parts) return setStatus("Path format not recognized.");
 
       const val = getByPath(data.parsed, parts);
-      if (val === undefined) {
-        outBox.value = "";
-        return setStatus("Path not found.");
-      }
+      if (val === undefined) { outBox.value = ""; return setStatus("Path not found."); }
 
       outBox.value = (typeof val === "string") ? val : JSON.stringify(val, null, 2);
       setStatus("Extracted.");
     }
 
-    // JSON Schema subset validator (client-side, no external libs)
     function schemaValidateValue(value, schema, path) {
       const errors = [];
-
       function err(msg) { errors.push(`${path || "/"}: ${msg}`); }
-
       if (!schema || typeof schema !== "object") return errors;
 
       if (schema.const !== undefined) {
@@ -720,8 +694,6 @@
       if (typeof value === "number") {
         if (Number.isFinite(schema.minimum) && value < schema.minimum) err(`minimum ${schema.minimum}`);
         if (Number.isFinite(schema.maximum) && value > schema.maximum) err(`maximum ${schema.maximum}`);
-        if (Number.isFinite(schema.min) && value < schema.min) err(`min ${schema.min}`);
-        if (Number.isFinite(schema.max) && value > schema.max) err(`max ${schema.max}`);
       }
 
       if (Array.isArray(value)) {
@@ -755,7 +727,7 @@
       if (!raw.trim()) return setSchemaStatus("Paste JSON first.");
       if (!schRaw) return setSchemaStatus("Paste schema JSON (subset) first.");
 
-      const data = await withWorker("prettify", {
+      const data = await withWorker({
         op:"prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -790,8 +762,7 @@
     function download() {
       const raw = jsonIn.value.trim();
       if (!raw) return setStatus("Paste JSON first.");
-      // Use prettify worker to ensure valid JSON before download
-      withWorker("prettify", {
+      withWorker({
         op:"prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
@@ -804,7 +775,6 @@
       });
     }
 
-    // Wire up
     $("btnValidate").addEventListener("click", validate);
     $("btnPrettify").addEventListener("click", prettify);
     $("btnMinify").addEventListener("click", minify);
