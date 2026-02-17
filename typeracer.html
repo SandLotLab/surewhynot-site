@@ -359,19 +359,18 @@ loadPartials();
   }
 
   // ===== Room URL helpers =====
-  function getRoomFromURL(){
-    const u = new URL(window.location.href);
-    return u.searchParams.get("room");
-  }
-  function setRoomInURL(code){
-    const u = new URL(window.location.href);
-    u.searchParams.set("room", code);
-    window.location.href = u.toString(); // hard nav so friends can use same exact link
-  }
-  function clearRoomInURL(){
-    const u = new URL(window.location.href);
-    u.searchParams.delete("room");
-    window.history.replaceState({}, "", u.toString());
+  function getRoomFromURL() {
+  const m = window.location.pathname.match(/^\/room\/([^\/?#]+)/);
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+function setRoomInURL(code) {
+  window.location.href = `/room/${encodeURIComponent(code)}`;
+}
+
+function clearRoomInURL() {
+  if (window.location.pathname.startsWith("/room/")) {
+    window.history.replaceState({}, "", "/typeracer.html"); // or "/" if that’s your typeracer page
   }
 
   // ===== Practice mode =====
@@ -486,7 +485,7 @@ loadPartials();
   }
 
   function tickLanes(){
-    const keys = Object.keys(players || {}).sort((a,b)=>a.localeCompare(b));
+    const keys = Object.keys(players || {}); // keep join order
     const total = text.length || 1;
 
     for(let i=0;i<4;i++){
