@@ -81,13 +81,10 @@ loadPartials();
                 <li>
                   <a href="/uuid-generator.html">UUID Generator &amp; Validator</a> — generate UUIDs, bulk export, search, and validate.
                 </li>
-                <li>
-                  <a href="/typeracer.html">Type Racer</a> — measure typing speed and accuracy.
-                </li>
-                <li>
+                 <li>
                   <a href="/mini-puzzle.html">Mini Puzzle</a> — quick deduction puzzle with a dev-flavored vibe.
-                </li>
-              </ul>
+                 </li>
+               </ul>
 
               <div class="hr"></div>
 
