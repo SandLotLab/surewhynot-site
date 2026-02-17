@@ -306,7 +306,6 @@ loadPartials();
     return m ? decodeURIComponent(m[1]) : null;
 }
 
-  }
   function setRoomInURL(code) {
     window.location.href = `/room/${encodeURIComponent(code)}`;
   }
