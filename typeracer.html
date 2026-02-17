@@ -118,6 +118,9 @@ loadPartials();
                 <button type="button" id="btnPractice">Practice Solo</button>
                 <button type="button" id="btnLeave" disabled>Leave</button>
                 <button type="button" id="btnNew" disabled>Try Again</button>
+				<button type="button" id="btnStart" disabled>Start Race</button>
+
+				
 
               </div>
 
@@ -282,6 +285,7 @@ loadPartials();
   const btnPractice = document.getElementById("btnPractice");
   const btnLeave = document.getElementById("btnLeave");
   const btnNew = document.getElementById("btnNew");
+  const btnStart = document.getElementById("btnStart");
 
   const wpmEl = document.getElementById("wpm");
   const accEl = document.getElementById("acc");
@@ -477,20 +481,24 @@ loadPartials();
       try { msg = JSON.parse(ev.data); } catch { return; }
 
       if (msg.event === "init") {
-        text = msg.text || "";
-        you = msg.you || null;
-        players = msg.players || {};
-        elRaceText.textContent = text;
+  text = msg.text || "";
+  you = msg.you || null;
+  players = msg.players || {};
+  elRaceText.textContent = text;
 
-        renderRoster(players);
-        resetTrack();
-        updateStats(0,0);
+  renderRoster(players);
+  resetTrack();
+  updateStats(0,0);
 
-        startedAt = performance.now();
-        input.disabled = false;
-        input.value = "";
-        input.focus();
-        setLobbyStatus(`Race started. Room: ${roomCode}`);
+  // DO NOT start yet
+  startedAt = null;
+  finished = false;
+  input.disabled = true;
+  input.value = "";
+
+  setLobbyStatus(`Lobby open. Room: ${roomCode}. Waiting for host to start.`);
+
+
       }
 
       if (msg.event === "join") {
@@ -500,6 +508,14 @@ loadPartials();
         setLobbyStatus(`Player joined. Room: ${roomCode}`);
 }
 
+      if (msg.event === "start") {
+        startedAt = performance.now();
+        finished = false;
+        input.disabled = false;
+        input.value = "";
+        input.focus();
+        setLobbyStatus(`Race started. Room: ${roomCode}`);
+}
 
       if (msg.event === "update") {
         players[msg.player] = msg.charsTyped;
@@ -612,6 +628,10 @@ loadPartials();
   joinMatchmakingLobby();
 });
 
+  btnStart.addEventListener("click", () => {
+  if (!ws || ws.readyState !== WebSocket.OPEN) return;
+  ws.send(JSON.stringify({ event: "start", player: you }));
+});
 
 
   btnPractice.addEventListener("click", beginPractice);
