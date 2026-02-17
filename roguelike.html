@@ -6,26 +6,13 @@
   <title>Roguelike | surewhynot.app</title>
 
   <!-- SEO -->
-  <meta name="description" content="Play a lightweight top-down roguelike in your browser. Procedural dungeon generation, permadeath-style runs, and keyboard controls." />
+  <meta name="description" content="Play a lightweight top-down roguelike directly in your browser. Procedural dungeon generation, permadeath-style runs, and keyboard controls." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://surewhynot.app/roguelike.html" />
-  <meta property="og:title" content="Roguelike | surewhynot.app" />
-  <meta property="og:description" content="A procedural top-down roguelike built in vanilla HTML5 Canvas." />
+  <link rel="canonical" href="https://surewhynot.app/roguelike" />
+  <meta property="og:title" content="Top-Down Roguelike | surewhynot.app" />
+  <meta property="og:description" content="A procedural roguelike built in vanilla HTML5 Canvas. No accounts. No installs. Just run and explore." />
   <meta property="og:type" content="website" />
-
-  <!-- Basic Hardening -->
-  <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self';
-                 script-src 'self' https://pagead2.googlesyndication.com https://www.googletagservices.com;
-                 connect-src 'self';
-                 img-src 'self' data: https:;
-                 style-src 'self' 'unsafe-inline';
-                 object-src 'none';
-                 base-uri 'none';
-                 frame-ancestors 'none';
-                 upgrade-insecure-requests;">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+  <meta property="og:url" content="https://surewhynot.app/roguelike" />
 
   <!-- Google AdSense -->
   <script async
@@ -44,7 +31,12 @@
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
     }
     .wrap { width:min(980px,96vw); }
-    header { display:flex; justify-content:space-between; align-items:center; padding:10px 0; }
+    header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:10px 0;
+    }
     canvas {
       width:100%;
       height:auto;
@@ -104,11 +96,11 @@
 <script>
 "use strict";
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d", { alpha:false });
-const statusEl = document.getElementById("status");
-const seedShort = document.getElementById("seedShort");
-const seedFull = document.getElementById("seedFull");
+const canvas=document.getElementById("game");
+const ctx=canvas.getContext("2d",{alpha:false});
+const statusEl=document.getElementById("status");
+const seedShort=document.getElementById("seedShort");
+const seedFull=document.getElementById("seedFull");
 
 const TILE=16;
 const W=Math.floor(canvas.width/TILE);
