@@ -11,18 +11,18 @@
 
   <link rel="stylesheet" href="/assets/site.css">
 
-  <!-- AdSense -->
+  <script>
+  async function loadPartials() {
+    const header = await fetch('/partials/header.html');
+    const footer = await fetch('/partials/footer.html');
+
+    document.getElementById('site-header').innerHTML = await header.text();
+    document.getElementById('site-footer').innerHTML = await footer.text();
+  }
+  
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
     crossorigin="anonymous"></script>
-
-  <script>
-    async function loadPartials() {
-      const header = await fetch('/partials/header.html');
-      const footer = await fetch('/partials/footer.html');
-
-      document.getElementById('site-header').innerHTML = await header.text();
-      document.getElementById('site-footer').innerHTML = await footer.text();
-    }
+  
   </script>
 
   <style>
@@ -58,10 +58,11 @@
     }
 
     .iconLink img{
-      width:50px;
-      height:50px;
-      display:block;
+     width:50px;
+     height:50px;
+     display:block;
     }
+
 
     .copyWrap{
       margin-top:20px;
@@ -103,10 +104,10 @@
             </div>
 
             <div class="hr"></div>
-
-            <div class="muted" style="margin-bottom:10px; font-size:13px; letter-spacing:.5px;">
-              Links
+			<div class="muted" style="margin-bottom:10px; font-size:13px; letter-spacing:.5px;">
+                 Links
             </div>
+
 
             <div class="iconRow">
 
@@ -200,6 +201,5 @@
     });
   })();
   </script>
-
 </body>
 </html>
