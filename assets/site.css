@@ -14,13 +14,41 @@
 
 *{box-sizing:border-box}
 html,body{height:100%}
+
 body{
   margin:0;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
-  background: radial-gradient(1200px 700px at 50% -10%, rgba(30,60,120,.22), transparent 60%),
-              radial-gradient(900px 600px at 80% 10%, rgba(246,195,74,.10), transparent 55%),
-              var(--bg);
+
+  /* IMPORTANT: solid base only (glow moved to fixed overlays below) */
+  background: var(--bg);
+
   color:var(--text);
+  position: relative;
+}
+
+/* viewport-sized ambient glow (does NOT grow with page height) */
+body::before{
+  content:"";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(1200px 700px at 50% -10%, rgba(30,60,120,.22), transparent 60%),
+    radial-gradient(900px 600px at 80% 10%, rgba(246,195,74,.10), transparent 55%);
+}
+
+/* bottom glow strip with fixed height (~half inch) */
+body::after{
+  content:"";
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 48px; /* adjust 40–60px */
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(to top, rgba(30,60,120,.18), transparent 70%);
 }
 
 /* sticky footer layout */
@@ -28,6 +56,8 @@ body{
   min-height:100vh;
   display:flex;
   flex-direction:column;
+  position: relative;
+  z-index: 1; /* keep content above the glow overlays */
 }
 main{flex:1}
 
@@ -162,7 +192,6 @@ footer{
   opacity:.75;
   z-index:9999;
 }
-
 .infra-link:hover{
   opacity:1;
   text-decoration:underline;
