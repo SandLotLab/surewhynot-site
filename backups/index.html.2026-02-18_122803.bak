@@ -27,6 +27,19 @@
   <link rel="manifest" href="/site.webmanifest">
 </head>
 
+<script>
+  async function loadPartials() {
+    const header = await fetch('/partials/header.html');
+    const footer = await fetch('/partials/footer.html');
+
+    document.getElementById('site-header').innerHTML = await header.text();
+    document.getElementById('site-footer').innerHTML = await footer.text();
+
+    if (window.SWY_renderToolUse) window.SWY_renderToolUse();
+  }
+  loadPartials();
+</script>
+
 <body>
   <div class="page">
     <div id="site-header"></div>
@@ -78,25 +91,5 @@
 
     <div id="site-footer"></div>
   </div>
-  
-  <script>
-  async function loadPartials() {
-    const [header, footer] = await Promise.all([
-      fetch('/partials/header.html'),
-      fetch('/partials/footer.html')
-    ]);
-
-    const h = document.getElementById('site-header');
-    const f = document.getElementById('site-footer');
-
-    if (h) h.innerHTML = await header.text();
-    if (f) f.innerHTML = await footer.text();
-
-    if (window.SWY_renderToolUse) window.SWY_renderToolUse();
-  }
-  loadPartials();
-</script>
-
-  
 </body>
 </html>

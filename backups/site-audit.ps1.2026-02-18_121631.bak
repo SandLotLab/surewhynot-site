@@ -13,58 +13,15 @@ $urls = @(
 )
 
 function Fetch($url) {
+  # Safe fetch wrapper
   try {
-    return Invoke-WebRequest -Uri $url -Method GET -MaximumRedirection 10 -UseBasicParsing -ErrorAction Stop -Headers @{
+    return Invoke-WebRequest -Uri $url -Method GET -MaximumRedirection 5 -UseBasicParsing -ErrorAction Stop -Headers @{
       "User-Agent" = "Mozilla/5.0"
     }
   } catch {
     Write-Host "ERROR: $($_.Exception.Message)"
     return $null
   }
-}
-
-function Fetch-Follow308($url, $maxHops = 10) {
-  $current = $url
-  for ($i = 0; $i -lt $maxHops; $i++) {
-    try {
-      $r = Invoke-WebRequest -Uri $current -Method GET -MaximumRedirection 0 -UseBasicParsing -ErrorAction Stop -Headers @{
-        "User-Agent" = "Mozilla/5.0"
-      }
-      return $r
-    } catch {
-      $resp = $_.Exception.Response
-      if (-not $resp) {
-        Write-Host "ERROR: $($_.Exception.Message)"
-        return $null
-      }
-
-      $status = [int]$resp.StatusCode
-      if ($status -ne 301 -and $status -ne 302 -and $status -ne 303 -and $status -ne 307 -and $status -ne 308) {
-        Write-Host "ERROR: HTTP $status"
-        return $null
-      }
-
-      $loc = $resp.Headers["Location"]
-      if (-not $loc) {
-        Write-Host "ERROR: Redirect ($status) without Location header"
-        return $null
-      }
-
-      # Resolve relative Location -> absolute
-      if ($loc -match '^\s*/') {
-        $u = [Uri]$current
-        $current = "$($u.Scheme)://$($u.Host)$loc"
-      } elseif ($loc -notmatch '^https?://') {
-        $u = [Uri]$current
-        $current = (New-Object Uri($u, $loc)).AbsoluteUri
-      } else {
-        $current = $loc
-      }
-    }
-  }
-
-  Write-Host "ERROR: Too many redirects for $url"
-  return $null
 }
 
 Write-Host "`n========== BASIC SITE CHECK =========="
@@ -100,6 +57,7 @@ $homeResp = Fetch "$domain/"
 if (-not $homeResp) {
   Write-Host "Homepage fetch failed."
 } else {
+  # Check for AdSense loader script OR client id string
   $hasLoader = ($homeResp.Content -match "pagead2\.googlesyndication\.com/pagead/js/adsbygoogle\.js")
   $hasClient = ($homeResp.Content -match [regex]::Escape($adsClient))
 
@@ -110,9 +68,10 @@ if (-not $homeResp) {
   }
 }
 
+# ads.txt check (publisher ID in ads.txt is "pub-..." not "ca-pub-...")
 $adsResp = Fetch "$domain/ads.txt"
 if ($adsResp) {
-  $pubId = $adsClient -replace "^ca-",""
+  $pubId = $adsClient -replace "^ca-",""   # ca-pub-... -> pub-...
   if ($adsResp.Content -match [regex]::Escape($pubId)) {
     Write-Host "Publisher ID found in ads.txt."
   } else {
@@ -140,22 +99,6 @@ try {
   Write-Host "Could not extract links."
 }
 
-Write-Host "`n========== PARTIAL LINKS (header/footer) =========="
-
-$headerResp = Fetch-Follow308 "$domain/partials/header.html"
-$footerResp = Fetch-Follow308 "$domain/partials/footer.html"
-
-function Print-Hrefs($label, $html) {
-  Write-Host "`n--- $label ---"
-  if (-not $html) { Write-Host "Missing"; return }
-  $hrefs = [regex]::Matches($html, 'href\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase') |
-    ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-  if ($hrefs.Count -eq 0) { Write-Host "No href links"; return }
-  $hrefs | ForEach-Object { Write-Host $_ }
-}
-
-Print-Hrefs "header.html" ($headerResp.Content)
-Print-Hrefs "footer.html" ($footerResp.Content)
 
 # ===============================
 # Save Local Snapshots
