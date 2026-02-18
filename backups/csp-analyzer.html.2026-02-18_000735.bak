@@ -27,7 +27,23 @@
   }
   </script>
 
-  <!-- REMOVED: CSP/Referrer/Permissions/XFO hardening meta tags (they were blocking AdSense) -->
+  <!-- Hardened but compatible with inline JS + styling -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline';
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data:;
+    font-src 'self' data:;
+    connect-src 'self';
+    object-src 'none';
+    base-uri 'self';
+    frame-ancestors 'none';
+    form-action 'none';
+    upgrade-insecure-requests
+  ">
+  <meta http-equiv="Referrer-Policy" content="no-referrer">
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()">
+  <meta http-equiv="X-Frame-Options" content="DENY">
 
   <style>
     .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
@@ -90,8 +106,7 @@
   }
   loadPartials();
   </script>
-
-  <!-- Google AdSense -->
+  
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
      crossorigin="anonymous"></script>
 
@@ -100,6 +115,7 @@
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
+	 
 </head>
 
 <body>
@@ -119,20 +135,6 @@
               </div>
 
               <div class="hr"></div>
-
-              <!-- Optional ad unit placement (script alone won't render ads) -->
-              <!--
-              <ins class="adsbygoogle"
-                   style="display:block; margin: 10px 0;"
-                   data-ad-client="ca-pub-7167291111213614"
-                   data-ad-slot="YOUR_SLOT_ID"
-                   data-ad-format="auto"
-                   data-full-width-responsive="true"></ins>
-              <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-              </script>
-              <div class="hr"></div>
-              -->
 
               <div class="row">
                 <div class="col" style="flex:2 1 360px; min-width:280px">
@@ -258,6 +260,7 @@
   }
 
   function extractHeadersOrCsp(raw){
+    // If user pasted full headers, try to extract CSP + other security headers.
     const text = normalize(raw);
     const lines = text.split("\n").map(x => x.trim()).filter(Boolean);
 
@@ -271,9 +274,12 @@
       }
     }
 
+    // If they pasted a bare CSP policy (no header name), treat entire input as CSP.
     const csp = headers["content-security-policy"] || headers["content-security-policy-report-only"] || null;
+
     if(csp) return { headers, csp };
 
+    // heuristic: looks like CSP if it contains directives with -src or known directives
     const looksLikeCsp = /(\bdefault-src\b|\bscript-src\b|\bstyle-src\b|\bframe-ancestors\b|\bbase-uri\b)/i.test(text);
     return { headers, csp: looksLikeCsp ? text : null };
   }
@@ -283,6 +289,7 @@
     const p = String(policy || "").trim();
     if(!p) return out;
 
+    // split on semicolons
     const parts = p.split(";").map(x => x.trim()).filter(Boolean);
     for(const part of parts){
       const tokens = part.split(/\s+/).filter(Boolean);
@@ -323,29 +330,38 @@
     const findings = [];
     const parsed = csp ? parseCsp(csp) : {};
 
+    // --- CSP analysis (only if present) ---
     if(!csp){
       addFinding(findings, "high", "No CSP found", "No Content-Security-Policy detected in input.", "CSP");
     } else {
+      // missing baseline directives
       if(!parsed["default-src"]) addFinding(findings, "med", "default-src missing", "Consider setting default-src as a baseline policy.", "CSP");
 
+      // script-src dangers
       if(has(parsed, "script-src", "'unsafe-inline'")) addFinding(findings, "high", "script-src allows 'unsafe-inline'", "Inline scripts are easier to abuse. Prefer nonce/hash.", "CSP");
       if(has(parsed, "script-src", "'unsafe-eval'")) addFinding(findings, "high", "script-src allows 'unsafe-eval'", "Eval-like sinks increase XSS impact.", "CSP");
       if(any(parsed, "script-src", v => v === "*" )) addFinding(findings, "high", "script-src allows *", "Wildcard sources weaken script isolation.", "CSP");
       if(any(parsed, "script-src", v => v === "data:")) addFinding(findings, "high", "script-src allows data:", "data: scripts are high-risk.", "CSP");
 
+      // object-src baseline
       if(!parsed["object-src"]) addFinding(findings, "med", "object-src missing", "Set object-src 'none' to reduce plugin/embed risk.", "CSP");
       if(parsed["object-src"] && !has(parsed,"object-src","'none'")) addFinding(findings, "med", "object-src not 'none'", "Consider object-src 'none'.", "CSP");
 
+      // frame-ancestors baseline
       if(!parsed["frame-ancestors"]) addFinding(findings, "med", "frame-ancestors missing", "Add frame-ancestors 'none' (or a strict allowlist).", "CSP");
       if(has(parsed,"frame-ancestors","*")) addFinding(findings, "high", "frame-ancestors allows *", "Allows clickjacking by any origin.", "CSP");
 
+      // base-uri baseline
       if(!parsed["base-uri"]) addFinding(findings, "low", "base-uri missing", "Consider base-uri 'none' or 'self'.", "CSP");
 
+      // report-only note
       if(headers["content-security-policy-report-only"]) addFinding(findings, "info", "Report-Only CSP present", "Policy is report-only; enforcement may be off.", "CSP");
 
+      // strict-dynamic info
       if(has(parsed, "script-src", "'strict-dynamic'")) addFinding(findings, "info", "Uses 'strict-dynamic'", "This typically pairs with nonces/hashes.", "CSP");
     }
 
+    // --- Security headers analysis (if pasted) ---
     if(Object.keys(headers || {}).length){
       const h = headers;
 
@@ -354,15 +370,18 @@
       if(!h["referrer-policy"]) addFinding(findings, "low", "Referrer-Policy missing", "Consider Referrer-Policy: no-referrer (or strict-origin-when-cross-origin).", "Headers");
       if(!h["permissions-policy"]) addFinding(findings, "info", "Permissions-Policy missing", "Optional hardening for browser features.", "Headers");
 
+      // X-Frame-Options is legacy; frame-ancestors is CSP modern
       if(!h["x-frame-options"] && !(csp && parsed["frame-ancestors"])) {
         addFinding(findings, "med", "Clickjacking protection missing", "Add CSP frame-ancestors and/or X-Frame-Options.", "Headers");
       }
 
+      // COOP/COEP/CORP as info
       if(!h["cross-origin-opener-policy"]) addFinding(findings, "info", "COOP missing", "Optional isolation hardening.", "Headers");
       if(!h["cross-origin-embedder-policy"]) addFinding(findings, "info", "COEP missing", "Optional isolation hardening.", "Headers");
       if(!h["cross-origin-resource-policy"]) addFinding(findings, "info", "CORP missing", "Optional resource policy hardening.", "Headers");
     }
 
+    // render findings
     findingsEl.innerHTML = "";
     const order = { high:0, med:1, low:2, info:3 };
     findings.sort((a,b) => (order[a.severity] ?? 9) - (order[b.severity] ?? 9));
@@ -396,12 +415,14 @@
       findingsEl.appendChild(div);
     }
 
+    // parsed view
     if(optShowParsed.checked && csp){
       parsedOut.textContent = JSON.stringify(parsed, null, 2);
     } else {
       parsedOut.textContent = "";
     }
 
+    // report text/json
     const report = [];
     report.push("CSP & Security Headers Analyzer — Local Report");
     report.push("time: " + new Date().toISOString());
