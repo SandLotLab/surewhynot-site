@@ -112,7 +112,7 @@ if (-not $homeResp) {
 
 $adsResp = Fetch "$domain/ads.txt"
 if ($adsResp) {
-  $pubId = $adsClient -replace "^ca-",""   # ca-pub-... -> pub-...
+  $pubId = $adsClient -replace "^ca-",""
   if ($adsResp.Content -match [regex]::Escape($pubId)) {
     Write-Host "Publisher ID found in ads.txt."
   } else {
@@ -147,17 +147,9 @@ $footerResp = Fetch-Follow308 "$domain/partials/footer.html"
 
 function Print-Hrefs($label, $html) {
   Write-Host "`n--- $label ---"
-
-  if ($null -eq $html) { Write-Host "Missing (null)"; return }
-
-  $len = $html.Length
-  Write-Host "Body length: $len"
-
-  if ($len -eq 0) { Write-Host "Empty body (not missing)"; return }
-
+  if (-not $html) { Write-Host "Missing"; return }
   $hrefs = [regex]::Matches($html, 'href\s*=\s*["'']([^"'']+)["'']', 'IgnoreCase') |
     ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique
-
   if ($hrefs.Count -eq 0) { Write-Host "No href links"; return }
   $hrefs | ForEach-Object { Write-Host $_ }
 }
