@@ -48,13 +48,37 @@
       <div class="wrap">
         <section class="grid">
 
-          <!-- LEFT: Welcome (no duplicate nav, no policy links) -->
+          <!-- LEFT: Hero + Tools -->
           <div class="card">
             <div class="pad">
               <div class="h1">Welcome</div>
 
               <p class="muted" style="margin-top:6px">
-                Local-first tools for builders. Fast. Private. No accounts. No uploads.
+                Local-first tools for builders.<br>
+                Fast. Private. No accounts. No uploads.
+              </p>
+
+              <div style="height:14px"></div>
+
+              <div class="h2">Tools</div>
+
+              <!-- Minimal, scan-friendly list -->
+              <ul class="list" style="margin-top:10px; line-height:1.65">
+                <li><a href="/json-formatter.html">JSON Formatter</a></li>
+                <li><a href="/json-to-typescript.html">JSON → TypeScript</a></li>
+                <li><a href="/jwt-decoder.html">JWT Decoder</a></li>
+                <li><a href="/csp-analyzer.html">CSP Analyzer</a></li>
+                <li><a href="/hash-generator.html">Hash Generator</a></li>
+                <li><a href="/uuid-generator.html">UUID Generator</a></li>
+                <li><a href="/log-explorer.html">Log Explorer</a></li>
+                <li><a href="/roguelike.html">Roguelike</a></li>
+                <li><a href="/galactica.html">Galactica</a></li>
+              </ul>
+
+              <div style="height:10px"></div>
+
+              <p class="muted" style="margin:0">
+                Policies: <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/contact.html">Contact</a>
               </p>
             </div>
           </div>
