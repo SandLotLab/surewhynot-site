@@ -16,8 +16,7 @@
 	  <a class="pill" href="/uuid-generator.html">UUID-Generator</a>
 	  <a class="pill" href="/jwt-decoder.html">JWT-Decoder</a>
 	  <a class="pill" href="/csp-analyzer.html">CSP-Analyzer</a>
-	  <a class="pill" href="/log-explorer.html">Log Explorer</a>
-  
+	  
 	  
     </nav>
   </div>

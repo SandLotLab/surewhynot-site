@@ -1,0 +1,706 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Log Explorer — Parse, Search, Filter, Aggregate Logs (Free)</title>
+  <meta name="description" content="Free client-side log explorer: parse logs/NDJSON, search (AND/OR, field:value), filter by time/level, aggregate counts, and export JSON/CSV. Runs locally in your browser — no uploads." />
+  <link rel="canonical" href="https://surewhynot.app/log-explorer.html" />
+  <meta name="robots" content="index,follow" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Log Explorer (Free, Client-Side)" />
+  <meta property="og:description" content="Parse logs/NDJSON locally. Search, filter, aggregate, export JSON/CSV. No uploads." />
+  <meta property="og:url" content="https://surewhynot.app/log-explorer.html" />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Log Explorer",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "url": "https://surewhynot.app/log-explorer.html",
+    "description": "Free client-side log explorer: parse logs/NDJSON, search, filter, aggregate, and export JSON/CSV. Runs locally in your browser — no uploads."
+  }
+  </script>
+
+  <link rel="stylesheet" href="/assets/site.css">
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
+     crossorigin="anonymous"></script>
+
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+
+  <style>
+    .ta { width:100%; min-height:260px; resize:vertical; padding:12px; border-radius:12px;
+      border:1px solid rgba(23,36,59,.85); background: rgba(11,21,40,.55); color: var(--text);
+      font-family: inherit; font-size: 12.5px; line-height: 1.5;
+    }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .grow { flex:1; min-width: 220px; }
+    .inp {
+      width:100%; padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(23,36,59,.85); background: rgba(11,21,40,.55); color: var(--text);
+      font-family: inherit; font-size: 13px;
+    }
+    .mini { font-size:11px; opacity:.9 }
+    .drop {
+      border:1px dashed rgba(159,176,204,.35);
+      border-radius:12px;
+      padding:14px;
+      background: rgba(11,21,40,.25);
+      text-align:center;
+      user-select:none;
+    }
+    .drop.drag { border-color: rgba(246,195,74,.55); }
+    .table {
+      width:100%;
+      border-collapse:collapse;
+      font-size:12px;
+    }
+    .table th, .table td {
+      border-bottom:1px solid rgba(23,36,59,.7);
+      padding:8px 6px;
+      vertical-align:top;
+    }
+    .table th { color: var(--muted); font-weight:700; text-align:left; }
+    .tag {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:3px 8px; border-radius:999px;
+      border:1px solid rgba(23,36,59,.85);
+      background: rgba(11,21,40,.6);
+      color: var(--muted);
+      font-size:11px;
+      white-space:nowrap;
+    }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace; }
+    .rightScroll { max-height:520px; overflow:auto; border-radius:12px; }
+    .dim { opacity:.65 }
+  </style>
+
+  <script>
+  async function loadPartials() {
+    const header = await fetch('/partials/header.html');
+    const footer = await fetch('/partials/footer.html');
+    document.getElementById('site-header').innerHTML = await header.text();
+    document.getElementById('site-footer').innerHTML = await footer.text();
+    if (window.SWY_renderToolUse) window.SWY_renderToolUse();
+  }
+  </script>
+</head>
+
+<body onload="loadPartials()">
+  <div class="page">
+    <div id="site-header"></div>
+
+    <main>
+      <div class="wrap">
+        <div class="grid">
+          <!-- LEFT: INPUT -->
+          <section class="card">
+            <div class="pad">
+              <div class="h1">Log Explorer</div>
+              <div class="muted">
+                Local-only. Paste logs or drop a file. Parse → search → filter → aggregate → export.
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="drop" id="drop">
+                Drop a <span class="kbd">.log</span>/<span class="kbd">.txt</span>/<span class="kbd">.ndjson</span> here (client-side) or use the picker:
+                <div style="margin-top:10px">
+                  <input id="file" type="file" accept=".log,.txt,.ndjson,.json,text/plain,application/json" />
+                </div>
+                <div class="muted mini" id="fileNote" style="margin-top:10px"></div>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="row">
+                <div class="grow">
+                  <div class="muted mini">Search (supports: text, <span class="kbd">field:value</span>, AND, OR)</div>
+                  <input class="inp mono" id="q" placeholder='ex: level:error AND source:nginx OR timeout' spellcheck="false" />
+                </div>
+
+                <div style="min-width:170px">
+                  <div class="muted mini">Level</div>
+                  <select class="inp" id="level">
+                    <option value="">All</option>
+                    <option value="error">error</option>
+                    <option value="warn">warn</option>
+                    <option value="info">info</option>
+                    <option value="debug">debug</option>
+                    <option value="trace">trace</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:10px">
+                <div class="grow">
+                  <div class="muted mini">Start (optional)</div>
+                  <input class="inp mono" id="t0" placeholder="YYYY-MM-DD or ISO timestamp" spellcheck="false" />
+                </div>
+                <div class="grow">
+                  <div class="muted mini">End (optional)</div>
+                  <input class="inp mono" id="t1" placeholder="YYYY-MM-DD or ISO timestamp" spellcheck="false" />
+                </div>
+              </div>
+
+              <div class="row" style="margin-top:12px">
+                <button class="pill" id="parse">Parse</button>
+                <button class="pill" id="apply">Apply Filters</button>
+                <button class="pill" id="clear">Clear</button>
+                <span class="tag"><span class="dim">Parsed:</span> <b id="nParsed">0</b></span>
+                <span class="tag"><span class="dim">Showing:</span> <b id="nShow">0</b></span>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted mini">Paste logs / NDJSON / JSON lines</div>
+              <textarea class="ta mono" id="raw" placeholder="Paste logs here..." spellcheck="false"></textarea>
+
+              <div class="hr"></div>
+              <div class="muted" style="line-height:1.65">
+                Parse common formats (JSON lines, key=value, syslog-ish). Filter by time range, severity, and simple queries.
+                Export results as JSON or CSV.
+              </div>
+              <div class="muted" style="margin-top:10px; line-height:1.65">
+                Keywords: log explorer, ndjson viewer, log search, log parser, local log analysis, client-side log tool, export logs to csv.
+              </div>
+            </div>
+          </section>
+
+          <!-- RIGHT: RESULTS -->
+          <aside class="card">
+            <div class="pad">
+              <div class="h1">Results</div>
+
+              <div class="row" style="margin-top:6px">
+                <button class="pill" id="dlJson">Download JSON</button>
+                <button class="pill" id="dlCsv">Download CSV</button>
+                <button class="pill" id="copyJson">Copy JSON</button>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="row">
+                <span class="tag"><span class="dim">Errors:</span> <b id="cErr">0</b></span>
+                <span class="tag"><span class="dim">Warn:</span> <b id="cWarn">0</b></span>
+                <span class="tag"><span class="dim">Info:</span> <b id="cInfo">0</b></span>
+                <span class="tag"><span class="dim">Top source:</span> <b id="topSrc">—</b></span>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted mini">Events (most recent first)</div>
+              <div class="rightScroll" id="tblWrap">
+                <table class="table mono" id="tbl">
+                  <thead>
+                    <tr>
+                      <th style="width:150px">time</th>
+                      <th style="width:70px">level</th>
+                      <th style="width:140px">source</th>
+                      <th>message</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbody"></tbody>
+                </table>
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="muted mini">Buckets (events per minute)</div>
+              <div class="mono" id="buckets" style="font-size:12px; line-height:1.5; opacity:.9"></div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+<script>
+(() => {
+  // --- Worker (parse + filter + aggregate) ---
+  const workerSrc = `
+    const LEVELS = ["error","warn","warning","info","debug","trace","fatal"];
+    const monthMap = {Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+
+    function normLevel(s){
+      if(!s) return "";
+      s = String(s).toLowerCase();
+      if (s === "warning") return "warn";
+      return s;
+    }
+
+    function tryParseTime(s){
+      if(!s) return null;
+      const t = Date.parse(s);
+      if (!Number.isNaN(t)) return t;
+
+      const s2 = s.replace(" ", "T");
+      const t2 = Date.parse(s2);
+      if (!Number.isNaN(t2)) return t2;
+
+      const m = String(s).match(/^([A-Za-z]{3})\\s+(\\d{1,2})\\s+(\\d{2}):(\\d{2}):(\\d{2})/);
+      if (m){
+        const now = new Date();
+        const dt = new Date(now.getFullYear(), monthMap[m[1]] ?? now.getMonth(), Number(m[2]), Number(m[3]), Number(m[4]), Number(m[5]));
+        return dt.getTime();
+      }
+
+      return null;
+    }
+
+    function parseLine(line){
+      const raw = line;
+      line = String(line || "").trim();
+      if (!line) return null;
+
+      if (line.startsWith("{") && line.endsWith("}")){
+        try{
+          const o = JSON.parse(line);
+          const time = tryParseTime(o.time || o.timestamp || o.ts || o["@timestamp"]) ?? null;
+          const level = normLevel(o.level || o.severity || o.lvl);
+          const source = String(o.source || o.service || o.app || o.logger || o.host || o.component || "").slice(0,120);
+          const msg = String(o.msg || o.message || o.event || o.error || o.text || raw);
+          return { time, level, source, msg, fields:o, raw };
+        }catch(e){}
+      }
+
+      if (line.includes("=")){
+        const kv = {};
+        const parts = line.split(/\\s+/);
+        let hits = 0;
+        for (const p of parts){
+          const i = p.indexOf("=");
+          if (i>0 && i<p.length-1){
+            const k = p.slice(0,i);
+            const v = p.slice(i+1);
+            if (k && v){
+              kv[k] = v.replace(/^"|"$/g,"");
+              hits++;
+            }
+          }
+        }
+        if (hits >= 2){
+          const time = tryParseTime(kv.time || kv.ts || kv.timestamp) ?? null;
+          const level = normLevel(kv.level || kv.severity);
+          const source = String(kv.source || kv.service || kv.app || kv.host || "").slice(0,120);
+          const msg = kv.msg || kv.message || kv.error || raw;
+          return { time, level, source, msg: String(msg), fields: kv, raw };
+        }
+      }
+
+      const m = line.match(/^(\\S+)\\s+([A-Za-z]+)\\s+(\\S+)\\s+(.*)$/);
+      if (m){
+        const t = tryParseTime(m[1]);
+        const lvl = normLevel(m[2]);
+        if (t !== null || LEVELS.includes(lvl)){
+          return { time: t, level: lvl, source: m[3].slice(0,120), msg: m[4], fields:{}, raw };
+        }
+      }
+
+      return { time: null, level: "", source: "", msg: raw, fields:{}, raw };
+    }
+
+    function tokenize(q){
+      q = (q || "").trim();
+      if(!q) return [];
+      const out = [];
+      let i=0;
+      while(i<q.length){
+        if (q[i] === " "){ i++; continue; }
+        if (q[i] === '"'){
+          let j=i+1;
+          while(j<q.length && q[j] !== '"') j++;
+          out.push({type:"TERM", value:q.slice(i+1, j)});
+          i = Math.min(j+1, q.length);
+          continue;
+        }
+        let j=i;
+        while(j<q.length && q[j] !== " ") j++;
+        const tok = q.slice(i,j);
+        const up = tok.toUpperCase();
+        if (up === "AND" || up === "OR") out.push({type:up});
+        else out.push({type:"TERM", value:tok});
+        i=j;
+      }
+      return out;
+    }
+
+    function termMatch(ev, term){
+      const t = term.trim();
+      if(!t) return true;
+
+      const k = t.indexOf(":");
+      if (k > 0){
+        const key = t.slice(0,k).toLowerCase();
+        const val = t.slice(k+1).toLowerCase();
+        if (key === "level") return (ev.level || "").toLowerCase() === val;
+        if (key === "source") return (ev.source || "").toLowerCase().includes(val);
+        if (key === "msg" || key === "message") return (ev.msg || "").toLowerCase().includes(val);
+        if (key === "raw") return (ev.raw || "").toLowerCase().includes(val);
+
+        const f = ev.fields || {};
+        for (const kk of Object.keys(f)){
+          if (kk.toLowerCase() === key){
+            return String(f[kk]).toLowerCase().includes(val);
+          }
+        }
+        return false;
+      }
+
+      const needle = t.toLowerCase();
+      return (
+        (ev.msg || "").toLowerCase().includes(needle) ||
+        (ev.raw || "").toLowerCase().includes(needle) ||
+        (ev.source || "").toLowerCase().includes(needle) ||
+        (ev.level || "").toLowerCase().includes(needle)
+      );
+    }
+
+    function evalQuery(ev, toks){
+      if (!toks.length) return true;
+      let acc = null;
+      let op = "AND";
+      for (const tok of toks){
+        if (tok.type === "AND" || tok.type === "OR"){
+          op = tok.type;
+          continue;
+        }
+        const m = termMatch(ev, tok.value);
+        if (acc === null) acc = m;
+        else acc = (op === "AND") ? (acc && m) : (acc || m);
+      }
+      return acc === null ? true : acc;
+    }
+
+    function bucketMinute(t){
+      if (t == null) return null;
+      const d = new Date(t);
+      d.setSeconds(0,0);
+      return d.getTime();
+    }
+
+    function toISO(t){
+      if (t == null) return "";
+      try { return new Date(t).toISOString(); } catch(e){ return ""; }
+    }
+
+    self.onmessage = (e) => {
+      const { type, payload } = e.data || {};
+      if (type === "PARSE"){
+        const lines = payload.text.split(/\\r?\\n/);
+        const events = [];
+        for (const line of lines){
+          const ev = parseLine(line);
+          if (ev) events.push(ev);
+        }
+        self.postMessage({ type:"PARSED", payload:{ events }});
+        return;
+      }
+
+      if (type === "FILTER"){
+        const { events, q, level, t0, t1 } = payload;
+
+        const toks = tokenize(q);
+        const t0ms = tryParseTime(t0) ?? null;
+        const t1ms = tryParseTime(t1) ?? null;
+        const wantLevel = (level || "").toLowerCase();
+
+        const out = [];
+        for (const ev of events){
+          if (wantLevel && (ev.level || "").toLowerCase() !== wantLevel) continue;
+
+          if (t0ms != null){
+            const tt = ev.time;
+            if (tt == null || tt < t0ms) continue;
+          }
+          if (t1ms != null){
+            const tt = ev.time;
+            if (tt == null || tt > t1ms) continue;
+          }
+
+          if (!evalQuery(ev, toks)) continue;
+          out.push(ev);
+        }
+
+        out.sort((a,b) => (b.time ?? -Infinity) - (a.time ?? -Infinity));
+
+        let cErr=0,cWarn=0,cInfo=0;
+        const srcCounts = new Map();
+        const buckets = new Map();
+
+        for (const ev of out){
+          const lvl = (ev.level || "").toLowerCase();
+          if (lvl === "error" || lvl === "fatal") cErr++;
+          else if (lvl === "warn") cWarn++;
+          else if (lvl === "info") cInfo++;
+
+          if (ev.source){
+            srcCounts.set(ev.source, (srcCounts.get(ev.source)||0)+1);
+          }
+
+          const bm = bucketMinute(ev.time);
+          if (bm != null) buckets.set(bm, (buckets.get(bm)||0)+1);
+        }
+
+        let topSrc = "";
+        let topN = 0;
+        for (const [k,v] of srcCounts.entries()){
+          if (v > topN){ topN=v; topSrc=k; }
+        }
+
+        const bucketArr = Array.from(buckets.entries())
+          .sort((a,b)=>a[0]-b[0])
+          .slice(-60)
+          .map(([t,c]) => ({ t, iso: toISO(t), c }));
+
+        self.postMessage({
+          type:"FILTERED",
+          payload:{
+            out,
+            counts:{ cErr, cWarn, cInfo, topSrc: topSrc || "—" },
+            bucketArr
+          }
+        });
+      }
+    };
+  `;
+
+  const worker = new Worker(URL.createObjectURL(new Blob([workerSrc], {type:"text/javascript"})));
+
+  // --- DOM ---
+  const raw = document.getElementById("raw");
+  const q = document.getElementById("q");
+  const level = document.getElementById("level");
+  const t0 = document.getElementById("t0");
+  const t1 = document.getElementById("t1");
+  const parseBtn = document.getElementById("parse");
+  const applyBtn = document.getElementById("apply");
+  const clearBtn = document.getElementById("clear");
+
+  const nParsed = document.getElementById("nParsed");
+  const nShow = document.getElementById("nShow");
+
+  const cErr = document.getElementById("cErr");
+  const cWarn = document.getElementById("cWarn");
+  const cInfo = document.getElementById("cInfo");
+  const topSrc = document.getElementById("topSrc");
+
+  const tbody = document.getElementById("tbody");
+  const bucketsEl = document.getElementById("buckets");
+
+  const dlJson = document.getElementById("dlJson");
+  const dlCsv = document.getElementById("dlCsv");
+  const copyJson = document.getElementById("copyJson");
+
+  const drop = document.getElementById("drop");
+  const file = document.getElementById("file");
+  const fileNote = document.getElementById("fileNote");
+
+  let EVENTS = [];
+  let SHOWN = [];
+
+  const MAX_WARN_BYTES = 15 * 1024 * 1024; // warn only (does not block)
+
+  function esc(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;");
+  }
+  function iso(t){
+    if (t == null) return "";
+    try { return new Date(t).toISOString(); } catch { return ""; }
+  }
+
+  function renderTable(list){
+    const rows = list.slice(0, 500);
+    const html = rows.map(ev => {
+      const time = iso(ev.time) || "";
+      const lvl = (ev.level || "").toLowerCase();
+      const src = ev.source || "";
+      const msg = ev.msg || ev.raw || "";
+      return `
+        <tr>
+          <td class="dim">${esc(time)}</td>
+          <td>${esc(lvl)}</td>
+          <td>${esc(src)}</td>
+          <td>${esc(msg)}</td>
+        </tr>
+      `;
+    }).join("");
+    tbody.innerHTML = html || `<tr><td colspan="4" class="dim">No results.</td></tr>`;
+  }
+
+  function renderBuckets(arr){
+    if (!arr.length){
+      bucketsEl.textContent = "—";
+      return;
+    }
+    const max = Math.max(...arr.map(x=>x.c));
+    const lines = arr.map(x => {
+      const barLen = Math.max(1, Math.round((x.c / max) * 24));
+      const bar = "█".repeat(barLen);
+      return `${x.iso.slice(11,16)}  ${String(x.c).padStart(3," ")}  ${bar}`;
+    });
+    bucketsEl.textContent = lines.join("\n");
+  }
+
+  function download(name, text, mime){
+    const blob = new Blob([text], {type: mime || "text/plain"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 800);
+  }
+
+  function toCSV(list){
+    const cols = ["time","level","source","message"];
+    const lines = [cols.join(",")];
+    for (const ev of list){
+      const row = [
+        iso(ev.time),
+        ev.level || "",
+        ev.source || "",
+        (ev.msg || ev.raw || "").replaceAll("\n"," ")
+      ].map(v => `"${String(v).replaceAll('"','""')}"`);
+      lines.push(row.join(","));
+    }
+    return lines.join("\n");
+  }
+
+  // --- Actions ---
+  function parse(){
+    worker.postMessage({ type:"PARSE", payload:{ text: raw.value || "" }});
+  }
+
+  function apply(){
+    worker.postMessage({
+      type:"FILTER",
+      payload:{
+        events: EVENTS,
+        q: q.value || "",
+        level: level.value || "",
+        t0: t0.value || "",
+        t1: t1.value || ""
+      }
+    });
+  }
+
+  parseBtn.addEventListener("click", parse);
+  applyBtn.addEventListener("click", apply);
+
+  clearBtn.addEventListener("click", () => {
+    raw.value = "";
+    q.value = "";
+    level.value = "";
+    t0.value = "";
+    t1.value = "";
+    EVENTS = [];
+    SHOWN = [];
+    nParsed.textContent = "0";
+    nShow.textContent = "0";
+    cErr.textContent = "0";
+    cWarn.textContent = "0";
+    cInfo.textContent = "0";
+    topSrc.textContent = "—";
+    if (fileNote) fileNote.textContent = "";
+    renderTable([]);
+    renderBuckets([]);
+  });
+
+  dlJson.addEventListener("click", () => {
+    download("log-results.json", JSON.stringify(SHOWN, null, 2), "application/json");
+  });
+  dlCsv.addEventListener("click", () => {
+    download("log-results.csv", toCSV(SHOWN), "text/csv");
+  });
+  copyJson.addEventListener("click", async () => {
+    const txt = JSON.stringify(SHOWN, null, 2);
+    try { await navigator.clipboard.writeText(txt); } catch {}
+  });
+
+  raw.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") parse();
+  });
+
+  q.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") apply();
+  });
+
+  worker.onmessage = (e) => {
+    const { type, payload } = e.data || {};
+    if (type === "PARSED"){
+      EVENTS = payload.events || [];
+      nParsed.textContent = String(EVENTS.length);
+      apply();
+      return;
+    }
+    if (type === "FILTERED"){
+      SHOWN = payload.out || [];
+      nShow.textContent = String(SHOWN.length);
+      cErr.textContent = String(payload.counts?.cErr ?? 0);
+      cWarn.textContent = String(payload.counts?.cWarn ?? 0);
+      cInfo.textContent = String(payload.counts?.cInfo ?? 0);
+      topSrc.textContent = String(payload.counts?.topSrc ?? "—");
+      renderTable(SHOWN);
+      renderBuckets(payload.bucketArr || []);
+    }
+  };
+
+  // --- File drop / picker ---
+  async function readFile(f){
+    if (fileNote){
+      if (f && typeof f.size === "number" && f.size > MAX_WARN_BYTES){
+        fileNote.textContent = `Note: Large file (${Math.round(f.size/1024/1024)} MB). Parsing may be slow in-browser.`;
+      } else {
+        fileNote.textContent = "";
+      }
+    }
+    const text = await f.text();
+    raw.value = text;
+    parse();
+  }
+
+  file.addEventListener("change", () => {
+    const f = file.files && file.files[0];
+    if (f) readFile(f);
+  });
+
+  ["dragenter","dragover"].forEach(evt => {
+    drop.addEventListener(evt, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.add("drag");
+    });
+  });
+  ["dragleave","drop"].forEach(evt => {
+    drop.addEventListener(evt, (e) => {
+      e.preventDefault(); e.stopPropagation();
+      drop.classList.remove("drag");
+    });
+  });
+  drop.addEventListener("drop", (e) => {
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) readFile(f);
+  });
+
+})();
+</script>
+
+</body>
+</html>
