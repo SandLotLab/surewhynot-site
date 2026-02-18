@@ -171,7 +171,9 @@
                 Parse common formats (JSON lines, key=value, syslog-ish). Filter by time range, severity, and simple queries.
                 Export results as JSON or CSV.
               </div>
-              
+              <div class="muted" style="margin-top:10px; line-height:1.65">
+                Keywords: log explorer, ndjson viewer, log search, log parser, local log analysis, client-side log tool, export logs to csv.
+              </div>
             </div>
           </section>
 
