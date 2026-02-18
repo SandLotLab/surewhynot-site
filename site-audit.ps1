@@ -1,95 +1,100 @@
-# ===============================
-# SureWhyNot Site Audit Script
-# ===============================
+$baseUrl = "https://surewhynot.app"
+$adsClient = "ca-pub-7167291111213614"
 
-$domain = "https://surewhynot.app"
+Write-Host ""
+Write-Host "========== BASIC SITE CHECK ==========" -ForegroundColor Cyan
+Write-Host ""
 
-$urls = @(
-    "$domain/",
-    "$domain/ads.txt",
-    "$domain/robots.txt",
-    "$domain/sitemap.xml"
-)
-
-Write-Host "`n========== BASIC SITE CHECK =========="
-
-foreach ($url in $urls) {
-    Write-Host "`n===== $url ====="
-
+function Fetch-Url($url) {
     try {
-        $r = Invoke-WebRequest -Uri $url -Method GET -MaximumRedirection 5 -ErrorAction Stop
-
-        Write-Host "Status: $($r.StatusCode)"
-        Write-Host "Content-Type: $($r.Headers.'Content-Type')"
-        Write-Host "Server: $($r.Headers.Server)"
-        Write-Host "Cache-Control: $($r.Headers.'Cache-Control')"
-        Write-Host "X-Robots-Tag: $($r.Headers.'X-Robots-Tag')"
-        Write-Host "CSP: $($r.Headers.'Content-Security-Policy')"
-        Write-Host "X-Frame-Options: $($r.Headers.'X-Frame-Options')"
-        Write-Host "Referrer-Policy: $($r.Headers.'Referrer-Policy')"
-        Write-Host "Permissions-Policy: $($r.Headers.'Permissions-Policy')"
-        Write-Host "Strict-Transport-Security: $($r.Headers.'Strict-Transport-Security')"
-
-        Write-Host "`n---- First 60 lines of body ----"
-        ($r.Content -split "`n" | Select-Object -First 60) -join "`n"
-
-    } catch {
-        Write-Host "ERROR: $($_.Exception.Message)"
+        return Invoke-WebRequest $url `
+            -UseBasicParsing `
+            -Headers @{ "User-Agent" = "Mozilla/5.0" }
+    }
+    catch {
+        Write-Host "Fetch failed for $url" -ForegroundColor Red
+        Write-Host $_.Exception.Message
+        return $null
     }
 }
 
-# ===============================
-# AdSense Detection
-# ===============================
+# ----------------------------
+# HOMEPAGE
+# ----------------------------
+Write-Host "===== $baseUrl/ =====" -ForegroundColor Yellow
+$home = Fetch-Url "$baseUrl/"
 
-Write-Host "`n========== ADSENSE CHECK =========="
-
-try {
-    $home = Invoke-WebRequest "$domain/" -UseBasicParsing
-    $adsense = $home.Content | Select-String -Pattern "pagead2\.googlesyndication\.com" -AllMatches
-
-    if ($adsense) {
-        Write-Host "AdSense script detected."
-    } else {
-        Write-Host "AdSense script NOT detected."
-    }
-} catch {
-    Write-Host "Homepage fetch failed."
+if ($home) {
+    Write-Host "Status:" $home.StatusCode
+    Write-Host "Content-Type:" $home.Headers["Content-Type"]
+    Write-Host "Server:" $home.Headers["Server"]
+    Write-Host ""
+    Write-Host "---- First 60 lines of body ----"
+    ($home.Content -split "`n")[0..59]
 }
 
-# ===============================
-# Link Map
-# ===============================
+# ----------------------------
+# ADS.TXT
+# ----------------------------
+Write-Host ""
+Write-Host "===== $baseUrl/ads.txt =====" -ForegroundColor Yellow
+$ads = Fetch-Url "$baseUrl/ads.txt"
 
-Write-Host "`n========== HOMEPAGE LINKS =========="
-
-try {
-    ($home.Links | Select-Object -ExpandProperty href) |
-        Sort-Object -Unique |
-        ForEach-Object { Write-Host $_ }
-} catch {
-    Write-Host "Could not extract links."
+if ($ads) {
+    Write-Host "Status:" $ads.StatusCode
+    Write-Host "Content-Type:" $ads.Headers["Content-Type"]
+    Write-Host ""
+    Write-Host $ads.Content
 }
 
-# ===============================
-# Save Local Snapshots
-# ===============================
+# ----------------------------
+# ROBOTS.TXT
+# ----------------------------
+Write-Host ""
+Write-Host "===== $baseUrl/robots.txt =====" -ForegroundColor Yellow
+$robots = Fetch-Url "$baseUrl/robots.txt"
 
-Write-Host "`n========== SAVING SNAPSHOTS =========="
-
-try {
-    $home.Content | Out-File -Encoding utf8 .\audit_home.html
-    Invoke-WebRequest "$domain/robots.txt" -OutFile .\audit_robots.txt -ErrorAction SilentlyContinue
-    Invoke-WebRequest "$domain/sitemap.xml" -OutFile .\audit_sitemap.xml -ErrorAction SilentlyContinue
-    Invoke-WebRequest "$domain/ads.txt" -OutFile .\audit_ads.txt -ErrorAction SilentlyContinue
-
-    Write-Host "Saved:"
-    Write-Host " - audit_home.html"
-    Write-Host " - audit_robots.txt"
-    Write-Host " - audit_sitemap.xml"
-    Write-Host " - audit_ads.txt"
-} catch {
-    Write-Host "Snapshot save failed."
+if ($robots) {
+    Write-Host "Status:" $robots.StatusCode
+    Write-Host "Content-Type:" $robots.Headers["Content-Type"]
+    Write-Host ""
+    Write-Host $robots.Content
 }
 
-Write-Host "`n========== DONE =========="
+# ----------------------------
+# SITEMAP
+# ----------------------------
+Write-Host ""
+Write-Host "===== $baseUrl/sitemap.xml =====" -ForegroundColor Yellow
+$sitemap = Fetch-Url "$baseUrl/sitemap.xml"
+
+if ($sitemap) {
+    Write-Host "Status:" $sitemap.StatusCode
+    Write-Host "Content-Type:" $sitemap.Headers["Content-Type"]
+    Write-Host ""
+    Write-Host ($sitemap.Content -split "`n")[0..30]
+}
+
+# ----------------------------
+# ADSENSE CHECK
+# ----------------------------
+Write-Host ""
+Write-Host "========== ADSENSE CHECK ==========" -ForegroundColor Cyan
+
+if ($home -and ($home.Content -match $adsClient)) {
+    Write-Host "AdSense client found on homepage." -ForegroundColor Green
+}
+else {
+    Write-Host "AdSense client NOT found on homepage." -ForegroundColor Red
+}
+
+if ($ads -and ($ads.Content -match $adsClient)) {
+    Write-Host "AdSense client found in ads.txt." -ForegroundColor Green
+}
+else {
+    Write-Host "AdSense client NOT found in ads.txt." -ForegroundColor Red
+}
+
+Write-Host ""
+Write-Host "========== DONE ==========" -ForegroundColor Cyan
+Write-Host ""
