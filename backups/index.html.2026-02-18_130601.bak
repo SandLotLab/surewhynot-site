@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title<title>JSON Formatter, JWT Decoder & Security Tools | SureWhyNot</title>
-  <meta name="description" content="Free online JSON formatter, JWT decoder, CSP analyzer, hash generator, UUID generator, and log tools. Browser-based developer and security utilities." />
+  <title>SureWhyNot — Developer Tools, Security Utilities, and Mini Games</title>
+  <meta name="description" content="Privacy-forward developer tools and security utilities that run locally in your browser: JSON, JWT, CSP, hashing, UUIDs, and more — plus a few mini games." />
   <link rel="canonical" href="https://surewhynot.app/" />
   <meta name="robots" content="index,follow" />
 
@@ -82,9 +82,8 @@
   <script>
   async function loadPartials() {
     const [header, footer] = await Promise.all([
-      fetch('/partials/header'),
-      fetch('/partials/footer')
-
+      fetch('/partials/header.html'),
+      fetch('/partials/footer.html')
     ]);
 
     const h = document.getElementById('site-header');
