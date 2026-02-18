@@ -169,7 +169,7 @@ loadPartials();
     ];
 
     const mailSubject = `[SureWhyNot] ${type} — ${subject}`;
-    const mailBody = bodyLines.join('\r\n');
+    const mailBody = bodyLines.join('\n');
 
     const mailto = `mailto:${encode(toEmail)}?subject=${encode(mailSubject)}&body=${encode(mailBody)}`;
 
