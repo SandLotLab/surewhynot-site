@@ -9,18 +9,10 @@
     html, body { margin:0; height:100%; background:#070b12; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .wrap { height:100%; display:grid; place-items:center; padding:16px; }
     .frame { width:min(980px, 96vw); }
-    .topbar {
-      display:flex; align-items:center; justify-content:space-between;
-      gap:12px; margin-bottom:10px;
-    }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px; flex-wrap:wrap; }
+    .panel { border:1px solid rgba(90,120,170,.35); background:rgba(10,16,28,.55); border-radius:14px; padding:10px 12px; }
     .title { font-size:14px; color:#e7edf7; opacity:.9 }
-    .hint { font-size:12px; color:#a8b3c7; opacity:.9 }
-    .panel {
-      border:1px solid rgba(90,120,170,.35);
-      background:rgba(10,16,28,.55);
-      border-radius:14px;
-      padding:10px 12px;
-    }
+    .hint { font-size:12px; color:#a8b3c7; opacity:.9; line-height:1.4 }
     canvas {
       width:100%;
       aspect-ratio: 16 / 9;
@@ -31,7 +23,7 @@
       border-radius:14px;
       display:block;
     }
-    .row { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    .row { display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; align-items:center; }
     button {
       appearance:none; border:1px solid rgba(90,120,170,.35);
       background:rgba(12,18,32,.75); color:#e7edf7;
@@ -40,10 +32,8 @@
     button:hover { background:rgba(18,26,48,.75); }
     button.primary { border-color: rgba(246,195,74,.55); }
     .small { font-size:12px; color:#a8b3c7; }
-    .modal {
-      position:fixed; inset:0; display:none; align-items:center; justify-content:center;
-      background:rgba(0,0,0,.55); padding:18px;
-    }
+
+    .modal { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(0,0,0,.55); padding:18px; }
     .card {
       width:min(720px, 96vw);
       border:1px solid rgba(90,120,170,.35);
@@ -55,40 +45,25 @@
     .card h2 { margin:0 0 6px; font-size:16px; }
     .grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:12px; }
     @media (max-width: 900px){ .grid { grid-template-columns:1fr; } }
-    .list { margin:8px 0 0; padding-left:18px; color:#a8b3c7; font-size:12.5px; line-height:1.5; }
-    .hs { margin-top:8px; font-size:12.5px; color:#a8b3c7; }
-    .hs b { color:#e7edf7; }
     .hr { height:1px; background:rgba(90,120,170,.22); margin:10px 0; }
-    .pill {
-      display:inline-flex; align-items:center; gap:8px;
-      border:1px solid rgba(90,120,170,.35);
-      background:rgba(12,18,32,.65);
-      border-radius:999px;
-      padding:6px 10px;
-      font-size:12px;
-      color:#a8b3c7;
-      margin-right:8px;
-      margin-top:6px;
-      white-space:nowrap;
-    }
-    .pill strong { color:#e7edf7; font-weight:600; }
+    .hs { margin-top:8px; font-size:12.5px; color:#a8b3c7; line-height:1.5; }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="frame">
       <div class="topbar">
-        <div class="title panel">Belt Run — Asteroids-ish</div>
-        <div class="hint panel">
-          Controls: <b>W</b>/<b>↑</b> thrust • <b>A/D</b> or <b>←/→</b> rotate • <b>Space</b> fire • <b>Shift</b> boost • <b>E</b> shield
+        <div class="panel title">Belt Run — Asteroids-ish</div>
+        <div class="panel hint">
+          Controls: <b>W/↑</b> thrust • <b>A/D</b> or <b>←/→</b> rotate • <b>Space</b> fire • <b>Shift</b> boost • <b>E</b> shield
         </div>
       </div>
 
-      <canvas id="c" width="1280" height="720" aria-label="Belt Run game canvas"></canvas>
+      <canvas id="c" width="1280" height="720"></canvas>
 
       <div class="row">
         <button class="primary" id="btnStart">Start</button>
-        <button id="btnRestart" disabled>Restart</button>
+        <button id="btnRestart">Restart</button>
         <button id="btnResetHS">Reset High Scores</button>
         <div class="panel small" id="status">Idle.</div>
       </div>
@@ -101,42 +76,18 @@
         <div>
           <h2 id="mTitle">Game Over</h2>
           <div class="small" id="mSummary"></div>
-
           <div class="hr"></div>
-
-          <div class="small"><b>How it gets harder</b></div>
-          <ul class="list">
-            <li>Asteroids spawn faster and drift faster as danger rises.</li>
-            <li>Destroying asteroids increases score (and danger).</li>
-            <li>Power-ups drop randomly from destroyed asteroids.</li>
-          </ul>
-
-          <div class="hr"></div>
-
           <div class="row">
             <button class="primary" id="mPlay">Play Again</button>
             <button id="mCopy">Copy Score</button>
           </div>
           <div class="small" id="mCopyMsg" style="margin-top:8px;"></div>
         </div>
-
         <div>
-          <div class="small"><b>Top 3 High Scores</b> (local)</div>
+          <div class="small"><b>Top 3 High Scores</b> (this browser)</div>
           <div class="hs" id="hsBox"></div>
-
           <div class="hr"></div>
-
-          <div class="small"><b>Your callsigns</b></div>
-          <div class="small" id="nameBox" style="margin-top:6px;"></div>
-
-          <div class="hr"></div>
-
-          <div class="small"><b>Power-ups</b></div>
-          <div class="small" style="margin-top:6px; line-height:1.5;">
-            <span class="pill"><strong>BOOST</strong> +thrust (Shift)</span>
-            <span class="pill"><strong>SHIELD</strong> invincible 10s (E)</span>
-            <span class="pill"><strong>GUN</strong> upgrade</span>
-          </div>
+          <div class="small" id="nameBox"></div>
         </div>
       </div>
     </div>
@@ -144,7 +95,6 @@
 
 <script>
 (() => {
-  // ========= Helpers =========
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const lerp = (a, b, t) => a + (b - a) * t;
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -157,13 +107,11 @@
     if (p.y < 0) p.y += h;
     if (p.y >= h) p.y -= h;
   }
-
   function dist2(ax, ay, bx, by){
     const dx = ax - bx, dy = ay - by;
     return dx*dx + dy*dy;
   }
 
-  // ========= Goofy names + high scores =========
   const NAME_POOL = [
     "CaptainWaffles","SirTyposALot","QuantumBanana","TurboHamster","ByteMeBro",
     "404SpeedNotFound","MajesticToaster","ColonelKeyboard","SpaceSausage",
@@ -177,10 +125,9 @@
     const used = new Set(existingNames || []);
     const avail = NAME_POOL.filter(n => !used.has(n));
     if (avail.length) return avail[Math.floor(Math.random() * avail.length)];
-    const base = "ChaosGoblin";
     let n = 2;
-    while (used.has(`${base}#${n}`)) n++;
-    return `${base}#${n}`;
+    while (used.has(`ChaosGoblin#${n}`)) n++;
+    return `ChaosGoblin#${n}`;
   }
 
   const HS_KEY = "swyn_belt_run_highscores_v1";
@@ -189,12 +136,10 @@
       const raw = localStorage.getItem(HS_KEY);
       const arr = raw ? JSON.parse(raw) : [];
       if (!Array.isArray(arr)) return [];
-      return arr.filter(x => x && typeof x.score === "number" && typeof x.name === "string").slice(0, 20);
+      return arr.filter(x => x && typeof x.score === "number" && typeof x.name === "string").slice(0, 3);
     } catch { return []; }
   }
-  function saveHS(arr){
-    try { localStorage.setItem(HS_KEY, JSON.stringify(arr)); } catch {}
-  }
+  function saveHS(arr){ try { localStorage.setItem(HS_KEY, JSON.stringify(arr)); } catch {} }
   function upsertHS(entry){
     const hs = loadHS();
     hs.push(entry);
@@ -204,9 +149,9 @@
     return top3;
   }
 
-  // ========= Canvas + UI =========
   const canvas = document.getElementById("c");
   const ctx = canvas.getContext("2d", { alpha: false });
+
   const btnStart = document.getElementById("btnStart");
   const btnRestart = document.getElementById("btnRestart");
   const btnResetHS = document.getElementById("btnResetHS");
@@ -224,52 +169,37 @@
   const W = () => canvas.width;
   const H = () => canvas.height;
 
-  function showModal(show){
-    modal.style.display = show ? "flex" : "none";
-  }
+  function showModal(show){ modal.style.display = show ? "flex" : "none"; }
   function setStatus(s){ statusEl.textContent = s; }
-
-  function renderHS(){
-    const hs = loadHS();
-    if (!hs.length) {
-      hsBox.innerHTML = "<div>No scores yet.</div>";
-      return;
-    }
-    hsBox.innerHTML = hs.map((h, i) => {
-      const when = h.when ? new Date(h.when).toLocaleString() : "";
-      return `<div><b>#${i+1}</b> ${escapeHtml(h.name)} — <b>${h.score}</b> (Lv ${h.level}) <span style="opacity:.7">${escapeHtml(when)}</span></div>`;
-    }).join("");
-  }
-
   function escapeHtml(s){
     return String(s).replace(/[&<>"']/g, ch => ({
       "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
     }[ch]));
   }
 
-  // ========= Game state =========
-  const keys = new Set();
+  function renderHS(){
+    const hs = loadHS();
+    if (!hs.length) { hsBox.innerHTML = "<div>No scores yet.</div>"; return; }
+    hsBox.innerHTML = hs.map((h, i) =>
+      `<div><b>#${i+1}</b> ${escapeHtml(h.name)} — <b>${h.score}</b> (Lv ${h.level})</div>`
+    ).join("");
+  }
 
+  const keys = new Set();
   let running = false;
   let gameOver = false;
   let t0 = 0;
   let lastFrame = 0;
 
-  // player/session name (stable for this tab/session)
   let yourName = "—";
 
   const ship = {
-    x: 0, y: 0,
-    vx: 0, vy: 0,
-    a: -Math.PI/2, // facing up
-    r: 14,
-    lives: 3,
-    invulnUntil: 0,
-    boostUntil: 0,
-    boostReadyAt: 0,
-    shieldReadyAt: 0,
-    gunUntil: 0,
-    fireReadyAt: 0
+    x:0,y:0,vx:0,vy:0,a:-Math.PI/2,r:14,
+    lives:3,invulnUntil:0,
+    boostUntil:0, boostReadyAt:0,
+    shieldReadyAt:0,
+    gunUntil:0,
+    fireReadyAt:0
   };
 
   const bullets = [];
@@ -278,13 +208,12 @@
 
   let score = 0;
   let level = 1;
-  let danger = 0; // increases with time+score, drives scaling
+  let danger = 0;
   let spawnAcc = 0;
 
-  // ========= Tuning =========
   const BASE_THRUST = 560;
   const BOOST_MULT = 1.7;
-  const ROT_SPEED = 3.6; // rad/sec
+  const ROT_SPEED = 3.6;
   const FRICTION = 0.985;
 
   const BULLET_SPEED = 980;
@@ -293,10 +222,8 @@
   const AST_BASE_SPEED = 130;
   const AST_MAX = 28;
 
-  const DROP_CHANCE = 0.12; // per asteroid destroyed
+  const DROP_CHANCE = 0.12;
   const PWR_LIFE = 9.0;
-
-  // ========= Power-up types =========
   const PWR_TYPES = ["BOOST", "SHIELD", "GUN"];
 
   function resetGame() {
@@ -305,7 +232,6 @@
     showModal(false);
     mCopyMsg.textContent = "";
 
-    // name: pick based on existing HS so top3 looks varied
     const existing = loadHS().map(h => h.name);
     yourName = pickName(existing);
     nameBox.textContent = `You: ${yourName}`;
@@ -330,36 +256,24 @@
     danger = 0;
     spawnAcc = 0;
 
-    // start with a few rocks
     for (let i = 0; i < 5; i++) spawnAsteroid(3);
 
-    setButtons();
-    setStatus("Ready. Join the belt.");
+    setStatus("Ready.");
     renderHS();
   }
 
-  function setButtons(){
-    btnStart.disabled = running;
-    btnRestart.disabled = !running && !gameOver ? false : false; // keep enabled after first start
-    btnRestart.disabled = false;
-  }
-
-  // ========= Spawn helpers =========
   function spawnAsteroid(size=3, fromEdge=true, x=null, y=null) {
     const w = W(), h = H();
-
     let px, py;
-    if (x != null && y != null) {
-      px = x; py = y;
-    } else if (fromEdge) {
+
+    if (x != null && y != null) { px = x; py = y; }
+    else if (fromEdge) {
       const side = randi(0,3);
       if (side === 0) { px = -30; py = rand(0,h); }
       if (side === 1) { px = w+30; py = rand(0,h); }
       if (side === 2) { px = rand(0,w); py = -30; }
       if (side === 3) { px = rand(0,w); py = h+30; }
-    } else {
-      px = rand(0,w); py = rand(0,h);
-    }
+    } else { px = rand(0,w); py = rand(0,h); }
 
     const speedMul = 1 + danger * 0.018;
     const base = AST_BASE_SPEED * speedMul * lerp(0.85, 1.25, Math.random());
@@ -369,7 +283,6 @@
 
     const radius = size === 3 ? rand(38, 54) : size === 2 ? rand(24, 34) : rand(14, 20);
 
-    // jagged polygon points
     const pts = [];
     const n = randi(8, 12);
     for (let i=0;i<n;i++){
@@ -378,29 +291,15 @@
       pts.push({ x: Math.cos(a)*rr, y: Math.sin(a)*rr });
     }
 
-    asteroids.push({
-      x:px, y:py, vx, vy,
-      r: radius,
-      size,
-      pts,
-      rot: rand(-1.3, 1.3)
-    });
+    asteroids.push({ x:px,y:py,vx,vy,r:radius,size,pts,rot:rand(-1.3,1.3) });
   }
 
   function spawnPowerup(x, y) {
     if (Math.random() > DROP_CHANCE) return;
     const type = PWR_TYPES[randi(0, PWR_TYPES.length-1)];
-    powerups.push({
-      x, y,
-      vx: rand(-70,70),
-      vy: rand(-70,70),
-      r: 12,
-      type,
-      bornAt: now()
-    });
+    powerups.push({ x,y, vx:rand(-70,70), vy:rand(-70,70), r:12, type, bornAt: now() });
   }
 
-  // ========= Shooting =========
   function fire() {
     const t = now();
     if (t < ship.fireReadyAt) return;
@@ -416,29 +315,19 @@
       const a = ship.a + (count === 1 ? 0 : (i - 1) * spread);
       const bx = ship.x + Math.cos(a) * (ship.r + 6);
       const by = ship.y + Math.sin(a) * (ship.r + 6);
-      bullets.push({
-        x: bx, y: by,
-        vx: ship.vx + Math.cos(a) * BULLET_SPEED,
-        vy: ship.vy + Math.sin(a) * BULLET_SPEED,
-        bornAt: t
-      });
+      bullets.push({ x:bx,y:by, vx: ship.vx + Math.cos(a) * BULLET_SPEED, vy: ship.vy + Math.sin(a) * BULLET_SPEED, bornAt:t });
     }
   }
 
-  // ========= Difficulty scaling =========
   function updateDifficulty(dt) {
-    // danger increases by time + score
     danger += dt * 0.22 + (score * 0.000002);
     danger = clamp(danger, 0, 999);
-
-    // level derived from danger
     level = Math.max(1, Math.floor(danger / 6) + 1);
   }
 
   function spawnLogic(dt) {
-    // spawn rate increases with danger; cap
-    const baseRate = 0.55;               // asteroids/sec early
-    const rate = Math.min(3.0, baseRate + danger * 0.045); // ramps up
+    const baseRate = 0.55;
+    const rate = Math.min(3.0, baseRate + danger * 0.045);
     spawnAcc += dt * rate;
 
     const targetMax = Math.min(AST_MAX, 10 + Math.floor(danger * 0.45));
@@ -448,61 +337,40 @@
     }
   }
 
-  // ========= Power-ups apply =========
   function tryPickupPowerups() {
     const t = now();
     for (let i = powerups.length - 1; i >= 0; i--) {
       const p = powerups[i];
       if ((t - p.bornAt) > PWR_LIFE * 1000) { powerups.splice(i,1); continue; }
-
       if (dist2(ship.x, ship.y, p.x, p.y) <= (ship.r + p.r) * (ship.r + p.r)) {
-        // pickup
-        if (p.type === "BOOST") {
-          ship.boostReadyAt = Math.min(ship.boostReadyAt, t); // allow immediate use
-          // small instant refill: give a short boost “charge” without auto-firing it
-          // (player triggers with Shift)
-        }
-        if (p.type === "SHIELD") {
-          ship.shieldReadyAt = Math.min(ship.shieldReadyAt, t);
-        }
-        if (p.type === "GUN") {
-          ship.gunUntil = Math.max(ship.gunUntil, t + 15000);
-        }
+        if (p.type === "BOOST") ship.boostReadyAt = Math.min(ship.boostReadyAt, t);
+        if (p.type === "SHIELD") ship.shieldReadyAt = Math.min(ship.shieldReadyAt, t);
+        if (p.type === "GUN") ship.gunUntil = Math.max(ship.gunUntil, t + 15000);
         powerups.splice(i,1);
         score += 40;
       }
     }
   }
 
-  // ========= Collisions =========
   function splitAsteroid(idx) {
     const a = asteroids[idx];
     const sx = a.x, sy = a.y;
     const size = a.size;
-
     asteroids.splice(idx, 1);
 
-    // score by size
     score += size === 3 ? 120 : size === 2 ? 220 : 360;
-
-    // drop chance
     spawnPowerup(sx, sy);
 
-    // split
     if (size > 1) {
-      // later levels split more often
       const extra = level >= 6 ? 1 : 0;
       const pieces = 2 + extra;
-      for (let i=0;i<pieces;i++){
-        spawnAsteroid(size - 1, false, sx + rand(-6,6), sy + rand(-6,6));
-      }
+      for (let i=0;i<pieces;i++) spawnAsteroid(size - 1, false, sx + rand(-6,6), sy + rand(-6,6));
     }
   }
 
   function handleBulletHits() {
     for (let bi = bullets.length - 1; bi >= 0; bi--) {
       const b = bullets[bi];
-
       for (let ai = asteroids.length - 1; ai >= 0; ai--) {
         const a = asteroids[ai];
         if (dist2(b.x, b.y, a.x, a.y) <= a.r * a.r) {
@@ -516,39 +384,27 @@
 
   function handleShipHits() {
     const t = now();
-    const invuln = t < ship.invulnUntil;
-    if (invuln) return;
+    if (t < ship.invulnUntil) return;
 
     for (let ai = 0; ai < asteroids.length; ai++) {
       const a = asteroids[ai];
       if (dist2(ship.x, ship.y, a.x, a.y) <= (ship.r + a.r*0.75) * (ship.r + a.r*0.75)) {
-        // hit
         ship.lives -= 1;
-        ship.invulnUntil = t + 2000; // 2s grace
-        // knockback
+        ship.invulnUntil = t + 2000;
         ship.vx *= -0.35;
         ship.vy *= -0.35;
-
         if (ship.lives <= 0) endGame();
         return;
       }
     }
   }
 
-  // ========= End game =========
   function endGame() {
     running = false;
     gameOver = true;
 
     const elapsed = ((now() - t0) / 1000);
-    const entry = {
-      name: yourName,
-      score,
-      level,
-      when: Date.now()
-    };
-    const top3 = upsertHS(entry);
-
+    const top3 = upsertHS({ name: yourName, score, level, when: Date.now() });
     renderHS();
 
     mTitle.textContent = "Game Over";
@@ -567,82 +423,10 @@
 
     setStatus("Game over.");
     showModal(true);
-    setButtons();
   }
 
-  // ========= Input =========
-  window.addEventListener("keydown", (e) => {
-    if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space","ShiftLeft","ShiftRight"].includes(e.code)) {
-      e.preventDefault();
-    }
-    keys.add(e.code);
-
-    if (e.code === "Space" && running) fire();
-
-    // shield trigger (E)
-    if ((e.code === "KeyE") && running) {
-      const t = now();
-      if (t >= ship.shieldReadyAt) {
-        ship.invulnUntil = Math.max(ship.invulnUntil, t + 10000);
-        ship.shieldReadyAt = t + 20000; // cooldown 20s
-      }
-    }
-
-    // boost trigger (Shift)
-    if ((e.code === "ShiftLeft" || e.code === "ShiftRight") && running) {
-      const t = now();
-      if (t >= ship.boostReadyAt) {
-        ship.boostUntil = Math.max(ship.boostUntil, t + 5000);
-        ship.boostReadyAt = t + 10000; // cooldown 10s
-      }
-    }
-  }, { passive:false });
-
-  window.addEventListener("keyup", (e) => {
-    keys.delete(e.code);
-  });
-
-  // ========= UI buttons =========
-  btnStart.addEventListener("click", () => {
-    if (running) return;
-    startGame();
-  });
-
-  btnRestart.addEventListener("click", () => {
-    resetGame();
-    startGame();
-  });
-
-  btnResetHS.addEventListener("click", () => {
-    saveHS([]);
-    renderHS();
-    setStatus("High scores reset.");
-  });
-
-  mPlay.addEventListener("click", () => {
-    showModal(false);
-    resetGame();
-    startGame();
-  });
-
-  mCopy.addEventListener("click", async () => {
-    const elapsed = ((now() - t0) / 1000);
-    const text = `Belt Run — ${yourName} — Score ${score} — Lv ${level} — ${elapsed.toFixed(1)}s`;
-    try {
-      await navigator.clipboard.writeText(text);
-      mCopyMsg.textContent = "Copied.";
-    } catch {
-      mCopyMsg.textContent = "Copy failed.";
-    }
-  });
-
-  modal.addEventListener("click", (e) => {
-    if (e.target === modal) showModal(false);
-  });
-
-  // ========= Start =========
   function startGame(){
-    resetGame(); // ensures fresh, but keeps HS
+    resetGame();
     running = true;
     gameOver = false;
     showModal(false);
@@ -650,17 +434,13 @@
     t0 = now();
     lastFrame = t0;
     setStatus(`Running. Callsign: ${yourName}`);
-    setButtons();
-
     requestAnimationFrame(loop);
   }
 
-  // ========= Update + Draw =========
   function update(dt){
     updateDifficulty(dt);
     spawnLogic(dt);
 
-    // movement input
     const left = keys.has("KeyA") || keys.has("ArrowLeft");
     const right = keys.has("KeyD") || keys.has("ArrowRight");
     const thrust = keys.has("KeyW") || keys.has("ArrowUp");
@@ -684,7 +464,6 @@
     ship.y += ship.vy * dt;
     wrapPos(ship, W(), H());
 
-    // bullets
     for (let i = bullets.length - 1; i >= 0; i--) {
       const b = bullets[i];
       b.x += b.vx * dt;
@@ -693,20 +472,12 @@
       if ((t - b.bornAt) > BULLET_LIFE * 1000) bullets.splice(i, 1);
     }
 
-    // asteroids
-    const speedMul = 1 + danger * 0.018;
     for (const a of asteroids) {
       a.x += a.vx * dt;
       a.y += a.vy * dt;
-      // slight speed increase over time
-      a.x += (a.vx * (speedMul - 1)) * dt * 0.02;
-      a.y += (a.vy * (speedMul - 1)) * dt * 0.02;
-      a.vx *= 1.0;
-      a.vy *= 1.0;
       wrapPos(a, W(), H());
     }
 
-    // powerups drift
     for (let i = powerups.length - 1; i >= 0; i--) {
       const p = powerups[i];
       p.x += p.vx * dt;
@@ -719,7 +490,6 @@
     tryPickupPowerups();
     handleShipHits();
 
-    // passive scoring for survival
     score += Math.floor(dt * 10);
   }
 
@@ -728,7 +498,6 @@
     ctx.fillStyle = "#050812";
     ctx.fillRect(0,0,w,h);
 
-    // stars
     ctx.globalAlpha = 0.9;
     ctx.fillStyle = "rgba(255,255,255,.12)";
     for (let i=0;i<70;i++){
@@ -738,7 +507,6 @@
     }
     ctx.globalAlpha = 1;
 
-    // asteroids
     ctx.strokeStyle = "rgba(220,235,255,.55)";
     ctx.lineWidth = 2;
     for (const a of asteroids) {
@@ -754,20 +522,16 @@
       ctx.restore();
     }
 
-    // powerups
     for (const p of powerups) {
       ctx.save();
       ctx.translate(p.x, p.y);
-
       ctx.beginPath();
       ctx.arc(0,0,p.r,0,Math.PI*2);
       ctx.strokeStyle = "rgba(246,195,74,.75)";
       ctx.lineWidth = 2;
       ctx.stroke();
-
       ctx.fillStyle = "rgba(246,195,74,.14)";
       ctx.fill();
-
       ctx.fillStyle = "rgba(230,242,255,.9)";
       ctx.font = "12px ui-monospace, monospace";
       ctx.textAlign = "center";
@@ -776,7 +540,6 @@
       ctx.restore();
     }
 
-    // bullets
     ctx.fillStyle = "rgba(246,195,74,.95)";
     for (const b of bullets) {
       ctx.beginPath();
@@ -784,7 +547,6 @@
       ctx.fill();
     }
 
-    // ship (triangle)
     const t = now();
     const invuln = t < ship.invulnUntil;
     const blink = invuln && ((t/120|0) % 2 === 0);
@@ -805,7 +567,6 @@
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // engine flame
       const thrusting = keys.has("KeyW") || keys.has("ArrowUp");
       if (thrusting) {
         ctx.beginPath();
@@ -820,7 +581,6 @@
       ctx.restore();
     }
 
-    // HUD
     ctx.fillStyle = "rgba(230,242,255,.92)";
     ctx.font = "14px ui-monospace, monospace";
     ctx.textAlign = "left";
@@ -832,7 +592,6 @@
     ctx.fillText(`Lives ${ship.lives}`, 16, 54);
     ctx.fillText(`Time ${elapsed.toFixed(1)}s`, 16, 74);
 
-    // timers
     const boostCD = Math.max(0, (ship.boostReadyAt - t)/1000);
     const boostT = Math.max(0, (ship.boostUntil - t)/1000);
     const shieldCD = Math.max(0, (ship.shieldReadyAt - t)/1000);
@@ -842,13 +601,10 @@
     let y = 14;
     const x = w - 16;
     ctx.textAlign = "right";
-
     ctx.fillStyle = "rgba(168,179,199,.95)";
     ctx.fillText(`Callsign ${yourName}`, x, y); y += 20;
-
     ctx.fillStyle = "rgba(230,242,255,.92)";
     ctx.fillText(`Danger ${(danger).toFixed(1)}`, x, y); y += 20;
-
     ctx.fillStyle = "rgba(168,179,199,.95)";
     ctx.fillText(`BOOST ${boostT>0 ? boostT.toFixed(1)+'s' : 'ready'}${boostCD>0 ? ' (cd '+boostCD.toFixed(1)+'s)' : ''}`, x, y); y += 18;
     ctx.fillText(`SHIELD ${shieldT>0 ? shieldT.toFixed(1)+'s' : 'ready'}${shieldCD>0 ? ' (cd '+shieldCD.toFixed(1)+'s)' : ''}`, x, y); y += 18;
@@ -857,20 +613,54 @@
 
   function loop(ts){
     if (!running) return;
-
     const dt = clamp((ts - lastFrame) / 1000, 0, 0.033);
     lastFrame = ts;
-
     update(dt);
     draw();
-
     if (!gameOver) requestAnimationFrame(loop);
   }
 
-  // ========= Boot =========
+  window.addEventListener("keydown", (e) => {
+    if (["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Space","ShiftLeft","ShiftRight"].includes(e.code)) e.preventDefault();
+    keys.add(e.code);
+
+    if (e.code === "Space" && running) fire();
+
+    if (e.code === "KeyE" && running) {
+      const t = now();
+      if (t >= ship.shieldReadyAt) {
+        ship.invulnUntil = Math.max(ship.invulnUntil, t + 10000);
+        ship.shieldReadyAt = t + 20000;
+      }
+    }
+
+    if ((e.code === "ShiftLeft" || e.code === "ShiftRight") && running) {
+      const t = now();
+      if (t >= ship.boostReadyAt) {
+        ship.boostUntil = Math.max(ship.boostUntil, t + 5000);
+        ship.boostReadyAt = t + 10000;
+      }
+    }
+  }, { passive:false });
+
+  window.addEventListener("keyup", (e) => { keys.delete(e.code); });
+
+  btnStart.addEventListener("click", () => { if (!running) startGame(); });
+  btnRestart.addEventListener("click", () => { resetGame(); startGame(); });
+  btnResetHS.addEventListener("click", () => { saveHS([]); renderHS(); setStatus("High scores reset."); });
+
+  document.getElementById("mPlay").addEventListener("click", () => { showModal(false); resetGame(); startGame(); });
+  document.getElementById("mCopy").addEventListener("click", async () => {
+    const elapsed = ((now() - t0) / 1000);
+    const text = `Belt Run — ${yourName} — Score ${score} — Lv ${level} — ${elapsed.toFixed(1)}s`;
+    try { await navigator.clipboard.writeText(text); mCopyMsg.textContent = "Copied."; }
+    catch { mCopyMsg.textContent = "Copy failed."; }
+  });
+
+  document.getElementById("modal").addEventListener("click", (e) => { if (e.target.id === "modal") showModal(false); });
+
   resetGame();
   renderHS();
-  showModal(false);
 })();
 </script>
 </body>
