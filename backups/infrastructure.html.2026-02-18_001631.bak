@@ -19,10 +19,6 @@
     document.getElementById('site-header').innerHTML = await header.text();
     document.getElementById('site-footer').innerHTML = await footer.text();
   }
-  
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-    crossorigin="anonymous"></script>
-  
   </script>
 
   <style>
