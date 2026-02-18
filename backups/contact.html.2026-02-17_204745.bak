@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact — SureWhyNot</title>
+  <link rel="stylesheet" href="/assets/site.css">
+  
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
+     crossorigin="anonymous"></script>
+	
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
+	
+</head>
+
+<body>
+  <div class="page">
+    <div id="site-header"></div>
+
+    <main>
+      <div class="wrap">
+        <section class="grid" style="grid-template-columns:1fr;">
+          <div class="card">
+            <div class="pad">
+              <div class="h1">Contact</div>
+              <div class="muted" style="margin-bottom:12px;">
+                Use the form below to send a message to the right inbox.
+              </div>
+
+              <div class="hr"></div>
+
+              <form id="contactForm" novalidate>
+                <div class="muted" style="margin: 10px 0 6px;">Send to</div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                  <label class="kbd" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="to" value="hello@surewhynot.app" checked>
+                    Contact (hello@surewhynot.app)
+                  </label>
+                  <label class="kbd" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                    <input type="radio" name="to" value="privacy@surewhynot.app">
+                    Privacy (privacy@surewhynot.app)
+                  </label>
+                </div>
+
+                <div class="muted" style="margin: 10px 0 6px;">Request type</div>
+                <select id="type" class="kbd" style="width:100%; padding:10px; border-radius:10px; margin-bottom:12px;">
+                  <option>Bug report</option>
+                  <option>Technical issue</option>
+                  <option>Improvement suggestion</option>
+                  <option>Tool / generator request</option>
+                  <option>General question</option>
+                  <option>Privacy inquiry</option>
+                </select>
+
+                <div class="muted" style="margin: 10px 0 6px;">Your email</div>
+                <input id="from" class="kbd" type="email" autocomplete="email" placeholder="you@example.com"
+                       style="width:100%; padding:10px; border-radius:10px; margin-bottom:12px;" required>
+
+                <div class="muted" style="margin: 10px 0 6px;">Subject</div>
+                <input id="subject" class="kbd" type="text" placeholder="Short summary"
+                       style="width:100%; padding:10px; border-radius:10px; margin-bottom:12px;" required>
+
+                <div class="muted" style="margin: 10px 0 6px;">Message</div>
+                <textarea id="message" class="kbd" rows="7" placeholder="What happened / what you want built / what should change"
+                          style="width:100%; padding:10px; border-radius:10px; margin-bottom:12px;" required></textarea>
+
+                <div class="muted" style="margin: 10px 0 6px;">Helpful details (optional)</div>
+                <div style="display:grid; gap:10px; grid-template-columns:1fr; margin-bottom:12px;">
+                  <input id="pageUrl" class="kbd" type="url" placeholder="Page URL (auto-filled if possible)"
+                         style="width:100%; padding:10px; border-radius:10px;">
+                  <input id="browser" class="kbd" type="text" placeholder="Browser (auto-filled if possible)"
+                         style="width:100%; padding:10px; border-radius:10px;">
+                  <input id="device" class="kbd" type="text" placeholder="Device (auto-filled if possible)"
+                         style="width:100%; padding:10px; border-radius:10px;">
+                  <textarea id="steps" class="kbd" rows="4" placeholder="Steps to reproduce"
+                            style="width:100%; padding:10px; border-radius:10px;"></textarea>
+                </div>
+
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                  <button class="kbd" type="submit" style="padding:10px 14px; border-radius:12px; cursor:pointer;">
+                    Send
+                  </button>
+                  <span id="status" class="muted"></span>
+                </div>
+
+                <div class="hr" style="margin-top:14px;"></div>
+
+                <div class="muted">
+                  Direct emails:
+                  <div style="margin-top:8px;">
+                    <span class="kbd">hello@surewhynot.app</span>
+                    <span style="margin:0 8px;">·</span>
+                    <span class="kbd">privacy@surewhynot.app</span>
+                  </div>
+                </div>
+              </form>
+
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="site-footer"></div>
+  </div>
+
+<script>
+async function loadPartials() {
+  const header = await fetch('/partials/header.html');
+  const footer = await fetch('/partials/footer.html');
+
+  document.getElementById('site-header').innerHTML = await header.text();
+  document.getElementById('site-footer').innerHTML = await footer.text();
+}
+loadPartials();
+
+(function initContactForm(){
+  const $ = (id) => document.getElementById(id);
+
+  // Autofill helpers (best-effort)
+  try { $('pageUrl').value = location.href; } catch(e) {}
+  try { $('browser').value = navigator.userAgent; } catch(e) {}
+  try {
+    const ua = navigator.userAgent || '';
+    const plat = navigator.platform || '';
+    $('device').value = (plat ? plat + ' — ' : '') + (ua.includes('Mobile') ? 'Mobile' : 'Desktop');
+  } catch(e) {}
+
+  function getToEmail() {
+    const picked = document.querySelector('input[name="to"]:checked');
+    return picked ? picked.value : 'hello@surewhynot.app';
+  }
+
+  function encode(str) {
+    return encodeURIComponent(String(str || '').trim());
+  }
+
+  $('contactForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+
+    const from = $('from').value.trim();
+    const type = $('type').value.trim();
+    const subject = $('subject').value.trim();
+    const message = $('message').value.trim();
+
+    if (!from || !subject || !message) {
+      $('status').textContent = 'Missing required fields.';
+      return;
+    }
+
+    const toEmail = getToEmail();
+    const bodyLines = [
+      `Type: ${type}`,
+      `From: ${from}`,
+      ``,
+      `Message:`,
+      `${message}`,
+      ``,
+      `--- Details ---`,
+      `Page URL: ${$('pageUrl').value.trim()}`,
+      `Browser: ${$('browser').value.trim()}`,
+      `Device: ${$('device').value.trim()}`,
+      `Steps:`,
+      `${$('steps').value.trim()}`
+    ];
+
+    const mailSubject = `[SureWhyNot] ${type} — ${subject}`;
+    const mailBody = bodyLines.join('\r\n');
+
+    const mailto = `mailto:${encode(toEmail)}?subject=${encode(mailSubject)}&body=${encode(mailBody)}`;
+
+    $('status').textContent = 'Opening your email app…';
+    window.location.href = mailto;
+  });
+})();
+</script>
+
+</body>
+</html>
