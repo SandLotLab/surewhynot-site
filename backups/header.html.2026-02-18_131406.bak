@@ -17,7 +17,10 @@
       <a class="pill" href="/hash-generator.html">Hash Generator</a>
       <a class="pill" href="/uuid-generator.html">UUID Generator</a>
       <a class="pill" href="/log-explorer.html">Log Explorer</a>
-      
+
+      <!-- Games (Moved to End) -->
+      <a class="pill" href="/galactica.html">Galactica</a>
+      <a class="pill" href="/roguelike.html">Roguelike</a>
     </nav>
   </div>
 

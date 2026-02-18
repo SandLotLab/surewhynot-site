@@ -45,24 +45,6 @@
                Built for real work — paste your data, get what you need, move on.<br>
                Everything runs in your browser.
               </p>
-			  
-			  <div style="height:18px"></div>
-<hr style="opacity:.15">
-<div style="height:14px"></div>
-
-<div class="h2" style="font-size:14px; letter-spacing:.08em; opacity:.8;">
-  Take a Break
-</div>
-
-<p class="muted" style="font-size:12px; margin-top:6px; opacity:.7;">
-  Two lightweight browser games built in-house.
-</p>
-
-<div style="display:flex; flex-direction:column; gap:8px; margin-top:10px; max-width:180px;">
-  <a class="pill" href="/galactica.html">Galactica</a>
-  <a class="pill" href="/roguelike.html">Roguelike</a>
-</div>
-
 
             </div>
           </div>
