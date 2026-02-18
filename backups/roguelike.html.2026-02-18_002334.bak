@@ -8,11 +8,11 @@
   <!-- SEO -->
   <meta name="description" content="Top-down browser roguelike with 51 beatable levels (0–50). Difficulty scales by tier and sub-level. Best moves/time saved locally per level." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://surewhynot.app/roguelike.html" />
+  <link rel="canonical" href="https://surewhynot.app/roguelike" />
   <meta property="og:title" content="Roguelike | surewhynot.app" />
   <meta property="og:description" content="51 beatable levels (0–50). Enemy scaling. Touch swipe controls. Best moves/time saved locally per level." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://surewhynot.app/roguelike.html" />
+  <meta property="og:url" content="https://surewhynot.app/roguelike" />
 
   <!-- Google AdSense -->
   <script async

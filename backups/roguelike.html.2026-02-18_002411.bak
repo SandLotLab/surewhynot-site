@@ -12,7 +12,7 @@
   <meta property="og:title" content="Roguelike | surewhynot.app" />
   <meta property="og:description" content="51 beatable levels (0–50). Enemy scaling. Touch swipe controls. Best moves/time saved locally per level." />
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://surewhynot.app/roguelike.html" />
+  <meta property="og:url" content="https://surewhynot.app/roguelike" />
 
   <!-- Google AdSense -->
   <script async
