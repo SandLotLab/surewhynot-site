@@ -151,3 +151,20 @@ footer{
 }
 .footerlinks a{color:var(--muted); text-decoration:none}
 .footerlinks a:hover{color:var(--text)}
+
+.infra-link{
+  position:fixed;
+  top:16px;
+  right:24px;
+  font-size:12px;
+  text-decoration:none;
+  color:var(--muted);
+  opacity:.75;
+  z-index:9999;
+}
+
+.infra-link:hover{
+  opacity:1;
+  text-decoration:underline;
+  color:var(--text);
+}
