@@ -23,20 +23,6 @@
   <link rel="manifest" href="/site.webmanifest">
 
   <style>
-    /* CENTER THE CARD */
-    .wrapCenter{
-      max-width: 980px;
-      margin-left: auto;
-      margin-right: auto;
-      display: flex;
-      justify-content: center; /* centers the card */
-    }
-    .cardCentered{
-      width: 100%;
-      max-width: 820px;       /* keeps it from stretching too wide */
-      margin-top: 16px;
-    }
-
     /* LINKS: centered row */
     .iconRow{
       margin-top:10px;
@@ -114,8 +100,8 @@ loadPartials();
     <div id="site-header"></div>
 
     <main>
-      <div class="wrap wrapCenter">
-        <div class="card cardCentered">
+      <div class="wrap" style="max-width: 980px;">
+        <div class="card" style="margin-top:16px;">
           <div class="pad" style="text-align:left">
 
             <div class="h1">Fuel the Infrastructure</div>
