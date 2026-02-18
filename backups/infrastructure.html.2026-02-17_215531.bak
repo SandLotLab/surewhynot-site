@@ -116,7 +116,7 @@ loadPartials();
     <main>
       <div class="wrap wrapCenter">
         <div class="card cardCentered">
-          <div class="pad" style="text-align:center">
+          <div class="pad" style="text-align:left">
 
             <div class="h1">Fuel the Infrastructure</div>
             <div class="muted" style="margin-top:8px; line-height:1.65">
