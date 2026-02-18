@@ -11,16 +11,6 @@
 
   <link rel="stylesheet" href="/assets/site.css">
 
-  <script>
-  async function loadPartials() {
-    const header = await fetch('/partials/header.html');
-    const footer = await fetch('/partials/footer.html');
-
-    document.getElementById('site-header').innerHTML = await header.text();
-    document.getElementById('site-footer').innerHTML = await footer.text();
-  }
-  </script>
-
   <style>
     .wrapCenter{
       max-width:980px;
@@ -53,6 +43,7 @@
       opacity:.9;
     }
 
+    /* ICON SIZE: ~30% smaller */
     .iconLink img{
       width:63px;
       height:63px;
@@ -81,10 +72,8 @@
   </style>
 </head>
 
-<body onload="loadPartials()">
+<body>
   <div class="page">
-
-    <div id="site-header"></div>
 
     <main>
       <div class="wrap wrapCenter">
@@ -166,8 +155,6 @@
         </div>
       </div>
     </main>
-
-    <div id="site-footer"></div>
 
   </div>
 
