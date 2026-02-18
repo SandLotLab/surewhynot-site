@@ -197,3 +197,8 @@ footer{
   text-decoration:underline;
   color:var(--text);
 }
+.iconRow img{
+  width:63px;
+  height:63px;
+  display:block;
+}

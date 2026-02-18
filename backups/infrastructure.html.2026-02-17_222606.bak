@@ -44,10 +44,10 @@
     }
 
     .iconLink img{
-     width:63px;
-     height:63px;
-     display:block;
-   }
+      width:90px;
+      height:90px;
+      display:block;
+    }
 
     .copyWrap{
       margin-top:20px;
