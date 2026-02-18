@@ -54,9 +54,9 @@
     }
 
     .iconLink img{
-     width:42px;
-     height:42px;
-     display:block;
+      width:63px;
+      height:63px;
+      display:block;
     }
 
     .copyWrap{
