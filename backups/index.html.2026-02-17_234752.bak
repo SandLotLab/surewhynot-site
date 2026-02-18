@@ -118,7 +118,12 @@ loadPartials();
               </div>
 
               <div class="hr"></div>
-          
+
+              <!-- small SEO paragraph -->
+              <div class="muted" style="line-height:1.65">
+                Keywords: developer tools, JSON formatter, JWT decoder, CSP analyzer, security headers checker, hash generator, UUID generator, browser-based utilities.
+              </div>
+
             </div>
           </div>
 
