@@ -172,10 +172,20 @@ Print-Hrefs "footer.html" ($footerResp.Content)
 Write-Host "`n========== SAVING SNAPSHOTS =========="
 
 try {
-  if ($homeResp) { $homeResp.Content | Out-File -Encoding utf8 .\audit_home.html }
-  Invoke-WebRequest "$domain/robots.txt"  -UseBasicParsing -OutFile .\audit_robots.txt   -ErrorAction SilentlyContinue
-  Invoke-WebRequest "$domain/sitemap.xml" -UseBasicParsing -OutFile .\audit_sitemap.xml  -ErrorAction SilentlyContinue
-  Invoke-WebRequest "$domain/ads.txt"     -UseBasicParsing -OutFile .\audit_ads.txt      -ErrorAction SilentlyContinue
+  $backupPath = Join-Path $PSScriptRoot "backups"
+
+if (!(Test-Path $backupPath)) {
+    New-Item -ItemType Directory -Path $backupPath | Out-Null
+}
+
+if ($homeResp) {
+    $homeResp.Content | Out-File -Encoding utf8 (Join-Path $backupPath "audit_home.html")
+}
+
+Invoke-WebRequest "$domain/robots.txt"  -UseBasicParsing -OutFile (Join-Path $backupPath "audit_robots.txt")
+Invoke-WebRequest "$domain/sitemap.xml" -UseBasicParsing -OutFile (Join-Path $backupPath "audit_sitemap.xml")
+Invoke-WebRequest "$domain/ads.txt"     -UseBasicParsing -OutFile (Join-Path $backupPath "audit_ads.txt")
+
 
   Write-Host "Saved:"
   Write-Host " - audit_home.html"
