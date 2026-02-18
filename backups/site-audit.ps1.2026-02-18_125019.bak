@@ -142,8 +142,8 @@ try {
 
 Write-Host "`n========== PARTIAL LINKS (header/footer) =========="
 
-$headerResp = Fetch "$domain/partials/header"
-$footerResp = Fetch "$domain/partials/footer"
+$headerResp = Fetch-Follow308 "$domain/partials/header.html"
+$footerResp = Fetch-Follow308 "$domain/partials/footer.html"
 
 function Print-Hrefs($label, $html) {
   Write-Host "`n--- $label ---"
