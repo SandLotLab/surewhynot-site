@@ -13,12 +13,7 @@
   <meta property="og:description" content="Classic fixed shooter with upgrades, missiles, auto-fire, score/time/kills, and 51 levels (0–50)." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://surewhynot.app/galactica" />
- 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-  crossorigin="anonymous"></script>
 
-  
   <style>
     :root { color-scheme: dark; }
     body{
