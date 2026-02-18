@@ -105,40 +105,33 @@ const seedFull=document.getElementById("seedFull");
 const TILE=16;
 const W=Math.floor(canvas.width/TILE);
 const H=Math.floor(canvas.height/TILE);
-const WALL=0,FLOOR=1;
 
-let seed,rng,map,player;
+const WALL=0, FLOOR=1;
 
-function makeSeed(){
-  return "run-"+Math.random().toString(16).slice(2)+"-"+Date.now().toString(16);
-}
-function hash32(str){
-  let h=0x811c9dc5;
-  for(let i=0;i<str.length;i++){
-    h^=str.charCodeAt(i);
-    h=Math.imul(h,0x01000193);
-  }
-  return h>>>0;
-}
-function mulberry32(a){
-  return function(){
-    let t=(a+=0x6d2b79f5);
-    t=Math.imul(t^(t>>>15),t|1);
-    t^=t+Math.imul(t^(t>>>7),t|61);
-    return((t^(t>>>14))>>>0)/4294967296;
-  };
-}
-function randi(min,max){return Math.floor(rng()*(max-min+1))+min;}
-function clamp(v,l,h){return Math.max(l,Math.min(h,v));}
+let seed,rng,map,player,exit,enemies,alive=true,won=false,moves=0;
 
+// ---------- RNG ----------
+function makeSeed(){ return "run-"+Math.random().toString(16).slice(2)+"-"+Date.now().toString(16); }
+function hash32(str){ let h=0x811c9dc5; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,0x01000193);} return h>>>0; }
+function mulberry32(a){ return function(){ let t=(a+=0x6d2b79f5); t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return((t^(t>>>14))>>>0)/4294967296; }; }
+function randi(min,max){ return Math.floor(rng()*(max-min+1))+min; }
+function clamp(v,l,h){ return Math.max(l,Math.min(h,v)); }
+
+// ---------- Map ----------
 function newRun(){
   seed=makeSeed();
   rng=mulberry32(hash32(seed));
   seedShort.textContent=seed.slice(0,20)+"…";
   seedFull.textContent=seed;
+
+  moves=0; alive=true; won=false;
   statusEl.textContent="Alive";
+
   map=makeMap(W,H);
-  player=placePlayer();
+  player=placeOnFloor();
+  exit=placeFarFrom(player, 18);
+  enemies=spawnEnemies(4);
+
   draw();
 }
 
@@ -146,71 +139,162 @@ function makeMap(w,h){
   const g=Array.from({length:h},()=>Array.from({length:w},()=>WALL));
   const rooms=[];
   for(let i=0;i<18;i++){
-    const rw=randi(4,12),rh=randi(4,10);
-    const rx=randi(1,w-rw-2),ry=randi(1,h-rh-2);
+    const rw=randi(4,12), rh=randi(4,10);
+    const rx=randi(1,w-rw-2), ry=randi(1,h-rh-2);
     const room={x:rx,y:ry,w:rw,h:rh,cx:rx+(rw>>1),cy:ry+(rh>>1)};
     let ok=true;
     for(const r of rooms){
       if(room.x<r.x+r.w+1&&room.x+room.w+1>r.x&&
-         room.y<r.y+r.h+1&&room.y+room.h+1>r.y){ok=false;break;}
+         room.y<r.y+r.h+1&&room.y+room.h+1>r.y){ ok=false; break; }
     }
-    if(!ok)continue;
+    if(!ok) continue;
+
     for(let y=room.y;y<room.y+room.h;y++)
       for(let x=room.x;x<room.x+room.w;x++)
         g[y][x]=FLOOR;
-    if(rooms.length)connect(g,rooms[rooms.length-1],room);
+
+    if(rooms.length) connect(g, rooms[rooms.length-1], room);
     rooms.push(room);
   }
-  if(!rooms.length)
-    for(let y=2;y<h-2;y++)
-      for(let x=2;x<w-2;x++)
-        g[y][x]=FLOOR;
+
+  if(!rooms.length){
+    for(let y=2;y<h-2;y++) for(let x=2;x<w-2;x++) g[y][x]=FLOOR;
+  }
   return g;
 }
 
 function connect(g,a,b){
   let x=a.cx,y=a.cy;
-  while(x!==b.cx){x+=x<b.cx?1:-1;g[y][x]=FLOOR;}
-  while(y!==b.cy){y+=y<b.cy?1:-1;g[y][x]=FLOOR;}
+  while(x!==b.cx){ x+=x<b.cx?1:-1; g[y][x]=FLOOR; }
+  while(y!==b.cy){ y+=y<b.cy?1:-1; g[y][x]=FLOOR; }
 }
 
-function placePlayer(){
-  for(let i=0;i<5000;i++){
-    const x=randi(1,W-2),y=randi(1,H-2);
-    if(map[y][x]===FLOOR)return{x,y};
+function isFloor(x,y){ return x>=0&&y>=0&&x<W&&y<H&&map[y][x]===FLOOR; }
+
+function placeOnFloor(){
+  for(let i=0;i<8000;i++){
+    const x=randi(1,W-2), y=randi(1,H-2);
+    if(isFloor(x,y)) return {x,y};
   }
-  map[2][2]=FLOOR;
-  return{x:2,y:2};
+  map[2][2]=FLOOR; return {x:2,y:2};
 }
 
+function manhattan(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
+
+function placeFarFrom(origin, minDist){
+  for(let i=0;i<12000;i++){
+    const p=placeOnFloor();
+    if(manhattan(p, origin) >= minDist) return p;
+  }
+  return placeOnFloor();
+}
+
+function spawnEnemies(n){
+  const arr=[];
+  for(let i=0;i<n;i++){
+    let e=placeFarFrom(player, 12);
+    // keep away from exit too
+    if(manhattan(e, exit) < 6) e=placeFarFrom(exit, 10);
+    arr.push(e);
+  }
+  return arr;
+}
+
+// ---------- Game ----------
 function tryMove(dx,dy){
+  if(!alive || won) return;
+
   const nx=clamp(player.x+dx,0,W-1);
   const ny=clamp(player.y+dy,0,H-1);
-  if(map[ny][nx]===FLOOR){player.x=nx;player.y=ny;draw();}
+  if(!isFloor(nx,ny)) return;
+
+  player.x=nx; player.y=ny; moves++;
+
+  if(player.x===exit.x && player.y===exit.y){
+    won=true;
+    statusEl.textContent=`Won in ${moves} moves`;
+    draw();
+    return;
+  }
+
+  enemyTurn();
+  checkLose();
+  draw();
+}
+
+function checkLose(){
+  for(const e of enemies){
+    if(e.x===player.x && e.y===player.y){
+      alive=false;
+      statusEl.textContent=`Dead at ${moves} moves`;
+      return;
+    }
+  }
+}
+
+function enemyTurn(){
+  // enemies move 1 step toward player (simple chase)
+  for(const e of enemies){
+    const opts=[
+      {x:e.x+1,y:e.y},{x:e.x-1,y:e.y},{x:e.x,y:e.y+1},{x:e.x,y:e.y-1}
+    ].filter(p=>isFloor(p.x,p.y));
+
+    // pick the move that minimizes distance to player
+    let best=opts[0], bestD=Infinity;
+    for(const p of opts){
+      const d=Math.abs(p.x-player.x)+Math.abs(p.y-player.y);
+      if(d<bestD){ bestD=d; best=p; }
+    }
+    if(best){ e.x=best.x; e.y=best.y; }
+  }
 }
 
 function draw(){
+  ctx.fillStyle="#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // tiles
   for(let y=0;y<H;y++){
     for(let x=0;x<W;x++){
-      ctx.fillStyle=map[y][x]===WALL?"#0a0f16":"#121b26";
+      ctx.fillStyle = (map[y][x]===WALL) ? "#0a0f16" : "#121b26";
       ctx.fillRect(x*TILE,y*TILE,TILE,TILE);
     }
   }
+
+  // exit
+  ctx.fillStyle = "#39d98a";
+  ctx.fillRect(exit.x*TILE+4, exit.y*TILE+4, TILE-8, TILE-8);
+
+  // enemies
+  ctx.fillStyle = "#ff4d4d";
+  for(const e of enemies){
+    ctx.fillRect(e.x*TILE+4, e.y*TILE+4, TILE-8, TILE-8);
+  }
+
+  // player
   ctx.fillStyle="#e6edf3";
-  ctx.fillRect(player.x*TILE+3,player.y*TILE+3,TILE-6,TILE-6);
+  ctx.fillRect(player.x*TILE+3, player.y*TILE+3, TILE-6, TILE-6);
+
+  // simple text HUD overlay
+  ctx.fillStyle="rgba(255,255,255,0.65)";
+  ctx.font="12px ui-monospace, Menlo, Consolas, monospace";
+  ctx.fillText(`Moves: ${moves}`, 10, 16);
+  ctx.fillText(`Enemies: ${enemies.length}`, 10, 32);
+  ctx.fillText(`Goal: reach green`, 10, 48);
 }
 
+// controls
 addEventListener("keydown",e=>{
   const k=e.key.toLowerCase();
-  if(k==="arrowup"||k==="w"){e.preventDefault();tryMove(0,-1);}
-  else if(k==="arrowdown"||k==="s"){e.preventDefault();tryMove(0,1);}
-  else if(k==="arrowleft"||k==="a"){e.preventDefault();tryMove(-1,0);}
-  else if(k==="arrowright"||k==="d"){e.preventDefault();tryMove(1,0);}
-  else if(k==="r"){e.preventDefault();newRun();}
+  if(k==="arrowup"||k==="w"){ e.preventDefault(); tryMove(0,-1); }
+  else if(k==="arrowdown"||k==="s"){ e.preventDefault(); tryMove(0,1); }
+  else if(k==="arrowleft"||k==="a"){ e.preventDefault(); tryMove(-1,0); }
+  else if(k==="arrowright"||k==="d"){ e.preventDefault(); tryMove(1,0); }
+  else if(k==="r"){ e.preventDefault(); newRun(); }
 });
 
 newRun();
 </script>
+
 </body>
 </html>
