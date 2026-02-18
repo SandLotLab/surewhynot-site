@@ -6,11 +6,11 @@
   <title>Roguelike | surewhynot.app</title>
 
   <!-- SEO -->
-  <meta name="description" content="Top-down roguelike in the browser with 51 passable levels (0–50). Enemies scale by difficulty. Tracks best moves/time per level locally." />
+  <meta name="description" content="Top-down browser roguelike with 51 beatable levels (0–50). Difficulty scales by tier and sub-level. Best moves/time saved locally per level." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/roguelike" />
   <meta property="og:title" content="Roguelike | surewhynot.app" />
-  <meta property="og:description" content="51 passable levels (0–50). Enemy scaling difficulty. Best moves/time per level saved locally." />
+  <meta property="og:description" content="51 beatable levels (0–50). Enemy scaling. Touch swipe controls. Best moves/time saved locally per level." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://surewhynot.app/roguelike" />
 
@@ -40,11 +40,6 @@
       font-size:12px; opacity:.88; flex-wrap:wrap; align-items:center;
     }
     .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .pill{
-      display:inline-block; padding:6px 10px; border:1px solid #1f2630; border-radius:999px;
-      text-decoration:none; color:inherit; opacity:.92;
-    }
-    .pill:hover{ opacity:1; }
     input{
       background:#0b0f14; color:#e6edf3; border:1px solid #1f2630; border-radius:10px;
       padding:6px 10px; font:inherit; font-size:12px; width:88px;
@@ -55,7 +50,7 @@
       background:rgba(0,0,0,.55); border-radius:12px;
     }
     .panel{
-      width:min(520px, 92%); border:1px solid #1f2630; background:#0b0f14; border-radius:14px;
+      width:min(560px, 92%); border:1px solid #1f2630; background:#0b0f14; border-radius:14px;
       padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.45);
     }
     .h1{ font-weight:700; font-size:14px; }
@@ -72,8 +67,8 @@
 <div class="wrap">
   <header>
     <div class="row">
-      <div><b>Roguelike</b> <span id="seedShort" class="muted" style="font-size:12px;"></span></div>
-      <span class="muted" style="font-size:12px;">Controls: WASD/Arrows move • R restart level • N next • P prev</span>
+      <div><b>Roguelike</b></div>
+      <span class="muted" style="font-size:12px;">WASD/Arrows • Swipe on canvas • R retry • N next • P prev</span>
     </div>
 
     <div class="row">
@@ -93,7 +88,7 @@
           <div class="h1" id="overlayTitle">Level Complete</div>
           <div class="muted" id="overlayBody" style="margin-top:8px; line-height:1.6;"></div>
           <div class="btnrow">
-            <button id="nextBtn">Next Level (N)</button>
+            <button id="nextBtn">Next (N)</button>
             <button id="retryBtn">Retry (R)</button>
             <button id="closeBtn">Close</button>
           </div>
@@ -103,9 +98,10 @@
 
     <div class="hud">
       <div class="row">
-        <div>Level: <b id="lvlLabel">0</b> <span class="muted" id="tierLabel"></span></div>
+        <div>Level: <b id="lvlLabel">0</b></div>
+        <div class="muted" id="tierLabel">—</div>
         <div>Enemies: <b id="enemyLabel">0</b></div>
-        <div>Goal: <span class="muted">reach green</span></div>
+        <div class="muted">Goal: reach green</div>
       </div>
 
       <div class="row">
@@ -116,7 +112,6 @@
 
       <div class="row">
         <div>Status: <b id="status">Ready</b></div>
-        <div class="muted">Seed: <span id="seedFull"></span></div>
       </div>
     </div>
 
@@ -133,20 +128,20 @@
 <script>
 "use strict";
 
-/* 51 levels (0–50), always passable:
-   - Generate dungeon
+/* GUARANTEE:
+   Every level is BEATABLE:
+   - Generate map
    - Place player + exit
-   - Verify path exists (BFS)
-   - Enemies scale by level
-   - Best moves/time saved per level in localStorage (per visitor)
+   - Compute a shortest path (player->exit)
+   - Place enemies so that along that path, enemies cannot reach any tile fast enough to catch,
+     given this level's enemy speed (steps per player move) + a tier-tuned safety margin.
+   This guarantees at least one winning strategy: follow the safe path.
 */
 
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d", { alpha:false });
 
 const statusEl   = document.getElementById("status");
-const seedShort  = document.getElementById("seedShort");
-const seedFull   = document.getElementById("seedFull");
 const lvlLabel   = document.getElementById("lvlLabel");
 const tierLabel  = document.getElementById("tierLabel");
 const enemyLabel = document.getElementById("enemyLabel");
@@ -176,6 +171,8 @@ let map = [];
 let player = {x:0,y:0};
 let exit = {x:0,y:0};
 let enemies = [];
+let safePath = []; // array of {x,y} including start->exit
+
 let alive = true;
 let won = false;
 
@@ -203,44 +200,60 @@ function mulberry32(a) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-function randi(min, maxIncl) {
-  return Math.floor(rng() * (maxIncl - min + 1)) + min;
-}
+function randi(min, maxIncl) { return Math.floor(rng() * (maxIncl - min + 1)) + min; }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-// ---------- Difficulty ----------
-function tierForLevel(lv){
-  if (lv <= 9) return "Easiest (0–9)";
-  if (lv <= 19) return "Easy (10–19)";
-  if (lv <= 29) return "Medium (20–29)";
-  if (lv <= 39) return "Hard (30–39)";
-  if (lv <= 49) return "Insane (40–49)";
-  return "You will not survive (50)";
+// ---------- Level naming (category + sub every 2 levels) ----------
+const SUB = ["Low","Medium","Average","Hard","Insane"];
+
+function categoryName(lv){
+  if (lv <= 9) return "Easiest";
+  if (lv <= 19) return "Easy";
+  if (lv <= 29) return "Medium";
+  if (lv <= 39) return "Hard";
+  if (lv <= 49) return "Insane";
+  return "You will not survive";
 }
 
+function subName(lv){
+  if (lv === 50) return "";
+  const within10 = lv % 10;          // 0..9
+  const idx = Math.floor(within10/2); // 0..4
+  return SUB[idx];
+}
+
+// Difficulty params (still beatable)
 function paramsForLevel(lv){
-  // Always passable. Difficulty comes from enemies + chase speed + path length.
-  const t = (lv <= 9) ? 0 : (lv <= 19) ? 1 : (lv <= 29) ? 2 : (lv <= 39) ? 3 : (lv <= 49) ? 4 : 5;
+  const cat =
+    (lv <= 9) ? 0 :
+    (lv <= 19) ? 1 :
+    (lv <= 29) ? 2 :
+    (lv <= 39) ? 3 :
+    (lv <= 49) ? 4 : 5;
 
-  // Enemy count scaling (kept sane for a static canvas)
-  const baseEnemies = [1, 2, 3, 5, 7, 10][t];
-  const extra = Math.floor(lv / 10); // small ramp within each tier
-  const enemyCount = Math.min(baseEnemies + extra, 14);
+  // enemy speed capped at 2 to keep "beatable guarantee" realistic in tight corridors
+  const enemySteps = (cat <= 2) ? 1 : 2; // Medium and below: 1, Hard+: 2
 
-  // Enemy steps per player move (harder tiers move more)
-  const enemySteps = [1,1,1,2,2,3][t];
+  // enemies scale slowly; sub-level adds small ramp
+  const sub = (lv === 50) ? 4 : Math.floor((lv % 10) / 2); // 0..4
+  const baseEnemies = [1,2,3,4,6,8][cat];
+  const enemyCount = clamp(baseEnemies + sub + Math.floor(lv/15), 1, 14);
 
-  // Minimum required path length player->exit
-  const minPath = [10, 14, 18, 22, 26, 30][t];
+  // required path length grows with level, but kept reasonable
+  const minPath = clamp(10 + lv, 10, 50);
 
-  // Map density knobs
-  const roomAttempts = 20 + lv;      // more attempts -> more rooms
-  const maxRooms = clamp(10 + Math.floor(lv * 0.35), 12, 28);
+  // how much "time advantage" the player must have along the guaranteed safe path
+  // smaller margin => harder but still beatable
+  const safetyMargin = [6,5,4,3,2,1][cat]; // in "enemy steps" units
 
-  return { t, enemyCount, enemySteps, minPath, roomAttempts, maxRooms };
+  // map complexity
+  const roomAttempts = 28 + lv;
+  const maxRooms = clamp(12 + Math.floor(lv * 0.40), 12, 30);
+
+  return { enemySteps, enemyCount, minPath, safetyMargin, roomAttempts, maxRooms };
 }
 
-// ---------- Map Gen (rooms + corridors) ----------
+// ---------- Map gen (rooms + corridors) ----------
 function makeMap(w, h, roomAttempts, maxRooms) {
   const g = Array.from({length:h}, () => Array.from({length:w}, () => WALL));
   const rooms = [];
@@ -270,145 +283,214 @@ function makeMap(w, h, roomAttempts, maxRooms) {
     rooms.push(room);
   }
 
-  // Ensure at least one floor blob if weird luck
-  if (!rooms.length) {
-    carveRoom(g, {x:2,y:2,w:w-4,h:h-4});
-  }
-
+  if (!rooms.length) carveRoom(g, {x:2,y:2,w:w-4,h:h-4});
   return g;
 }
 
 function carveRoom(g, r){
-  for (let y = r.y; y < r.y + r.h; y++)
-    for (let x = r.x; x < r.x + r.w; x++)
-      g[y][x] = FLOOR;
+  for (let y=r.y; y<r.y+r.h; y++)
+    for (let x=r.x; x<r.x+r.w; x++)
+      g[y][x]=FLOOR;
 }
 
 function connectRooms(g, a, b){
-  let x = a.cx, y = a.cy;
-  const tx = b.cx, ty = b.cy;
+  let x=a.cx, y=a.cy;
+  const tx=b.cx, ty=b.cy;
 
-  if (rng() < 0.5) {
-    while (x !== tx) { x += x < tx ? 1 : -1; g[y][x] = FLOOR; }
-    while (y !== ty) { y += y < ty ? 1 : -1; g[y][x] = FLOOR; }
+  if (rng()<0.5){
+    while (x!==tx){ x += x<tx?1:-1; g[y][x]=FLOOR; }
+    while (y!==ty){ y += y<ty?1:-1; g[y][x]=FLOOR; }
   } else {
-    while (y !== ty) { y += y < ty ? 1 : -1; g[y][x] = FLOOR; }
-    while (x !== tx) { x += x < tx ? 1 : -1; g[y][x] = FLOOR; }
+    while (y!==ty){ y += y<ty?1:-1; g[y][x]=FLOOR; }
+    while (x!==tx){ x += x<tx?1:-1; g[y][x]=FLOOR; }
   }
 }
 
-function isFloor(x,y){
-  return x>=0 && y>=0 && x<W && y<H && map[y][x]===FLOOR;
-}
+function isFloor(x,y){ return x>=0 && y>=0 && x<W && y<H && map[y][x]===FLOOR; }
 
-// ---------- Pathing ----------
-function bfsDistanceField(from){
-  // returns Int16Array distances (or -1)
-  const dist = new Int16Array(W * H);
+// ---------- BFS utilities ----------
+function bfsWithParents(start){
+  const dist = new Int16Array(W*H);
   dist.fill(-1);
-  const qx = new Int16Array(W * H);
-  const qy = new Int16Array(W * H);
-  let qs = 0, qe = 0;
+  const parent = new Int32Array(W*H);
+  parent.fill(-1);
 
-  dist[from.y * W + from.x] = 0;
-  qx[qe] = from.x; qy[qe] = from.y; qe++;
+  const qx = new Int16Array(W*H);
+  const qy = new Int16Array(W*H);
+  let qs=0, qe=0;
 
-  while (qs < qe) {
-    const x = qx[qs], y = qy[qs]; qs++;
-    const d = dist[y * W + x];
+  dist[start.y*W + start.x] = 0;
+  qx[qe]=start.x; qy[qe]=start.y; qe++;
 
-    const n = [
-      [x+1,y],[x-1,y],[x,y+1],[x,y-1]
-    ];
-    for (const [nx,ny] of n) {
+  while (qs<qe){
+    const x=qx[qs], y=qy[qs]; qs++;
+    const d=dist[y*W + x];
+
+    const nbr = [[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
+    for (const [nx,ny] of nbr){
       if (!isFloor(nx,ny)) continue;
-      const idx = ny * W + nx;
-      if (dist[idx] !== -1) continue;
-      dist[idx] = d + 1;
-      qx[qe] = nx; qy[qe] = ny; qe++;
+      const idx=ny*W + nx;
+      if (dist[idx]!==-1) continue;
+      dist[idx]=d+1;
+      parent[idx]=y*W + x;
+      qx[qe]=nx; qy[qe]=ny; qe++;
     }
   }
+  return {dist, parent};
+}
+
+function reconstructPath(parent, start, goal){
+  const path = [];
+  const startIdx = start.y*W + start.x;
+  let cur = goal.y*W + goal.x;
+  if (parent[cur] === -1 && cur !== startIdx) return null;
+  while (cur !== -1){
+    const x = cur % W;
+    const y = (cur / W) | 0;
+    path.push({x,y});
+    if (cur === startIdx) break;
+    cur = parent[cur];
+  }
+  path.reverse();
+  return path;
+}
+
+function bfsDistance(start){
+  const {dist} = bfsWithParents(start);
   return dist;
 }
 
-function pathLength(a,b){
-  const dist = bfsDistanceField(a);
-  return dist[b.y * W + b.x];
-}
-
-// ---------- Placement (passable guarantee) ----------
+// ---------- Placement helpers ----------
 function placeOnFloor(){
-  for (let i=0;i<12000;i++){
+  for (let i=0;i<20000;i++){
     const x=randi(1,W-2), y=randi(1,H-2);
     if (isFloor(x,y)) return {x,y};
   }
   map[2][2]=FLOOR; return {x:2,y:2};
 }
-
+function manhattan(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
 function samePos(a,b){ return a.x===b.x && a.y===b.y; }
 
-function placeFarEnough(origin, minDist){
-  for (let i=0;i<20000;i++){
-    const p = placeOnFloor();
-    const d = Math.abs(p.x-origin.x)+Math.abs(p.y-origin.y);
-    if (d >= minDist) return p;
+function pickExitWithMinPath(pl, minPath){
+  const {dist, parent} = bfsWithParents(pl);
+  // try many random floors; accept one with dist >= minPath
+  for (let i=0;i<30000;i++){
+    const ex = placeOnFloor();
+    const d = dist[ex.y*W + ex.x];
+    if (d >= minPath) {
+      const path = reconstructPath(parent, pl, ex);
+      if (path && path.length-1 === d) return {ex, path, distFromPlayer: dist};
+    }
   }
-  return placeOnFloor();
+  return null;
 }
 
-function spawnEnemies(count, avoidA, avoidB){
-  const arr = [];
-  let tries = 0;
-  while (arr.length < count && tries < 60000) {
-    tries++;
-    const e = placeOnFloor();
-    if (samePos(e, avoidA) || samePos(e, avoidB)) continue;
-    if (Math.abs(e.x-avoidA.x)+Math.abs(e.y-avoidA.y) < 8) continue;
-    if (Math.abs(e.x-avoidB.x)+Math.abs(e.y-avoidB.y) < 5) continue;
-
-    let clash = false;
-    for (const k of arr) if (samePos(k,e)) { clash = true; break; }
-    if (clash) continue;
-
-    arr.push(e);
+// SAFE PATH CONDITION:
+// For each tile on the chosen safe path at player step k,
+// every enemy must have distance_to_tile > (k * enemySteps + safetyMargin).
+function safeAgainstAllEnemies(path, enemyStarts, enemySteps, safetyMargin){
+  // Precompute k step index for each tile on path
+  // path[0] is start at k=0
+  for (const e of enemyStarts){
+    const distE = bfsDistance(e);
+    for (let k=0; k<path.length; k++){
+      const t = path[k];
+      const dE = distE[t.y*W + t.x];
+      if (dE === -1) continue; // disconnected from enemy = safe
+      const enemyBudget = k * enemySteps + safetyMargin;
+      if (dE <= enemyBudget) return false;
+    }
   }
-  return arr;
-}
-
-function buildPassableLevel(lv){
-  const p = paramsForLevel(lv);
-
-  // loop until we get a passable map + exit with enough path length
-  for (let attempt=0; attempt<120; attempt++){
-    map = makeMap(W, H, p.roomAttempts, p.maxRooms);
-
-    const pl = placeOnFloor();
-    const ex = placeFarEnough(pl, p.minPath);
-
-    const len = pathLength(pl, ex);
-    if (len === -1) continue;         // not connected
-    if (len < p.minPath) continue;     // too short/easy for this tier
-
-    const ens = spawnEnemies(p.enemyCount, pl, ex);
-    // still require exit reachable even with enemies placed (enemies don't block floors permanently)
-    player = pl;
-    exit = ex;
-    enemies = ens;
-    return true;
-  }
-
-  // fallback: force open space, still passable
-  map = Array.from({length:H}, ()=>Array.from({length:W}, ()=>FLOOR));
-  for (let y=0;y<H;y++){ map[y][0]=WALL; map[y][W-1]=WALL; }
-  for (let x=0;x<W;x++){ map[0][x]=WALL; map[H-1][x]=WALL; }
-  player = {x:2,y:2};
-  exit = {x:W-3,y:H-3};
-  enemies = spawnEnemies(paramsForLevel(lv).enemyCount, player, exit);
   return true;
 }
 
-// ---------- Best stats (local) ----------
-function bestKey(lv){ return "swyn_roguelike_best_v1_" + lv; }
+function spawnEnemiesBeatable(path, playerStart, exitPos, enemyCount, enemySteps, safetyMargin){
+  const enemies = [];
+  let tries = 0;
+
+  while (enemies.length < enemyCount && tries < 80000){
+    tries++;
+    const e = placeOnFloor();
+
+    if (samePos(e, playerStart) || samePos(e, exitPos)) continue;
+    if (manhattan(e, playerStart) < 8) continue;
+    if (manhattan(e, exitPos) < 6) continue;
+
+    // keep enemies off the safe path (so the guaranteed route stays open)
+    let onPath = false;
+    for (let i=0; i<path.length; i++){
+      if (path[i].x===e.x && path[i].y===e.y) { onPath=true; break; }
+    }
+    if (onPath) continue;
+
+    // no duplicates
+    let clash=false;
+    for (const x of enemies){ if (samePos(x,e)) { clash=true; break; } }
+    if (clash) continue;
+
+    // check safe path remains safe with this new enemy added
+    const test = enemies.concat([e]);
+    if (!safeAgainstAllEnemies(path, test, enemySteps, safetyMargin)) continue;
+
+    enemies.push(e);
+  }
+
+  // If we couldn't place all enemies without breaking beatability,
+  // reduce enemy count for THIS level until beatability holds.
+  // (Still increasing difficulty overall, but never "unwinnable".)
+  return enemies;
+}
+
+// ---------- Build a BEATABLE level ----------
+function buildBeatableLevel(lv){
+  const p = paramsForLevel(lv);
+
+  for (let attempt=0; attempt<140; attempt++){
+    map = makeMap(W, H, p.roomAttempts, p.maxRooms);
+
+    const pl = placeOnFloor();
+    const pick = pickExitWithMinPath(pl, p.minPath);
+    if (!pick) continue;
+
+    const ex = pick.ex;
+    const path = pick.path;
+
+    // place enemies while preserving safe path guarantee
+    const ens = spawnEnemiesBeatable(path, pl, ex, p.enemyCount, p.enemySteps, p.safetyMargin);
+    if (ens.length < Math.max(1, Math.min(ens.length, p.enemyCount)) && p.enemyCount > 1) {
+      // fine — difficulty is enforced by "never unwinnable"
+    }
+
+    // final safety check (paranoia)
+    if (!safeAgainstAllEnemies(path, ens, p.enemySteps, p.safetyMargin)) continue;
+
+    player = pl;
+    exit = ex;
+    enemies = ens;
+    safePath = path;
+    return true;
+  }
+
+  // fallback open arena, still beatable (enemies will be forced far)
+  map = Array.from({length:H}, ()=>Array.from({length:W}, ()=>FLOOR));
+  for (let y=0;y<H;y++){ map[y][0]=WALL; map[y][W-1]=WALL; }
+  for (let x=0;x<W;x++){ map[0][x]=WALL; map[H-1][x]=WALL; }
+
+  player = {x:2,y:2};
+  exit = {x:W-3,y:H-3};
+
+  const path = [];
+  for (let x=2;x<=W-3;x++) path.push({x,y:2});
+  for (let y=3;y<=H-3;y++) path.push({x:W-3,y});
+
+  const p2 = paramsForLevel(lv);
+  enemies = spawnEnemiesBeatable(path, player, exit, p2.enemyCount, p2.enemySteps, p2.safetyMargin);
+  safePath = path;
+  return true;
+}
+
+// ---------- Best stats (localStorage) ----------
+function bestKey(lv){ return "swyn_roguelike_best_v2_" + lv; }
 
 function loadBest(lv){
   try{
@@ -435,48 +517,40 @@ function formatBest(obj){
   return `${obj.moves} moves • ${(obj.ms/1000).toFixed(1)}s`;
 }
 
-// ---------- Game loop ----------
+// ---------- Game ----------
 function setLevel(lv){
   level = clamp(lv|0, 0, 50);
   levelInput.value = String(level);
 
   seed = makeSeed();
-  rng = mulberry32(hash32(seed));
-  seedShort.textContent = seed.slice(0,20) + "…";
-  seedFull.textContent = seed;
+  rng = mulberry32(hash32(seed)); // internal only (no need to show)
 
   alive = true; won = false;
   moves = 0; running = false; startMs = 0;
 
-  const ok = buildPassableLevel(level);
-  if (!ok) statusEl.textContent = "Generation failed";
-  else statusEl.textContent = "Ready";
+  buildBeatableLevel(level);
 
-  const par = paramsForLevel(level);
   lvlLabel.textContent = String(level);
-  tierLabel.textContent = "• " + tierForLevel(level);
+  const cat = categoryName(level);
+  const sub = subName(level);
+  tierLabel.textContent = (level === 50)
+    ? `• ${cat}`
+    : `• ${cat} • ${sub}`;
+
   enemyLabel.textContent = String(enemies.length);
 
   movesRunEl.textContent = "0";
   timeRunEl.textContent = "0.0s";
   bestLabel.textContent = formatBest(loadBest(level));
 
+  statusEl.textContent = "Ready";
   hideOverlay();
   draw();
 }
 
 function nowMs(){ return performance.now(); }
-
-function startTimerIfNeeded(){
-  if (!running){
-    running = true;
-    startMs = nowMs();
-  }
-}
-
-function elapsedMs(){
-  return running ? Math.max(0, nowMs() - startMs) : 0;
-}
+function startTimerIfNeeded(){ if (!running){ running=true; startMs=nowMs(); } }
+function elapsedMs(){ return running ? Math.max(0, nowMs()-startMs) : 0; }
 
 function tryMove(dx,dy){
   if (!alive || won) return;
@@ -494,7 +568,6 @@ function tryMove(dx,dy){
 
   if (player.x===exit.x && player.y===exit.y){
     won = true;
-    alive = true;
     onWin();
     draw();
     return;
@@ -502,7 +575,6 @@ function tryMove(dx,dy){
 
   enemyTurn();
   checkLose();
-
   timeRunEl.textContent = (elapsedMs()/1000).toFixed(1) + "s";
   draw();
 }
@@ -512,7 +584,8 @@ function checkLose(){
     if (e.x===player.x && e.y===player.y){
       alive = false;
       statusEl.textContent = `Dead • ${moves} moves • ${(elapsedMs()/1000).toFixed(1)}s`;
-      showOverlay("You died", `Level ${level} failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b><br><span class="muted">Retry with R.</span>`);
+      showOverlay("You died",
+        `Level <b>${level}</b> failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b>`);
       return;
     }
   }
@@ -530,54 +603,42 @@ function onWin(){
   const msg = [
     `Level <b>${level}</b> passed.`,
     `Run: <b>${moves}</b> moves • <b>${t}s</b>`,
-    updated ? `<span class="muted">New best saved for this browser.</span>` : `<span class="muted">Best unchanged for this browser.</span>`,
-    `<span class="muted">Next: N</span>`
+    updated ? `<span class="muted">New best saved for this browser.</span>` : `<span class="muted">Best unchanged for this browser.</span>`
   ].join("<br><br>");
 
   showOverlay("Level Complete", msg);
 }
 
 function enemyTurn(){
-  const par = paramsForLevel(level);
+  const { enemySteps } = paramsForLevel(level);
 
-  for (let step=0; step<par.enemySteps; step++){
-    // distance field from player (for chase)
-    const dist = bfsDistanceField(player);
+  for (let step=0; step<enemySteps; step++){
+    const distToPlayer = bfsDistance(player);
 
     for (const e of enemies){
-      // already on player
       if (e.x===player.x && e.y===player.y) continue;
 
       const options = [
         {x:e.x+1,y:e.y},{x:e.x-1,y:e.y},{x:e.x,y:e.y+1},{x:e.x,y:e.y-1}
       ].filter(p => isFloor(p.x,p.y));
 
-      let best = null;
-      let bestD = 1e9;
-
+      let best = null, bestD = 1e9;
       for (const p of options){
-        const d = dist[p.y*W + p.x];
+        const d = distToPlayer[p.y*W + p.x];
         if (d === -1) continue;
-        if (d < bestD){
-          bestD = d;
-          best = p;
-        }
+        if (d < bestD){ bestD=d; best=p; }
       }
-
-      // if something weird happens, random move
       if (!best && options.length) best = options[randi(0, options.length-1)];
-
-      if (best){
-        e.x = best.x; e.y = best.y;
-      }
+      if (best){ e.x=best.x; e.y=best.y; }
     }
 
-    // after each enemy step, check immediate loss
+    // immediate loss after each enemy step
     for (const e of enemies){
       if (e.x===player.x && e.y===player.y){
         alive = false;
         statusEl.textContent = `Dead • ${moves} moves • ${(elapsedMs()/1000).toFixed(1)}s`;
-        showOverlay("You died", `Level ${level} failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b><br><span class="muted">Retry with R.</span>`);
+        showOverlay("You died",
+          `Level <b>${level}</b> failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b>`);
         return;
       }
     }
@@ -586,11 +647,9 @@ function enemyTurn(){
 
 // ---------- Render ----------
 function draw(){
-  // background
   ctx.fillStyle = "#000";
   ctx.fillRect(0,0,canvas.width,canvas.height);
 
-  // tiles
   for (let y=0;y<H;y++){
     for (let x=0;x<W;x++){
       ctx.fillStyle = (map[y][x]===WALL) ? "#0a0f16" : "#121b26";
@@ -612,7 +671,7 @@ function draw(){
   ctx.fillStyle = "#e6edf3";
   ctx.fillRect(player.x*TILE+3, player.y*TILE+3, TILE-6, TILE-6);
 
-  // overlay text on canvas
+  // HUD text
   ctx.fillStyle = "rgba(255,255,255,0.72)";
   ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
   ctx.fillText(`Moves: ${moves}`, 10, 16);
@@ -634,17 +693,14 @@ function showOverlay(title, html){
   overlayBody.innerHTML = html;
   overlay.style.display = "grid";
 }
-function hideOverlay(){
-  overlay.style.display = "none";
-}
+function hideOverlay(){ overlay.style.display = "none"; }
 
-// ---------- UI / Controls ----------
+// ---------- UI / Keys ----------
 function gotoLevelFromInput(){
   const n = Number(levelInput.value);
   if (!Number.isFinite(n)) return;
   setLevel(n|0);
 }
-
 goBtn.addEventListener("click", gotoLevelFromInput);
 levelInput.addEventListener("keydown", (e)=>{ if (e.key==="Enter") gotoLevelFromInput(); });
 
@@ -660,12 +716,10 @@ closeBtn.addEventListener("click", hideOverlay);
 addEventListener("keydown", (e)=>{
   const k = e.key.toLowerCase();
 
-  // always allow overlay navigation
   if (k==="n"){ e.preventDefault(); setLevel(Math.min(50, level+1)); return; }
   if (k==="p"){ e.preventDefault(); setLevel(Math.max(0, level-1)); return; }
   if (k==="r"){ e.preventDefault(); setLevel(level); return; }
 
-  // ignore movement if input focused
   const ae = document.activeElement;
   if (ae && (ae.tagName==="INPUT" || ae.tagName==="TEXTAREA")) return;
 
@@ -675,12 +729,56 @@ addEventListener("keydown", (e)=>{
   else if (k==="arrowright" || k==="d"){ e.preventDefault(); tryMove(1,0); }
 });
 
-// tick run time display even if you pause
+// update timer display
 setInterval(()=>{
   if (running && alive && !won){
     timeRunEl.textContent = (elapsedMs()/1000).toFixed(1) + "s";
   }
 }, 100);
+
+// ---------- Touch swipe (tablet/phone) ----------
+(() => {
+  const el = canvas;
+  el.style.touchAction = "none";
+
+  let sx = 0, sy = 0, active = false;
+
+  const THRESH = 22;
+  const DOMINANCE = 1.2;
+
+  function onStart(x,y){ sx=x; sy=y; active=true; }
+  function onEnd(x,y){
+    if (!active) return;
+    active=false;
+
+    const dx = x - sx;
+    const dy = y - sy;
+    const adx = Math.abs(dx);
+    const ady = Math.abs(dy);
+
+    if (adx < THRESH && ady < THRESH) return;
+
+    if (adx > ady * DOMINANCE){
+      if (dx > 0) tryMove(1,0); else tryMove(-1,0);
+    } else if (ady > adx * DOMINANCE){
+      if (dy > 0) tryMove(0,1); else tryMove(0,-1);
+    }
+  }
+
+  el.addEventListener("touchstart", (e)=>{
+    const t=e.changedTouches[0];
+    onStart(t.clientX, t.clientY);
+  }, {passive:true});
+
+  el.addEventListener("touchend", (e)=>{
+    const t=e.changedTouches[0];
+    onEnd(t.clientX, t.clientY);
+  }, {passive:true});
+
+  // optional mouse drag swipe too
+  el.addEventListener("mousedown", (e)=> onStart(e.clientX, e.clientY));
+  addEventListener("mouseup", (e)=> onEnd(e.clientX, e.clientY));
+})();
 
 setLevel(0);
 </script>
