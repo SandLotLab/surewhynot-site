@@ -74,6 +74,12 @@ header .wrap{
   border-bottom:1px solid rgba(23,36,59,.55);
 }
 
+/* REMOVE default h1/h2 spacing inside header */
+header h1,
+header h2{
+  margin:0;
+}
+
 .wrap{
   width:min(1100px, 92vw);
   margin:0 auto;
