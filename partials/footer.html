@@ -11,9 +11,10 @@
       <span>•</span>
       <a href="/terms.html">Terms</a>
       <span>•</span>
-      <a href="javascript:void(0)" onclick="revisitCkyConsent()">
-        Do Not Sell or Share My Personal Information
+      <a href="#" onclick="revisitCkyConsent(event)">
+         Do Not Sell or Share My Personal Information
       </a>
+
     </div>
 
     <div style="width:100%; text-align:center; margin-top:14px; font-size:11px; letter-spacing:1.5px; opacity:.4;">
@@ -23,12 +24,24 @@
 </footer>
 
 <script>
-  function revisitCkyConsent() {
+  function revisitCkyConsent(e) {
+    if (e) e.preventDefault();
+
+    // CookieYes official API (most common)
     if (window.CookieYes && typeof window.CookieYes.revisitConsent === "function") {
       window.CookieYes.revisitConsent();
       return;
     }
-    if (typeof window.revisitCkyConsent === "function") return;
+
+    // Fallback: if CookieYes exposes a global revisit function
+    if (typeof window.revisitConsent === "function") {
+      window.revisitConsent();
+      return;
+    }
+
+    // Last resort: click the CookieYes floating button if present
+    const btn = document.querySelector('[data-cky-tag="revisit-consent"], .cky-btn-revisit, .cky-consent-bar button');
+    if (btn) btn.click();
   }
 </script>
 
