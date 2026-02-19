@@ -65,7 +65,17 @@ header{
   z-index:10;
   background: linear-gradient(to bottom, rgba(7,10,15,.92), rgba(7,10,15,.60));
   backdrop-filter: blur(10px);
-  border-bottom:1px solid rgba(23,36,59,.55);
+  border-bottom:0; /* remove full-width divider */
+}
+
+/* add a centered, "small" divider like home */
+header::after{
+  content:"";
+  display:block;
+  height:1px;
+  width:min(1100px, 92vw);
+  margin:0 auto;
+  background:rgba(23,36,59,.55);
 }
 
 .wrap{
