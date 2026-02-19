@@ -103,7 +103,7 @@ header{
   font-size:12px;
 }
 
-/* Infrastructure link (clean — no fixed positioning) */
+/* Infrastructure link (default: normal flow) */
 .infra-link{
   font-size:12px;
   text-decoration:none;
@@ -223,7 +223,7 @@ footer{
   color:var(--text);
 }
 
-/* ---------------- MOBILE ---------------- */
+/* ---------------- RESPONSIVE ---------------- */
 
 @media (max-width: 900px){
   .grid{
@@ -231,6 +231,20 @@ footer{
   }
 }
 
+/* Desktop: park "Fuel the Infrastructure" top-right */
+@media (min-width: 641px){
+  .topbar{ position: relative; }
+
+  .infra-link{
+    position: absolute;
+    top: 16px;
+    right: 0;
+    margin-top: 0;
+    white-space: nowrap;
+  }
+}
+
+/* Mobile */
 @media (max-width: 640px){
 
   .topbar{
@@ -251,6 +265,7 @@ footer{
   }
 
   .infra-link{
+    position: static;
     display:block;
     text-align:center;
     margin-top:6px;
