@@ -62,12 +62,7 @@
     <main>
       <div class="wrap">
 	  
-	   <h1 class="h1">SureWhyNot — Dev Studio</h1>
-       <h2 class="h2" style="margin:6px 0 18px;">Browser-Based Developer &amp; Security Tools</h2>
-
-       
-
-        <section class="grid">
+	        <section class="grid">
 
           <!-- LEFT -->
           <div class="card">
@@ -132,6 +127,15 @@
   </div>
 
   <script>
+  function swapTag(el, newTag) {
+    if (!el) return;
+    const ne = document.createElement(newTag);
+    for (const attr of el.attributes) ne.setAttribute(attr.name, attr.value);
+    ne.innerHTML = el.innerHTML;
+    ne.style.margin = "0";
+    el.replaceWith(ne);
+  }
+
   async function loadPartials() {
     const [header, footer] = await Promise.all([
       fetch('/partials/header'),
@@ -144,10 +148,16 @@
     if (h) h.innerHTML = await header.text();
     if (f) f.innerHTML = await footer.text();
 
+    // Convert header title/subtitle to H1/H2 on homepage only
+    swapTag(document.querySelector("header .brand"), "h1");
+    swapTag(document.querySelector("header .subtitle"), "h2");
+
     if (window.SWY_renderToolUse) window.SWY_renderToolUse();
   }
+
   loadPartials();
-  </script>
+</script>
+
 
 </body>
 </html>
