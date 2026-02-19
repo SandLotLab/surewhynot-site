@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="en">
 <head>
-  
 
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -63,14 +62,14 @@
     }
     button:hover{ border-color:#2a3a50; }
   </style>
-  
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-   
-   <script type="application/ld+json">
+
+  <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "Game",
@@ -83,15 +82,16 @@
   }
 }
 </script>
-   
+
 </head>
 
 <body>
 <div class="wrap">
   <header>
     <div class="row">
-      <div><b>Roguelike</b></div>
-      <span class="muted" style="font-size:12px;">WASD/Arrows • Swipe on canvas • R retry • N next • P prev</span>
+      <!-- H1/H2 added without changing styling/flow -->
+      <h1 style="margin:0;font-weight:700;font-size:14px;">Roguelike</h1>
+      <h2 class="muted" style="margin:0;font-size:12px;font-weight:normal;">WASD/Arrows • Swipe on canvas • R retry • N next • P prev</h2>
     </div>
 
     <div class="row">
@@ -240,7 +240,7 @@ function categoryName(lv){
 
 function subName(lv){
   if (lv === 50) return "";
-  const within10 = lv % 10;          // 0..9
+  const within10 = lv % 10;           // 0..9
   const idx = Math.floor(within10/2); // 0..4
   return SUB[idx];
 }
@@ -412,8 +412,6 @@ function pickExitWithMinPath(pl, minPath){
 // For each tile on the chosen safe path at player step k,
 // every enemy must have distance_to_tile > (k * enemySteps + safetyMargin).
 function safeAgainstAllEnemies(path, enemyStarts, enemySteps, safetyMargin){
-  // Precompute k step index for each tile on path
-  // path[0] is start at k=0
   for (const e of enemyStarts){
     const distE = bfsDistance(e);
     for (let k=0; k<path.length; k++){
@@ -458,9 +456,27 @@ function spawnEnemiesBeatable(path, playerStart, exitPos, enemyCount, enemySteps
     enemies.push(e);
   }
 
-  // If we couldn't place all enemies without breaking beatability,
-  // reduce enemy count for THIS level until beatability holds.
-  // (Still increasing difficulty overall, but never "unwinnable".)
+  // FIX: never allow "no enemies" when enemyCount >= 1
+  if (enemies.length === 0 && enemyCount > 0){
+    for (let i=0; i<40000; i++){
+      const e = placeOnFloor();
+      if (samePos(e, playerStart) || samePos(e, exitPos)) continue;
+      if (manhattan(e, playerStart) < 10) continue;
+      if (manhattan(e, exitPos) < 8) continue;
+
+      let onPath = false;
+      for (let j=0; j<path.length; j++){
+        if (path[j].x===e.x && path[j].y===e.y) { onPath=true; break; }
+      }
+      if (onPath) continue;
+
+      if (safeAgainstAllEnemies(path, [e], enemySteps, safetyMargin)){
+        enemies.push(e);
+        break;
+      }
+    }
+  }
+
   return enemies;
 }
 
@@ -480,9 +496,9 @@ function buildBeatableLevel(lv){
 
     // place enemies while preserving safe path guarantee
     const ens = spawnEnemiesBeatable(path, pl, ex, p.enemyCount, p.enemySteps, p.safetyMargin);
-    if (ens.length < Math.max(1, Math.min(ens.length, p.enemyCount)) && p.enemyCount > 1) {
-      // fine — difficulty is enforced by "never unwinnable"
-    }
+
+    // FIX: if we requested enemies but got none, regenerate map (prevents "empty levels")
+    if (p.enemyCount > 0 && ens.length === 0) continue;
 
     // final safety check (paranoia)
     if (!safeAgainstAllEnemies(path, ens, p.enemySteps, p.safetyMargin)) continue;
