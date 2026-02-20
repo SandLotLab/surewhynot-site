@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
 
-  <!-- Start cookieyes banner --> 
-   <script id="cookieyes" async type="text/javascript" src="https://cdn-cookieyes.com/client_data/b0872fcf9e2c426859698b10be285be4/script.js"></script> 
+  <!-- Start cookieyes banner -->
+   <script id="cookieyes" async type="text/javascript" src="https://cdn-cookieyes.com/client_data/b0872fcf9e2c426859698b10be285be4/script.js"></script>
   <!-- End cookieyes banner -->
-  
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <title>CSP & Security Headers Analyzer — Parse, Score, Report (Local)</title>
-  <meta name="description" content="Analyze Content-Security-Policy and security headers. Parse directives, flag unsafe patterns, severity findings, copy/download reports. Runs locally — no uploads." />
+  <meta name="description" content="Analyze Content-Security-Policy and security headers. Parse directives, flag unsafe patterns, severity findings, and export a report. Runs locally in your browser — no uploads." />
   <link rel="canonical" href="https://surewhynot.app/csp-analyzer.html" />
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="CSP & Security Headers Analyzer (Local)">
-  <meta property="og:description" content="Parse CSP + security headers, severity findings, copy/download reports. Runs locally — no uploads.">
+  <meta property="og:description" content="Parse CSP + security headers, severity findings, and export reports. Runs locally — no uploads.">
   <meta property="og:url" content="https://surewhynot.app/csp-analyzer.html">
 
   <link rel="stylesheet" href="/assets/site.css">
@@ -28,7 +28,7 @@
     "applicationCategory":"DeveloperApplication",
     "operatingSystem":"Web",
     "url":"https://surewhynot.app/csp-analyzer.html",
-    "description":"Analyze Content-Security-Policy and security headers. Parse directives, flag unsafe patterns, severity findings, copy/download reports. Runs locally — no uploads."
+    "description":"Analyze Content-Security-Policy and security headers. Parse directives, flag unsafe patterns, severity findings, and export reports. Runs locally in your browser — no uploads."
   }
   </script>
 
@@ -119,8 +119,12 @@
             <div class="pad">
               <div class="h1">CSP &amp; Security Headers Analyzer</div>
 
+              <!-- SEO paragraphs (styled to match your site) -->
               <div class="muted" style="margin-top:10px">
-                Paste Content-Security-Policy (or full response headers) to parse directives, score risk, and generate a copy/download report — runs locally, no uploads.
+                Paste a Content-Security-Policy (CSP) header (or full response headers) to parse directives, flag risky tokens, and generate a copy/download report — runs locally, no uploads.
+              </div>
+              <div class="muted" style="margin-top:10px">
+                Highlights common issues like <span class="mono">'unsafe-inline'</span>, <span class="mono">'unsafe-eval'</span>, wildcard sources, missing <span class="mono">object-src</span>, and missing <span class="mono">frame-ancestors</span>.
               </div>
 
               <div class="hr"></div>
