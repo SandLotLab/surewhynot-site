@@ -1,11 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-  
+
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>JSON to TypeScript Interface Generator (Free, Client-Side)</title>
-  <meta name="description" content="Paste JSON and generate TypeScript interfaces/types. Runs locally in your browser." />
+
+  <title>JSON to TypeScript — Generate Interfaces & Types (Free, Local)</title>
+  <meta name="description" content="Free JSON to TypeScript generator. Paste JSON and instantly generate TypeScript interfaces or type aliases. Runs locally in your browser — no uploads." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://surewhynot.app/json-to-typescript.html" />
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="JSON to TypeScript Generator (Free, Client-Side)">
+  <meta property="og:description" content="Paste JSON and generate TypeScript interfaces/types instantly. Runs locally in your browser — no uploads.">
+  <meta property="og:url" content="https://surewhynot.app/json-to-typescript.html">
+  <meta property="og:site_name" content="SureWhyNot">
+
   <link rel="stylesheet" href="/assets/site.css">
 
   <script type="application/ld+json">
@@ -15,11 +25,12 @@
   "name": "JSON to TypeScript Interface Generator",
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": "Web",
-  "description": "Free JSON to TypeScript generator that runs entirely in the browser."
+  "url": "https://surewhynot.app/json-to-typescript.html",
+  "description": "Free JSON to TypeScript generator that runs entirely in the browser — paste JSON and generate interfaces or type aliases without uploads.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
 }
   </script>
 
-  
   <meta http-equiv="Content-Security-Policy" content="
    default-src 'self' https:;
    script-src 'self' 'unsafe-inline' https:;
@@ -36,55 +47,56 @@
   <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()">
   <meta http-equiv="X-Frame-Options" content="DENY">
 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
      crossorigin="anonymous"></script>
-	 
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">	 
-	 
+  <link rel="manifest" href="/site.webmanifest">
+
+  <script>
+  async function loadPartials() {
+    const header = await fetch('/partials/header.html');
+    const footer = await fetch('/partials/footer.html');
+
+    document.getElementById('site-header').innerHTML = await header.text();
+    document.getElementById('site-footer').innerHTML = await footer.text();
+  }
+  </script>
+
 </head>
 
-<script>
-async function loadPartials() {
-  const header = await fetch('/partials/header.html');
-  const footer = await fetch('/partials/footer.html');
-
-  document.getElementById('site-header').innerHTML = await header.text();
-  document.getElementById('site-footer').innerHTML = await footer.text();
-}
-
-loadPartials();
-</script>
-
-<body>
+<body onload="loadPartials()">
   <div class="page">
-   
-   <div id="site-header"></div>
 
+    <div id="site-header"></div>
 
     <main>
       <div class="wrap">
         <section class="grid">
+
           <div class="card">
             <div class="pad">
-              <div class="h1">JSON to TypeScript Interface Generator</div>
 
-<div class="muted" style="margin-top:10px">
-  Convert raw JSON into clean TypeScript interfaces or type aliases instantly.
-  This JSON to TypeScript generator runs entirely in your browser — your data never leaves your device.
-  Perfect for frontend developers, API consumers, and TypeScript projects.
-</div>
+              <!-- Proper semantic headings, styled to match your site (no layout/style change) -->
+              <h1 class="h1" style="margin:0;">JSON to TypeScript Interface Generator</h1>
+              <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
+                Generate TypeScript interfaces or type aliases from JSON (local, no uploads)
+              </h2>
 
-<div class="muted" style="margin-top:10px">
-  Paste any JSON payload, generate strongly typed TypeScript definitions,
-  and copy or download the results immediately. Supports nested objects,
-  arrays, union types, and ISO date detection.
-</div>
+              <div class="muted" style="margin-top:10px">
+                Convert raw JSON into clean TypeScript interfaces or type aliases instantly.
+                This JSON to TypeScript generator runs entirely in your browser — your data never leaves your device.
+                Perfect for frontend developers, API consumers, and TypeScript projects.
+              </div>
 
-
+              <div class="muted" style="margin-top:10px">
+                Paste any JSON payload, generate strongly typed TypeScript definitions,
+                and copy or download the results immediately. Supports nested objects,
+                arrays, union types, and ISO date detection.
+              </div>
 
               <div class="muted">
                 Paste JSON on the left. Click Generate. Copy/Download TypeScript on the right.
