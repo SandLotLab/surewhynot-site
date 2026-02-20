@@ -47,19 +47,14 @@
 
     <main>
       <div class="wrap">
-       <header class="hero" style="margin: 0 0 16px 0;">
-  <h1>SureWhyNot — Dev Studio</h1>
-  <h2 style="margin-top:6px; font-size:14px; letter-spacing:.08em; opacity:.8;">
-    Developer & Security Tools for IT Professional
-  </h2>
-</header>
+
         <section class="grid">
 
           <!-- LEFT -->
           <div class="card">
             <div class="pad">
 
-              <h2 class="h2">Welcome</h2>
+              <h3 class="h2">Welcome</h3>
 
               <p class="muted" style="margin-top:6px">
                 Local-first tools for builders. Fast. Private. No accounts. No uploads.<br>
@@ -141,8 +136,8 @@
       if (f) f.innerHTML = await footer.text();
 
       // Homepage: convert existing header title/subtitle to real H1/H2
-     // swapTag(document.querySelector("header .brand"), "h1");
-     // swapTag(document.querySelector("header .subtitle"), "h2");
+      swapTag(document.querySelector("header .brand"), "h1");
+      swapTag(document.querySelector("header .subtitle"), "h2");
 
       if (window.SWY_renderToolUse) window.SWY_renderToolUse();
     }
