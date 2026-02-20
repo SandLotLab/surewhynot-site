@@ -2,17 +2,19 @@
 <html lang="en">
 <head>
 
-  
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <title>JSON Formatter & Validator — Prettify, Minify, Validate (Free)</title>
-  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, sort keys, and extract paths. Runs locally in your browser — no uploads." />
+
+  <!-- SEO -->
+  <meta name="description" content="Free JSON formatter and validator. Prettify, minify, validate, sort keys, extract JSON paths, and optionally validate against schema. Runs locally in your browser — no uploads." />
+  <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/json-formatter.html">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="JSON Formatter & Validator (Free, Client-Side)">
-  <meta property="og:description" content="Prettify, minify, validate JSON instantly. Runs in your browser — no uploads.">
+  <meta property="og:description" content="Prettify, minify, validate JSON instantly. Sort keys, extract paths, and optional schema checks. Runs in your browser — no uploads.">
   <meta property="og:url" content="https://surewhynot.app/json-formatter.html">
 
   <link rel="stylesheet" href="/assets/site.css">
@@ -25,7 +27,7 @@
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Web",
     "url": "https://surewhynot.app/json-formatter.html",
-    "description": "Free JSON formatter and validator. Prettify, minify, validate, sort keys, and extract paths. Runs locally in your browser — no uploads."
+    "description": "Free JSON formatter and validator. Prettify, minify, validate, sort keys, extract paths, and optional JSON Schema subset validation. Runs locally in your browser — no uploads."
   }
   </script>
 
@@ -75,17 +77,17 @@
       font-size:12.5px;
       line-height:1.55;
     }
-	
   </style>
+
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
      crossorigin="anonymous"></script>
-	 
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">	 
-	 
+  <link rel="manifest" href="/site.webmanifest">
+
 </head>
 
 <body>
@@ -98,7 +100,12 @@
 
           <div class="card">
             <div class="pad">
-              <div class="h1">JSON Formatter &amp; Validator</div>
+
+              <!-- Proper semantic headings with NO default styling impact -->
+              <h1 class="h1" style="margin:0;">JSON Formatter &amp; Validator</h1>
+              <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
+                Prettify • Minify • Validate • Sort Keys • Extract Paths
+              </h2>
 
               <!-- SEO paragraphs (styled to match your site) -->
               <div class="muted" style="margin-top:10px">
@@ -698,19 +705,19 @@
       }
 
       if (typeof value === "string") {
-        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(`minLength ${schema.minLength}`);
-        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(`maxLength ${schema.maxLength}`);
+        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(\`minLength \${schema.minLength}\`);
+        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(\`maxLength \${schema.maxLength}\`);
       }
 
       if (typeof value === "number") {
-        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(`minimum ${schema.minimum}`);
-        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(`maximum ${schema.maximum}`);
+        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(\`minimum \${schema.minimum}\`);
+        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(\`maximum \${schema.maximum}\`);
       }
 
       if (Array.isArray(value)) {
         if (schema.items && typeof schema.items === "object") {
           for (let i=0; i<value.length; i++) {
-            errors.push(...schemaValidateValue(value[i], schema.items, `${path || ""}/${i}`));
+            errors.push(...schemaValidateValue(value[i], schema.items, \`\${path || ""}/\${i}\`));
           }
         }
       }
@@ -718,12 +725,12 @@
       if (value && typeof value === "object" && !Array.isArray(value)) {
         if (Array.isArray(schema.required)) {
           for (const k of schema.required) {
-            if (!(k in value)) errors.push(`${path || "/"}: missing required "${k}"`);
+            if (!(k in value)) errors.push(\`\${path || "/"}: missing required "\${k}"\`);
           }
         }
         if (schema.properties && typeof schema.properties === "object") {
           for (const [k, sub] of Object.entries(schema.properties)) {
-            if (k in value) errors.push(...schemaValidateValue(value[k], sub, `${path || ""}/${k}`));
+            if (k in value) errors.push(...schemaValidateValue(value[k], sub, \`\${path || ""}/\${k}\`));
           }
         }
       }
@@ -809,6 +816,6 @@
     setSchemaStatus("");
   })();
   </script>
-  
+
 </body>
 </html>
