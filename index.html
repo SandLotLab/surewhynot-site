@@ -211,6 +211,7 @@
           </div>
 	 	  
 
+
         </section>
       </div>
     </main>
@@ -226,6 +227,18 @@
       if (window.SWY_renderToolUse) window.SWY_renderToolUse();
     }
     loadPartials();
+  </script>
+
+  <!-- GA4 server-side trigger (only on .app) -->
+  <script>
+  if (location.hostname === "surewhynot.app") {
+    fetch("/ga", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ event: "page_view", path: location.pathname }),
+      keepalive: true
+    });
+  }
   </script>
 
 </body>
