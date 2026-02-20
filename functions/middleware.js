@@ -1,10 +1,10 @@
 export async function onRequest({ request, next }) {
-  const url = new URL(request.url);
   const host = request.headers.get("host") || "";
+  const url = new URL(request.url);
 
+  // If someone uses the default Pages domain, kick them to the .app domain.
   if (host.endsWith(".pages.dev")) {
     url.host = "surewhynot.app";
-    url.protocol = "https:";
     return Response.redirect(url.toString(), 301);
   }
 
