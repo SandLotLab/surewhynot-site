@@ -30,7 +30,6 @@
 
   <link rel="stylesheet" href="/assets/site.css">
 
-  <!-- AdSense (kept async; OK in head) -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
     crossorigin="anonymous"></script>
 
@@ -43,7 +42,43 @@
 
 <body>
   <div class="page">
-    <div id="site-header"></div>
+
+    <header>
+      <div class="wrap">
+        <div class="topbar">
+
+          <!-- Brand / Title -->
+          <h1 class="brand">
+            <span class="dot"></span>
+            SureWhyNot — Dev Studio
+          </h1>
+
+          <!-- Subtitle -->
+          <h2 class="subtitle">
+            Developer &amp; Security Tools for IT Professionals
+          </h2>
+
+          <!-- Infrastructure Link -->
+          <a class="infra-link" href="/infrastructure.html">
+            Fuel The Infrastructure
+          </a>
+
+        </div>
+
+        <!-- Navigation -->
+        <nav class="navcenter">
+          <a class="pill" href="/">Home</a>
+          <a class="pill" href="/json-formatter.html">JSON Formatter</a>
+          <a class="pill" href="/json-to-typescript.html">JSON to TypeScript</a>
+          <a class="pill" href="/jwt-decoder.html">JWT Decoder</a>
+          <a class="pill" href="/csp-analyzer.html">CSP Analyzer</a>
+          <a class="pill" href="/hash-generator.html">Hash Generator</a>
+          <a class="pill" href="/uuid-generator.html">UUID Generator</a>
+          <a class="pill" href="/log-explorer.html">Log Explorer</a>
+        </nav>
+
+      </div>
+    </header>
 
     <main>
       <div class="wrap">
@@ -54,7 +89,7 @@
           <div class="card">
             <div class="pad">
 
-              <h3 class="h2">Welcome</h3>
+              <h2 class="h2">Welcome</h2>
 
               <p class="muted" style="margin-top:6px">
                 Local-first tools for builders. Fast. Private. No accounts. No uploads.<br>
@@ -112,36 +147,13 @@
     <div id="site-footer"></div>
   </div>
 
-  <!-- Partials + homepage-only H1/H2 conversion -->
   <script>
-    function swapTag(el, newTag) {
-      if (!el) return;
-      const ne = document.createElement(newTag);
-      for (const attr of el.attributes) ne.setAttribute(attr.name, attr.value);
-      ne.innerHTML = el.innerHTML;
-      ne.style.margin = "0";
-      el.replaceWith(ne);
-    }
-
     async function loadPartials() {
-      const [header, footer] = await Promise.all([
-        fetch('/partials/header'),
-        fetch('/partials/footer')
-      ]);
-
-      const h = document.getElementById('site-header');
+      const footer = await fetch('/partials/footer');
       const f = document.getElementById('site-footer');
-
-      if (h) h.innerHTML = await header.text();
       if (f) f.innerHTML = await footer.text();
-
-      // Homepage: convert existing header title/subtitle to real H1/H2
-      swapTag(document.querySelector("header .brand"), "h1");
-      swapTag(document.querySelector("header .subtitle"), "h2");
-
       if (window.SWY_renderToolUse) window.SWY_renderToolUse();
     }
-
     loadPartials();
   </script>
 
