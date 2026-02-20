@@ -5,14 +5,16 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>JWT Decoder & Inspector — Decode, Verify HS*, Check exp/iat/nbf (Local)</title>
-  <meta name="description" content="JWT decoder & inspector: decode header/payload, check exp/iat/nbf, copy/download, and optionally verify HS256/384/512. Runs locally in your browser — no uploads." />
+  <title>JWT Decoder & Inspector — Decode, Verify HS256/384/512, Check exp/iat/nbf (Free, Local)</title>
+  <meta name="description" content="Free JWT decoder & inspector: decode header/payload, check exp/iat/nbf, copy/download, and optionally verify HS256/384/512. Runs locally in your browser — no uploads." />
+  <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/jwt-decoder.html" />
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="JWT Decoder & Inspector (Local, Privacy-Forward)">
   <meta property="og:description" content="Decode JWT header/payload, check exp/iat/nbf, copy/download, optional HS* verify. Runs locally — no uploads.">
   <meta property="og:url" content="https://surewhynot.app/jwt-decoder.html">
+  <meta property="og:site_name" content="SureWhyNot">
 
   <link rel="stylesheet" href="/assets/site.css">
 
@@ -24,7 +26,8 @@
     "applicationCategory":"DeveloperApplication",
     "operatingSystem":"Web",
     "url":"https://surewhynot.app/jwt-decoder.html",
-    "description":"JWT decoder & inspector: decode header/payload, check exp/iat/nbf, copy/download, and optionally verify HS256/384/512. Runs locally — no uploads."
+    "description":"JWT decoder & inspector: decode header/payload, check exp/iat/nbf, copy/download, and optionally verify HS256/384/512. Runs locally — no uploads.",
+    "offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}
   }
   </script>
 
@@ -109,16 +112,16 @@
   }
   loadPartials();
   </script>
-  
+
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
      crossorigin="anonymous"></script>
-	
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-	
+
 </head>
 
 <body>
@@ -131,7 +134,12 @@
 
           <div class="card">
             <div class="pad">
-              <div class="h1">JWT Decoder &amp; Inspector</div>
+
+              <!-- Proper semantic headings with NO default styling impact -->
+              <h1 class="h1" style="margin:0;">JWT Decoder &amp; Inspector</h1>
+              <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
+                Decode • Inspect Claims • Check exp/iat/nbf • Optional HS256/384/512 Verify
+              </h2>
 
               <div class="muted" style="margin-top:10px">
                 Decode and inspect JSON Web Tokens (JWT) locally: header/payload/signature, exp/iat/nbf timestamps, and optional HS256/384/512 verification — no uploads.
