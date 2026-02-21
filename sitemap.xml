@@ -2,21 +2,21 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
   <url><loc>https://surewhynot.app/</loc></url>
-  <url><loc>https://surewhynot.app/about.html</loc></url>
-  <url><loc>https://surewhynot.app/contact.html</loc></url>
-  <url><loc>https://surewhynot.app/privacy.html</loc></url>
-  <url><loc>https://surewhynot.app/terms.html</loc></url>
+  <url><loc>https://surewhynot.app/about</loc></url>
+  <url><loc>https://surewhynot.app/contact</loc></url>
+  <url><loc>https://surewhynot.app/privacy</loc></url>
+  <url><loc>https://surewhynot.app/terms</loc></url>
 
-  <url><loc>https://surewhynot.app/json-formatter.html</loc></url>
-  <url><loc>https://surewhynot.app/json-to-typescript.html</loc></url>
-  <url><loc>https://surewhynot.app/jwt-decoder.html</loc></url>
-  <url><loc>https://surewhynot.app/hash-generator.html</loc></url>
-  <url><loc>https://surewhynot.app/uuid-generator.html</loc></url>
-  <url><loc>https://surewhynot.app/csp-analyzer.html</loc></url>
-  <url><loc>https://surewhynot.app/log-explorer.html</loc></url>
-  <url><loc>https://surewhynot.app/infrastructure.html</loc></url>
+  <url><loc>https://surewhynot.app/json-formatter</loc></url>
+  <url><loc>https://surewhynot.app/json-to-typescript</loc></url>
+  <url><loc>https://surewhynot.app/jwt-decoder</loc></url>
+  <url><loc>https://surewhynot.app/hash-generator</loc></url>
+  <url><loc>https://surewhynot.app/uuid-generator</loc></url>
+  <url><loc>https://surewhynot.app/csp-analyzer</loc></url>
+  <url><loc>https://surewhynot.app/log-explorer</loc></url>
+  <url><loc>https://surewhynot.app/infrastructure</loc></url>
 
-  <url><loc>https://surewhynot.app/roguelike.html</loc></url>
-  <url><loc>https://surewhynot.app/galactica.html</loc></url>
+  <url><loc>https://surewhynot.app/roguelike</loc></url>
+  <url><loc>https://surewhynot.app/galactica</loc></url>
 
 </urlset>
