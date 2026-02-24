@@ -7,7 +7,7 @@
 
   <title>Fuel the Infrastructure — surewhynot.app</title>
   <meta name="description" content="Support surewhynot.app infrastructure." />
-  <link rel="canonical" href="https://surewhynot.app/infrastructure.html" />
+  <link rel="canonical" href="https://surewhynot.app/infrastructure" />
   <meta name="robots" content="index,follow" />
 
   <link rel="stylesheet" href="/assets/site.css">
@@ -19,7 +19,7 @@
   <script>
     async function loadPartials() {
       const header = await fetch('/partials/header');
-      const footer = await fetch('/partials/footer.html');
+      const footer = await fetch('/partials/footer');
 
       document.getElementById('site-header').innerHTML = await header.text();
       document.getElementById('site-footer').innerHTML = await footer.text();
@@ -90,7 +90,7 @@
   "@context": "https://schema.org",
   "@type": "WebPage",
   "name": "Fuel The Infrastructure",
-  "url": "https://surewhynot.app/infrastructure.html",
+  "url": "https://surewhynot.app/infrastructure",
   "description": "Support and infrastructure information for SureWhyNot Dev Studio."
 }
 </script>
