@@ -17,3 +17,17 @@
     </div>
   </div>
 </footer>
+
+<script>
+if (location.hostname === "surewhynot.app") {
+  fetch("/ga", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      event: "page_view",
+      path: location.pathname + location.search
+    }),
+    keepalive: true
+  });
+}
+</script>
