@@ -1,23 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Free Online JSON Formatter & Validator | SureWhyNot</title>
+  <title>Free Online JSON Formatter &amp; Validator | SureWhyNot</title>
 
   <!-- SEO -->
   <meta name="description" content="Free online JSON formatter and validator. Prettify, minify, validate, sort keys, extract JSON paths, and optionally validate against schema. Runs locally in your browser — no uploads." />
   <meta name="robots" content="index,follow" />
-  <link rel="canonical" href="https://surewhynot.app/json-formatter">
+  <link rel="canonical" href="https://surewhynot.app/json-formatter" />
 
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="Free Online JSON Formatter & Validator | SureWhyNot">
-  <meta property="og:description" content="Prettify, minify, validate JSON instantly. Sort keys, extract paths, and optional schema checks. Runs in your browser — no uploads.">
-  <meta property="og:url" content="https://surewhynot.app/json-formatter">
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Free Online JSON Formatter &amp; Validator | SureWhyNot" />
+  <meta property="og:description" content="Prettify, minify, validate JSON instantly. Sort keys, extract paths, and optional schema checks. Runs in your browser — no uploads." />
+  <meta property="og:url" content="https://surewhynot.app/json-formatter" />
 
-  <link rel="stylesheet" href="/assets/site.css">
+  <link rel="stylesheet" href="/assets/site.css" />
 
   <script type="application/ld+json">
   {
@@ -43,11 +42,11 @@
     object-src 'none';
     base-uri 'self';
     frame-ancestors 'self';
-">
+  " />
 
-  <meta http-equiv="Referrer-Policy" content="no-referrer">
-  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()">
-  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta http-equiv="Referrer-Policy" content="no-referrer" />
+  <meta http-equiv="Permissions-Policy" content="geolocation=(), microphone=(), camera=(), payment=(), usb=(), interest-cohort=()" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
 
   <style>
     .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
@@ -79,15 +78,13 @@
     }
   </style>
 
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-     crossorigin="anonymous"></script>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614" crossorigin="anonymous"></script>
 
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
-  <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="manifest" href="/site.webmanifest">
-
+  <link rel="icon" href="/favicon.ico" sizes="any" />
+  <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32" />
+  <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
 </head>
 
 <body>
@@ -96,18 +93,16 @@
 
     <main>
       <div class="wrap">
-        <section class="grid">
 
+        <section class="grid">
           <div class="card">
             <div class="pad">
 
-              <!-- Proper semantic headings with NO default styling impact -->
               <h1 class="h1" style="margin:0;">Free Online JSON Formatter &amp; Validator</h1>
               <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
                 Prettify • Minify • Validate • Sort Keys • Extract Paths
               </h2>
 
-              <!-- SEO paragraphs (styled to match your site) -->
               <div class="muted" style="margin-top:10px">
                 Format and validate JSON instantly. This JSON formatter runs entirely in your browser — no uploads.
               </div>
@@ -138,22 +133,23 @@
                   <div class="lbl">Options</div>
                   <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center;">
                     <label style="display:flex; gap:8px; align-items:center;">
-                      <input id="optAutoFix" type="checkbox" checked>
+                      <input id="optAutoFix" type="checkbox" checked />
                       <span>Auto-fix common paste issues</span>
                     </label>
                     <label style="display:flex; gap:8px; align-items:center;">
-                      <input id="optJson5ish" type="checkbox">
+                      <input id="optJson5ish" type="checkbox" />
                       <span>Allow comments + trailing commas</span>
                     </label>
                     <label style="display:flex; gap:8px; align-items:center;">
-                      <input id="optSortKeys" type="checkbox">
+                      <input id="optSortKeys" type="checkbox" />
                       <span>Sort keys when prettifying</span>
                     </label>
                   </div>
                 </div>
               </div>
 
-              <textarea id="jsonIn"
+              <textarea
+                id="jsonIn"
                 class="ta mono"
                 style="min-height:320px;"
                 spellcheck="false"
@@ -200,7 +196,8 @@
                 <button class="pill" type="button" id="btnClearOut">Clear output</button>
               </div>
 
-              <textarea id="outBox"
+              <textarea
+                id="outBox"
                 class="ta mono"
                 style="min-height:220px;"
                 spellcheck="false"
@@ -211,7 +208,11 @@
               <div class="row" style="margin-bottom:10px;">
                 <div class="col" style="flex: 1 1 320px;">
                   <div class="lbl">JSON Schema (subset) — optional</div>
-                  <textarea id="schemaBox" class="ta mono" style="min-height:160px;" spellcheck="false"
+                  <textarea
+                    id="schemaBox"
+                    class="ta mono"
+                    style="min-height:160px;"
+                    spellcheck="false"
                     placeholder='Example schema subset:
 {
   "type": "object",
@@ -232,10 +233,10 @@
 
                   <div class="muted" style="margin-top:10px; line-height:1.6;">
                     Supports subset:
-                    <br>• type, enum, const
-                    <br>• required, properties, items
-                    <br>• min/max (number), minLength/maxLength
-                    <br>• minimum/maximum
+                    <br />• type, enum, const
+                    <br />• required, properties, items
+                    <br />• min/max (number), minLength/maxLength
+                    <br />• minimum/maximum
                   </div>
                 </div>
               </div>
@@ -243,81 +244,79 @@
               <div class="muted" id="schemaStatus"></div>
             </div>
           </div>
-
         </section>
+
+        <!-- FIX: About card is INSIDE .wrap, so it lines up with the grid/cards above -->
+        <section class="card" style="margin:16px 0 26px;">
+          <div class="pad">
+
+            <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+              Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
+              (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
+              quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
+            </p>
+
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+            <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
+              <li>Prettify JSON responses from REST/GraphQL endpoints</li>
+              <li>Minify JSON before sending requests or saving fixtures</li>
+              <li>Validate JSON and pinpoint syntax issues quickly</li>
+              <li>Sort object keys to make diffs stable and reviewable</li>
+              <li>Extract values using JSON paths when you only need one field</li>
+            </ul>
+
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+              The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
+              account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
+              prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
+            </p>
+
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
+
+            <h4 class="h4" style="margin:10px 0 6px 0;">Does this send JSON to a server?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+              No — formatting and validation run locally in your browser.
+            </p>
+
+            <h4 class="h4" style="margin:10px 0 6px 0;">Can it handle large JSON?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+              Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.
+            </p>
+
+            <h4 class="h4" style="margin:10px 0 6px 0;">Why “validate” fails when it looks like JSON?</h4>
+            <p class="muted" style="margin:0; line-height:1.6;">
+              JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.
+            </p>
+
+          </div>
+        </section>
+
       </div>
     </main>
 
-    
-<section style="padding:0 0 26px;">
-  <div class="card">
-    <div class="pad">
-
-      <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
-      <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
-        Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
-        (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
-        quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
-      </p>
-
-      <div class="hr"></div>
-
-      <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
-      <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
-        <li>Prettify JSON responses from REST/GraphQL endpoints</li>
-        <li>Minify JSON before sending requests or saving fixtures</li>
-        <li>Validate JSON and pinpoint syntax issues quickly</li>
-        <li>Sort object keys to make diffs stable and reviewable</li>
-        <li>Extract values using JSON paths when you only need one field</li>
-      </ul>
-
-      <div class="hr"></div>
-
-      <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
-      <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
-        The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
-        account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
-        prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
-      </p>
-
-      <div class="hr"></div>
-
-      <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
-
-      <h4 class="h4" style="margin:10px 0 6px 0;">Does this send JSON to a server?</h4>
-      <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
-        No — formatting and validation run locally in your browser.
-      </p>
-
-      <h4 class="h4" style="margin:10px 0 6px 0;">Can it handle large JSON?</h4>
-      <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
-        Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.
-      </p>
-
-      <h4 class="h4" style="margin:10px 0 6px 0;">Why “validate” fails when it looks like JSON?</h4>
-      <p class="muted" style="margin:0; line-height:1.6;">
-        JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.
-      </p>
-
-    </div>
+    <div id="site-footer"></div>
   </div>
-</section>
-
-<div id="site-footer"></div>
-</div>
 
   <script>
-  async function loadPartials() {
-    const header = await fetch('/partials/header.html');
-    const footer = await fetch('/partials/footer.html');
+    async function loadPartials() {
+      const header = await fetch("/partials/header.html");
+      const footer = await fetch("/partials/footer.html");
 
-    const h = document.getElementById('site-header');
-    const f = document.getElementById('site-footer');
+      const h = document.getElementById("site-header");
+      const f = document.getElementById("site-footer");
 
-    if (h) h.innerHTML = await header.text();
-    if (f) f.innerHTML = await footer.text();
-  }
-  loadPartials();
+      if (h) h.innerHTML = await header.text();
+      if (f) f.innerHTML = await footer.text();
+    }
+    loadPartials();
   </script>
 
   <script>
@@ -543,7 +542,7 @@
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
       const data = await withWorker({
-        op:"validate",
+        op: "validate",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -557,7 +556,7 @@
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
       const data = await withWorker({
-        op:"prettify",
+        op: "prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -573,7 +572,7 @@
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
       const data = await withWorker({
-        op:"minify",
+        op: "minify",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -589,7 +588,7 @@
       const raw = jsonIn.value;
       if (!raw.trim()) return setStatus("Paste JSON first.");
       const data = await withWorker({
-        op:"sort",
+        op: "sort",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -616,23 +615,23 @@
       }
 
       const n = A.length, m = B.length;
-      const dp = Array.from({ length: n+1 }, () => new Uint16Array(m+1));
+      const dp = Array.from({ length: n + 1 }, () => new Uint16Array(m + 1));
 
-      for (let i=1;i<=n;i++){
-        for (let j=1;j<=m;j++){
-          dp[i][j] = (A[i-1] === B[j-1]) ? (dp[i-1][j-1] + 1) : Math.max(dp[i-1][j], dp[i][j-1]);
+      for (let i = 1; i <= n; i++) {
+        for (let j = 1; j <= m; j++) {
+          dp[i][j] = (A[i - 1] === B[j - 1]) ? (dp[i - 1][j - 1] + 1) : Math.max(dp[i - 1][j], dp[i][j - 1]);
         }
       }
 
-      let i=n, j=m;
+      let i = n, j = m;
       const out = [];
-      while (i>0 && j>0) {
-        if (A[i-1] === B[j-1]) { out.push(" " + A[i-1]); i--; j--; }
-        else if (dp[i-1][j] >= dp[i][j-1]) { out.push("-" + A[i-1]); i--; }
-        else { out.push("+" + B[j-1]); j--; }
+      while (i > 0 && j > 0) {
+        if (A[i - 1] === B[j - 1]) { out.push(" " + A[i - 1]); i--; j--; }
+        else if (dp[i - 1][j] >= dp[i][j - 1]) { out.push("-" + A[i - 1]); i--; }
+        else { out.push("+" + B[j - 1]); j--; }
       }
-      while (i>0) { out.push("-" + A[i-1]); i--; }
-      while (j>0) { out.push("+" + B[j-1]); j--; }
+      while (i > 0) { out.push("-" + A[i - 1]); i--; }
+      while (j > 0) { out.push("+" + B[j - 1]); j--; }
 
       out.reverse();
       return out.join("\n");
@@ -669,9 +668,9 @@
       while (i < p.length) {
         if (p[i] === ".") { i++; continue; }
         if (p[i] === "[") {
-          const j = p.indexOf("]", i+1);
+          const j = p.indexOf("]", i + 1);
           if (j < 0) return null;
-          const inside = p.slice(i+1, j).trim();
+          const inside = p.slice(i + 1, j).trim();
           if (!inside) return null;
           const n = Number(inside);
           if (!Number.isInteger(n)) return null;
@@ -710,7 +709,7 @@
       if (!p) return setStatus("Enter a path.");
 
       const data = await withWorker({
-        op:"prettify",
+        op: "prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -760,19 +759,19 @@
       }
 
       if (typeof value === "string") {
-        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(\`minLength \${schema.minLength}\`);
-        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(\`maxLength \${schema.maxLength}\`);
+        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(`minLength ${schema.minLength}`);
+        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(`maxLength ${schema.maxLength}`);
       }
 
       if (typeof value === "number") {
-        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(\`minimum \${schema.minimum}\`);
-        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(\`maximum \${schema.maximum}\`);
+        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(`minimum ${schema.minimum}`);
+        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(`maximum ${schema.maximum}`);
       }
 
       if (Array.isArray(value)) {
         if (schema.items && typeof schema.items === "object") {
-          for (let i=0; i<value.length; i++) {
-            errors.push(...schemaValidateValue(value[i], schema.items, \`\${path || ""}/\${i}\`));
+          for (let i = 0; i < value.length; i++) {
+            errors.push(...schemaValidateValue(value[i], schema.items, `${path || ""}/${i}`));
           }
         }
       }
@@ -780,12 +779,12 @@
       if (value && typeof value === "object" && !Array.isArray(value)) {
         if (Array.isArray(schema.required)) {
           for (const k of schema.required) {
-            if (!(k in value)) errors.push(\`\${path || "/"}: missing required "\${k}"\`);
+            if (!(k in value)) errors.push(`${path || "/"}: missing required "${k}"`);
           }
         }
         if (schema.properties && typeof schema.properties === "object") {
           for (const [k, sub] of Object.entries(schema.properties)) {
-            if (k in value) errors.push(...schemaValidateValue(value[k], sub, \`\${path || ""}/\${k}\`));
+            if (k in value) errors.push(...schemaValidateValue(value[k], sub, `${path || ""}/${k}`));
           }
         }
       }
@@ -801,7 +800,7 @@
       if (!schRaw) return setSchemaStatus("Paste schema JSON (subset) first.");
 
       const data = await withWorker({
-        op:"prettify",
+        op: "prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -836,7 +835,7 @@
       const raw = jsonIn.value.trim();
       if (!raw) return setStatus("Paste JSON first.");
       withWorker({
-        op:"prettify",
+        op: "prettify",
         text: raw,
         autoFix: !!optAutoFix.checked,
         json5ish: !!optJson5ish.checked,
@@ -871,6 +870,5 @@
     setSchemaStatus("");
   })();
   </script>
-
 </body>
 </html>
