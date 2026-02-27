@@ -249,55 +249,62 @@
     </main>
 
     
-    <section style="padding:0 0 26px;">
-      <div class="card">
-        <div class="pad">
-          <div class="h1">About this tool</div>
+<section style="padding:0 0 26px;">
+  <div class="card">
+    <div class="pad">
 
-          <div class="muted">
-            Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
-            (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
-            quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
-          </div>
+      <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+      <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+        Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
+        (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
+        quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
+      </p>
 
-          <div class="hr"></div>
+      <div class="hr"></div>
 
-          <div class="h2">Common use cases</div>
-          <ul class="muted" style="margin:8px 0 0 18px; padding:0;">
-            <li>Prettify JSON responses from REST/GraphQL endpoints</li>
-            <li>Minify JSON before sending requests or saving fixtures</li>
-            <li>Validate JSON and pinpoint syntax issues quickly</li>
-            <li>Sort object keys to make diffs stable and reviewable</li>
-            <li>Extract values using JSON paths when you only need one field</li>
-          </ul>
+      <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+      <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
+        <li>Prettify JSON responses from REST/GraphQL endpoints</li>
+        <li>Minify JSON before sending requests or saving fixtures</li>
+        <li>Validate JSON and pinpoint syntax issues quickly</li>
+        <li>Sort object keys to make diffs stable and reviewable</li>
+        <li>Extract values using JSON paths when you only need one field</li>
+      </ul>
 
-          <div class="hr"></div>
+      <div class="hr"></div>
 
-          <div class="h2">How it works</div>
-          <div class="muted">
-            The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
-            account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
-            prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
-          </div>
+      <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+      <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+        The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
+        account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
+        prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
+      </p>
 
-          <div class="hr"></div>
+      <div class="hr"></div>
 
-<div class="h2">FAQ</div>
+      <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
 
-<div class="h2" style="margin-top:12px; margin-bottom:4px">Does this send JSON to a server?</div>
-<div class="muted">No — formatting and validation run locally in your browser.</div>
+      <h4 class="h4" style="margin:10px 0 6px 0;">Does this send JSON to a server?</h4>
+      <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+        No — formatting and validation run locally in your browser.
+      </p>
 
-<div class="h2" style="margin-top:10px; margin-bottom:4px">Can it handle large JSON?</div>
-<div class="muted">Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.</div>
+      <h4 class="h4" style="margin:10px 0 6px 0;">Can it handle large JSON?</h4>
+      <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+        Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.
+      </p>
 
-<div class="h2" style="margin-top:10px; margin-bottom:4px">Why “validate” fails when it looks like JSON?</div>
-<div class="muted">JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.</div>
-        </div>
-      </div>
-    </section>
+      <h4 class="h4" style="margin:10px 0 6px 0;">Why “validate” fails when it looks like JSON?</h4>
+      <p class="muted" style="margin:0; line-height:1.6;">
+        JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.
+      </p>
+
+    </div>
+  </div>
+</section>
 
 <div id="site-footer"></div>
-  </div>
+</div>
 
   <script>
   async function loadPartials() {
