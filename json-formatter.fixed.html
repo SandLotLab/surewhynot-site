@@ -96,6 +96,7 @@
 
     <main>
       <div class="wrap">
+
         <section class="grid">
 
           <div class="card">
@@ -245,58 +246,66 @@
           </div>
 
         </section>
+
+        <!-- About / SEO card (kept inside SAME wrap so it's flush with grid) -->
+        <section style="padding:0 0 26px;">
+          <div class="card">
+            <div class="pad">
+
+              <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+              <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+                Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
+                (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
+                quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
+              </p>
+
+              <div class="hr"></div>
+
+              <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+              <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
+                <li>Prettify JSON responses from REST/GraphQL endpoints</li>
+                <li>Minify JSON before sending requests or saving fixtures</li>
+                <li>Validate JSON and pinpoint syntax issues quickly</li>
+                <li>Sort object keys to make diffs stable and reviewable</li>
+                <li>Extract values using JSON paths when you only need one field</li>
+              </ul>
+
+              <div class="hr"></div>
+
+              <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+              <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+                The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
+                account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
+                prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
+              </p>
+
+              <div class="hr"></div>
+
+              <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
+
+              <h4 class="h4" style="margin:10px 0 6px 0;">Does this send JSON to a server?</h4>
+              <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+                No — formatting and validation run locally in your browser.
+              </p>
+
+              <h4 class="h4" style="margin:10px 0 6px 0;">Can it handle large JSON?</h4>
+              <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">
+                Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.
+              </p>
+
+              <h4 class="h4" style="margin:10px 0 6px 0;">Why “validate” fails when it looks like JSON?</h4>
+              <p class="muted" style="margin:0; line-height:1.6;">
+                JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.
+              </p>
+
+            </div>
+          </div>
+        </section>
+
       </div>
     </main>
 
-    
-    <section style="padding:0 0 26px;">
-      <div class="card">
-        <div class="pad">
-          <div class="h1">About this tool</div>
-
-          <div class="muted">
-            Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
-            (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
-            quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
-          </div>
-
-          <div class="hr"></div>
-
-          <div class="h2">Common use cases</div>
-          <ul class="muted" style="margin:8px 0 0 18px; padding:0;">
-            <li>Prettify JSON responses from REST/GraphQL endpoints</li>
-            <li>Minify JSON before sending requests or saving fixtures</li>
-            <li>Validate JSON and pinpoint syntax issues quickly</li>
-            <li>Sort object keys to make diffs stable and reviewable</li>
-            <li>Extract values using JSON paths when you only need one field</li>
-          </ul>
-
-          <div class="hr"></div>
-
-          <div class="h2">How it works</div>
-          <div class="muted">
-            The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
-            account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
-            prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
-          </div>
-
-          <div class="hr"></div>
-
-<div class="h2">FAQ</div>
-
-<div class="h2" style="margin-top:12px; margin-bottom:4px">Does this send JSON to a server?</div>
-<div class="muted">No — formatting and validation run locally in your browser.</div>
-
-<div class="h2" style="margin-top:10px; margin-bottom:4px">Can it handle large JSON?</div>
-<div class="muted">Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.</div>
-
-<div class="h2" style="margin-top:10px; margin-bottom:4px">Why “validate” fails when it looks like JSON?</div>
-<div class="muted">JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.</div>
-        </div>
-      </div>
-    </section>
-
-<div id="site-footer"></div>
+    <div id="site-footer"></div>
   </div>
 
   <script>
@@ -332,8 +341,8 @@
       function stripBOM(s){ return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s; }
       function replaceSmartQuotes(s){
         return s
-          .replace(/[\\u201C\\u201D]/g, '"')
-          .replace(/[\\u2018\\u2019]/g, "'");
+          .replace(/[\u201C\u201D]/g, '"')
+          .replace(/[\u2018\u2019]/g, "'");
       }
 
       function stripComments(s){
@@ -350,7 +359,7 @@
           if (inStr) {
             out += c;
             if (esc) { esc = false; i++; continue; }
-            if (c === "\\\\") { esc = true; i++; continue; }
+            if (c === "\\") { esc = true; i++; continue; }
             if (c === strCh) { inStr = false; strCh = ""; }
             i++; continue;
           }
@@ -359,7 +368,7 @@
 
           if (c === "/" && n === "/") {
             i += 2;
-            while (i < s.length && s[i] !== "\\n") i++;
+            while (i < s.length && s[i] !== "\n") i++;
             continue;
           }
 
@@ -389,7 +398,7 @@
           if (inStr) {
             out += c;
             if (esc) { esc = false; i++; continue; }
-            if (c === "\\\\") { esc = true; i++; continue; }
+            if (c === "\\") { esc = true; i++; continue; }
             if (c === strCh) { inStr = false; strCh = ""; }
             i++; continue;
           }
@@ -398,7 +407,7 @@
 
           if (c === ",") {
             let j = i + 1;
-            while (j < s.length && /\\s/.test(s[j])) j++;
+            while (j < s.length && /\s/.test(s[j])) j++;
             if (s[j] === "]" || s[j] === "}") { i++; continue; }
           }
 
@@ -422,14 +431,14 @@
       function lineColFromIndex(s, idx){
         let line = 1, col = 1;
         for (let i=0; i<idx && i<s.length; i++){
-          if (s[i] === "\\n") { line++; col = 1; }
+          if (s[i] === "\n") { line++; col = 1; }
           else col++;
         }
         return { line, col };
       }
 
       function bestEffortErrorLocation(raw, errMsg){
-        const m = /position\\s+(\\d+)/i.exec(errMsg || "");
+        const m = /position\s+(\d+)/i.exec(errMsg || "");
         if (!m) return null;
         const pos = parseInt(m[1],10);
         if (!Number.isFinite(pos)) return null;
@@ -753,19 +762,19 @@
       }
 
       if (typeof value === "string") {
-        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(\`minLength \${schema.minLength}\`);
-        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(\`maxLength \${schema.maxLength}\`);
+        if (Number.isFinite(schema.minLength) && value.length < schema.minLength) err(`minLength ${schema.minLength}`);
+        if (Number.isFinite(schema.maxLength) && value.length > schema.maxLength) err(`maxLength ${schema.maxLength}`);
       }
 
       if (typeof value === "number") {
-        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(\`minimum \${schema.minimum}\`);
-        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(\`maximum \${schema.maximum}\`);
+        if (Number.isFinite(schema.minimum) && value < schema.minimum) err(`minimum ${schema.minimum}`);
+        if (Number.isFinite(schema.maximum) && value > schema.maximum) err(`maximum ${schema.maximum}`);
       }
 
       if (Array.isArray(value)) {
         if (schema.items && typeof schema.items === "object") {
           for (let i=0; i<value.length; i++) {
-            errors.push(...schemaValidateValue(value[i], schema.items, \`\${path || ""}/\${i}\`));
+            errors.push(...schemaValidateValue(value[i], schema.items, `${path || ""}/${i}`));
           }
         }
       }
@@ -773,12 +782,12 @@
       if (value && typeof value === "object" && !Array.isArray(value)) {
         if (Array.isArray(schema.required)) {
           for (const k of schema.required) {
-            if (!(k in value)) errors.push(\`\${path || "/"}: missing required "\${k}"\`);
+            if (!(k in value)) errors.push(`${path || "/"}: missing required "${k}"`);
           }
         }
         if (schema.properties && typeof schema.properties === "object") {
           for (const [k, sub] of Object.entries(schema.properties)) {
-            if (k in value) errors.push(...schemaValidateValue(value[k], sub, \`\${path || ""}/\${k}\`));
+            if (k in value) errors.push(...schemaValidateValue(value[k], sub, `${path || ""}/${k}`));
           }
         }
       }
