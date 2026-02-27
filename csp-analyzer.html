@@ -113,46 +113,17 @@
 
           <div class="card">
             <div class="pad">
-              <div class="h1">Free Online CSP &amp; Security Headers Analyzer</div>
-
-              <!-- SEO content (matches site typography) -->
-              <div class="muted" style="margin-top:10px">
-                A free online CSP &amp; security headers analyzer for quickly reviewing response security posture. Paste a <span class="mono">Content-Security-Policy</span> header (or full response headers) to parse directives, surface risky patterns, and generate a shareable findings report — runs locally in your browser, with no uploads.
-              </div>
+              <h1 class="h1" style="margin:0;">Free Online CSP &amp; Security Headers Analyzer</h1>
+              <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
+                Parse directives • Flag risky patterns • Export findings report (local, no uploads)
+              </h2>
 
               <div class="muted" style="margin-top:10px">
-                The analyzer highlights common CSP weaknesses such as <span class="mono">'unsafe-inline'</span>, <span class="mono">'unsafe-eval'</span>, wildcard sources, overly-broad origins, missing <span class="mono">object-src</span>, missing <span class="mono">frame-ancestors</span>, and weak defaults that increase XSS, clickjacking, or injection risk.
+                Analyze <span class="mono">Content-Security-Policy</span> and common response security headers in seconds. Paste a CSP header (or a full header block) to see normalized directives, severity findings, and a shareable report — everything runs locally in your browser.
               </div>
 
-              <div class="h2" style="margin-top:14px">Common use cases</div>
-              <ul style="margin-top:8px">
-                <li>Review CSP during incident response or security triage</li>
-                <li>Validate a CSP change before deploying to production</li>
-                <li>Spot unsafe tokens and broad allowlists in third-party integrations</li>
-                <li>Check for missing headers like <span class="mono">X-Content-Type-Options</span>, <span class="mono">Referrer-Policy</span>, and <span class="mono">Permissions-Policy</span></li>
-                <li>Generate a quick report for tickets, PR reviews, or audits</li>
-              </ul>
-
-              <div class="h2" style="margin-top:14px">How it works</div>
-              <div class="muted" style="margin-top:8px">
-                Input is parsed client-side. CSP directives are tokenized into sources, keywords, and flags, then evaluated against a set of rules to produce severity findings. If you paste full response headers, the tool also extracts and reviews common security headers. Because everything runs in-browser, the content you paste stays on your machine.
-              </div>
-
-              <div class="h2" style="margin-top:14px">FAQ</div>
-
-              <div style="margin-top:8px">
-                <div class="lbl">Does this tool upload my headers or CSP?</div>
-                <div class="muted" style="margin-top:4px">No. Analysis runs locally in your browser and nothing is sent to a backend.</div>
-              </div>
-
-              <div style="margin-top:10px">
-                <div class="lbl">Can I paste a full header block instead of only CSP?</div>
-                <div class="muted" style="margin-top:4px">Yes. Paste response headers and the analyzer will extract CSP and evaluate other common security headers.</div>
-              </div>
-
-              <div style="margin-top:10px">
-                <div class="lbl">Why is <span class="mono">'unsafe-inline'</span> flagged?</div>
-                <div class="muted" style="margin-top:4px">It weakens script/style restrictions and often enables injection paths. Prefer nonces/hashes and narrow sources where possible.</div>
+              <div class="muted" style="margin-top:10px">
+                Built for incident response, PR reviews, and hardening work: quickly spot unsafe tokens, overly-broad sources, and missing protections like <span class="mono">frame-ancestors</span> or strong defaults.
               </div>
 
               <div class="hr"></div>
@@ -220,6 +191,65 @@
 
             </div>
           </div>
+
+
+          <section class="card">
+            <div class="pad">
+              <div class="h1">Review CSP and Security Headers with Clear Findings</div>
+
+              <div class="muted" style="margin-top:10px">
+                This free online CSP analyzer parses directives, normalizes sources, and flags common misconfigurations that weaken protections against XSS, clickjacking, and injection paths. You can paste just a CSP header or an entire response header block; the tool extracts what it needs and generates severity-scored findings. Processing is local-only — no uploads and no server-side analysis.
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:16px">Common Use Cases</div>
+              <ul class="muted" style="margin-top:8px;line-height:1.6">
+                <li>Validate a CSP change before deploying to production</li>
+                <li>Quickly assess security posture during incident response or triage</li>
+                <li>Review third-party integrations for overly-broad allowlists</li>
+                <li>Generate a lightweight report for PRs, tickets, or audits</li>
+                <li>Check for missing headers like <span class="mono">X-Content-Type-Options</span>, <span class="mono">Referrer-Policy</span>, and <span class="mono">Permissions-Policy</span></li>
+              </ul>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:16px">How It Works</div>
+              <div class="muted" style="margin-top:8px">
+                Input is parsed client-side. CSP directives are tokenized into sources/keywords, then evaluated against a ruleset to produce severity findings (High/Medium/Low/Info). If you paste full response headers, the analyzer also extracts and evaluates common security headers alongside CSP. The “Parsed” view shows normalized directive → token mapping so you can verify exactly what the browser would see.
+              </div>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:16px">What It Flags</div>
+              <ul class="muted" style="margin-top:8px;line-height:1.6">
+                <li><span class="mono">'unsafe-inline'</span> and <span class="mono">'unsafe-eval'</span> in script/style policies</li>
+                <li>Wildcard / overly-broad sources and permissive defaults</li>
+                <li>Missing or weak <span class="mono">frame-ancestors</span> and hardening headers</li>
+                <li>Risky allowances for data/blob and unbounded third-party origins</li>
+                <li>Inconsistent directives that undermine the intended policy</li>
+              </ul>
+
+              <div class="hr"></div>
+
+              <div class="h1" style="font-size:16px">Frequently Asked Questions</div>
+
+              <div class="muted" style="margin-top:10px">
+                <strong>Does this tool upload my headers or CSP?</strong><br>
+                No. Analysis runs locally in your browser and nothing is sent to a backend.
+              </div>
+
+              <div class="muted" style="margin-top:10px">
+                <strong>Can I paste full response headers instead of only CSP?</strong><br>
+                Yes. Paste the header block and the analyzer will extract CSP and evaluate other common security headers.
+              </div>
+
+              <div class="muted" style="margin-top:10px">
+                <strong>Why are <span class="mono">'unsafe-inline'</span> / <span class="mono">'unsafe-eval'</span> flagged?</strong><br>
+                They weaken script/style restrictions and often enable injection paths. Prefer nonces/hashes and narrow sources.
+              </div>
+            </div>
+          </section>
 
         </section>
       </div>
