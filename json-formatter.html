@@ -5,10 +5,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Free Online JSON Formatter & Validator — Prettify, Minify, Validate | SureWhyNot</title>
+  <title>Free Online JSON Formatter & Validator | SureWhyNot</title>
 
   <!-- SEO -->
-  <meta name="description" content="Free online JSON formatter and validator. Prettify, minify, validate, sort keys, extract JSON paths, and optional schema checks. Runs locally in your browser — no uploads." />
+  <meta name="description" content="Free online JSON formatter and validator. Prettify, minify, validate, sort keys, extract JSON paths, and optionally validate against schema. Runs locally in your browser — no uploads." />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/json-formatter">
 
@@ -23,11 +23,11 @@
   {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "JSON Formatter & Validator",
+    "name": "Free Online JSON Formatter & Validator",
     "applicationCategory": "DeveloperApplication",
     "operatingSystem": "Web",
     "url": "https://surewhynot.app/json-formatter",
-    "description": "Free JSON formatter and validator. Prettify, minify, validate, sort keys, extract paths, and optional JSON Schema subset validation. Runs locally in your browser — no uploads."
+    "description": "Free online JSON formatter and validator. Prettify, minify, validate, sort keys, extract JSON paths, and optionally validate against schema. Runs locally in your browser — no uploads."
   }
   </script>
 
@@ -88,48 +88,6 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
 
-
-  <script type="application/ld+json">
-  {
-  "@context": "https://schema.org",
-  "@type": "FAQPage",
-  "mainEntity": [
-    {
-      "@type": "Question",
-      "name": "Does this JSON formatter upload my data?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No \u2014 formatting and validation run in your browser. Nothing is uploaded."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Can I use this as an online JSON validator?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. Use Validate to confirm the payload is valid JSON and to surface parse errors immediately."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "Why do diffs change between runs?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "If key sorting is enabled, object keys are reordered for stable output. Turn sorting off to preserve original ordering."
-      }
-    },
-    {
-      "@type": "Question",
-      "name": "What schema checks are supported?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The schema option is meant for lightweight validation against common constraints. Keep schemas small and focused for best results."
-      }
-    }
-  ]
-}
-  </script>
-
 </head>
 
 <body>
@@ -146,7 +104,7 @@
               <!-- Proper semantic headings with NO default styling impact -->
               <h1 class="h1" style="margin:0;">Free Online JSON Formatter &amp; Validator</h1>
               <h2 class="muted" style="margin:2px 0 0 0;font-size:12px;font-weight:normal;">
-                Prettify • Minify • Validate • Sort Keys • Extract Paths • No Uploads
+                Prettify • Minify • Validate • Sort Keys • Extract Paths
               </h2>
 
               <!-- SEO paragraphs (styled to match your site) -->
@@ -287,68 +245,64 @@
           </div>
 
         </section>
-
-
-        <section class="card" style="margin-top:14px">
-          <div class="pad">
-            <h2 class="h2" style="margin-top:0">Format JSON safely in your browser</h2>
-            <div class="muted" style="margin-top:8px; max-width: 90ch;">
-              This free online JSON formatter helps you pretty print, minify, and validate JSON instantly while keeping data local.
-              It’s built for API debugging, log cleanup, and payload inspection — with optional key sorting, JSON path extraction, and lightweight schema checks.
-            </div>
-
-            <div class="hr"></div>
-
-            <h3 class="h3" style="margin:0 0 8px 0">Common use cases</h3>
-            <ul class="muted" style="margin:0; padding-left:18px; line-height:1.7">
-              <li>Pretty print API responses so you can read nested objects quickly</li>
-              <li>Minify JSON before storing, transmitting, or embedding into configs</li>
-              <li>Validate incoming webhook payloads and catch syntax errors fast</li>
-              <li>Sort keys for stable diffs during reviews and incident notes</li>
-              <li>Extract a value by JSON path when you only need one field</li>
-            </ul>
-
-            <div class="hr"></div>
-
-            <h3 class="h3" style="margin:0 0 8px 0">How it works</h3>
-            <div class="muted" style="max-width: 90ch; line-height:1.7">
-              Parsing and transformations run locally using your browser’s JavaScript runtime.
-              Validation uses strict JSON parsing rules (with optional auto-fix helpers if enabled in the tool).
-              If the JSON can’t be parsed, you’ll see the exact error location so you can correct missing commas, quotes, or brackets and re-run validation.
-            </div>
-
-            <div class="hr"></div>
-
-            <h3 class="h3" style="margin:0 0 8px 0">FAQ</h3>
-
-            <div style="display:grid; gap:10px; max-width: 95ch">
-              <div>
-                <div class="lbl">Does this JSON formatter upload my data?</div>
-                <div class="muted" style="margin-top:6px; line-height:1.7">No — formatting and validation run in your browser. Nothing is uploaded.</div>
-              </div>
-
-              <div>
-                <div class="lbl">Can I use this as an online JSON validator?</div>
-                <div class="muted" style="margin-top:6px; line-height:1.7">Yes. Use <span class="mono">Validate</span> to confirm the payload is valid JSON and to surface parse errors immediately.</div>
-              </div>
-
-              <div>
-                <div class="lbl">Why do diffs change between runs?</div>
-                <div class="muted" style="margin-top:6px; line-height:1.7">If key sorting is toggled on, object keys are reordered for stable output. Turn sorting off if you need to preserve original ordering.</div>
-              </div>
-
-              <div>
-                <div class="lbl">What schema checks are supported?</div>
-                <div class="muted" style="margin-top:6px; line-height:1.7">The schema option is meant for lightweight validation against common constraints. Keep schemas small and focused for best results.</div>
-              </div>
-            </div>
-          </div>
-        </section>
-
       </div>
     </main>
 
-    <div id="site-footer"></div>
+    
+    <section style="padding:0 0 26px;">
+      <div class="card">
+        <div class="pad">
+          <div class="h1">About this tool</div>
+
+          <div class="muted">
+            Format JSON online without sending it anywhere. This page is a browser-based JSON formatter and validator: it can pretty print
+            (prettify) JSON for readability, minify JSON for compact payloads, and validate strict JSON syntax to catch missing commas,
+            quotes, or brackets. It’s built for fast API debugging, log cleanup, and webhook payload inspection.
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="h2">Common use cases</div>
+          <ul class="muted" style="margin:8px 0 0 18px; padding:0;">
+            <li>Prettify JSON responses from REST/GraphQL endpoints</li>
+            <li>Minify JSON before sending requests or saving fixtures</li>
+            <li>Validate JSON and pinpoint syntax issues quickly</li>
+            <li>Sort object keys to make diffs stable and reviewable</li>
+            <li>Extract values using JSON paths when you only need one field</li>
+          </ul>
+
+          <div class="hr"></div>
+
+          <div class="h2">How it works</div>
+          <div class="muted">
+            The formatter uses native browser parsing for strict validation and transformations. Your input stays on your device: there’s no
+            account, no upload step, and no backend processing required for formatting/validation. Output updates when you run actions like
+            prettify, minify, sort, or extract, and the diff view helps compare your current input against a previous snapshot.
+          </div>
+
+          <div class="hr"></div>
+
+<div class="h2">FAQ</div>
+
+<h4 style="margin-top:12px">Does this send JSON to a server?</h4>
+<div class="muted">
+  No — formatting and validation run locally in your browser.
+</div>
+
+<h4 style="margin-top:16px">Can it handle large JSON?</h4>
+<div class="muted">
+  Yes, up to your browser’s memory limits. If a payload is huge, try minify/pretty print in steps.
+</div>
+
+<h4 style="margin-top:16px">Why “validate” fails when it looks like JSON?</h4>
+<div class="muted">
+  JSON is stricter than JavaScript objects (double quotes, no trailing commas, no comments). One invalid character will fail strict parsing.
+</div>
+        </div>
+      </div>
+    </section>
+
+<div id="site-footer"></div>
   </div>
 
   <script>
