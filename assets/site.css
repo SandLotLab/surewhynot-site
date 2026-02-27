@@ -164,7 +164,7 @@ header h2{
 .grid{
   display:grid;
   grid-template-columns: 1.2fr .8fr;
-  gap:18px;
+  gap:16px;
   padding:22px 0 26px;
 }
 
