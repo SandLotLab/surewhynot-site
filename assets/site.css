@@ -85,8 +85,7 @@ header h2{
 .wrap{
   width:min(1100px, 92vw);
   margin:0 auto;
-  padding-bottom:26px;
-}}
+}
 
 .topbar{
   padding:16px 0 12px;
