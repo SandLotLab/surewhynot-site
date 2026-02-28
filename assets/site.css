@@ -56,7 +56,9 @@ body::after{
   z-index: 1;
 }
 
-main{flex:1}
+main{
+  flex:0;
+}
 
 /* Header */
 /* Header */
