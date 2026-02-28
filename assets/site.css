@@ -165,7 +165,7 @@ header h2{
   display:grid;
   grid-template-columns: 1.2fr .8fr;
   gap:16px;
-  padding:22px 0 0;
+  padding:22px 0 26px;
 }
 
 .card{
