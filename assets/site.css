@@ -208,6 +208,7 @@ header h2{
 footer{
   border-top:1px solid rgba(23,36,59,.55);
   background: rgba(7,10,15,.65);
+  margin-top:26px;
 }
 
 .footerwrap{
