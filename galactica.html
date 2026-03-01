@@ -1,957 +1,229 @@
 <!doctype html>
 <html lang="en">
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Galactica | surewhynot.app</title>
-
-  <!-- SEO -->
-  <meta name="description" content="Classic fixed shooter with 51 levels (0–50), upgrades, missiles, auto-fire, score/time/kills, and 3-hit ship health. Runs fully client-side." />
+  <title>Galactica - Free Online Space Shooter (Levels 0-50) | SureWhyNot</title>
+  <meta name="description" content="Play Galactica, a free browser space shooter with 51 levels (0-50), boss-style escalation, extra lives, weapon upgrades, missiles, diving enemies, and local best score tracking." />
+  <meta name="keywords" content="galactica game, free online space shooter, html5 arcade game, browser shooter levels" />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/galactica" />
-  <meta property="og:title" content="Galactica | surewhynot.app" />
-  <meta property="og:description" content="Classic fixed shooter with upgrades, missiles, auto-fire, score/time/kills, and 51 levels (0–50)." />
   <meta property="og:type" content="website" />
+  <meta property="og:title" content="Galactica - Free Online Space Shooter (Levels 0-50)" />
+  <meta property="og:description" content="51 playable levels, upgrades, missiles, diving enemies, and escalating difficulty tiers. Built for the browser." />
   <meta property="og:url" content="https://surewhynot.app/galactica" />
- 
-  <!-- Google AdSense -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-  crossorigin="anonymous"></script>
 
-  
+  <script type="application/ld+json">{
+    "@context":"https://schema.org",
+    "@type":"Game",
+    "name":"Galactica",
+    "url":"https://surewhynot.app/galactica",
+    "description":"Browser-based space shooter with 51 levels, upgrades, and local high scores.",
+    "genre":"Shooter",
+    "operatingSystem":"Web"
+  }</script>
+
+  <link rel="stylesheet" href="/assets/site.css" />
   <style>
     :root { color-scheme: dark; }
-    body{
-      margin:0; min-height:100vh; display:grid; place-items:center;
-      background:#0b0f14; color:#e6edf3;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-    }
-    .wrap{ width:min(1020px,96vw); }
-    header{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; flex-wrap:wrap; }
-    .card{
-      border:1px solid #1f2630; background:#0f1620; border-radius:14px; padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-	  
-	  <h1>Galactica – Free Online Space Shooter Game (51 Levels)</h1>
-      <h2>Play Galactica: Upgrades, Missiles, Auto-Fire & Score Tracking</h2>
-	  
-    }
-    canvas{ width:100%; height:auto; display:block; border-radius:12px; border:1px solid #1f2630; background:#070a0e; }
-    .hud{ display:flex; justify-content:space-between; gap:12px; margin-top:8px; font-size:12px; opacity:.9; flex-wrap:wrap; align-items:center; }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    input{
-      background:#0b0f14; color:#e6edf3; border:1px solid #1f2630; border-radius:10px;
-      padding:6px 10px; font:inherit; font-size:12px; width:88px;
-    }
-    button{
-      cursor:pointer; background:#0f1620; color:#e6edf3; border:1px solid #1f2630; border-radius:12px;
-      padding:8px 10px; font:inherit; font-size:12px;
-    }
-    button:hover{ border-color:#2a3a50; }
-    .muted{ opacity:.65; }
-    .overlay{
-      position:absolute; inset:0; display:none; place-items:center;
-      background:rgba(0,0,0,.55); border-radius:12px;
-    }
-    .panel{
-      width:min(560px, 92%); border:1px solid #1f2630; background:#0b0f14; border-radius:14px;
-      padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.45);
-    }
-    .h1{ font-weight:700; font-size:14px; }
+    body{ margin:0; background:#060b12; color:#e6edf3; }
+    .game-wrap{ width:min(1040px,96vw); margin:14px auto 24px; }
+    .game-head{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .card{ border:1px solid #1f2630; background:#0b1220; border-radius:14px; padding:14px; box-shadow:0 14px 26px rgba(0,0,0,.35); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .muted{ opacity:.72; }
+    canvas{ width:100%; height:auto; border-radius:12px; border:1px solid #1f2630; display:block; background:#05070b; }
+    .hud{ margin-top:10px; display:grid; gap:7px; font-size:12px; }
+    .overlay{ position:absolute; inset:0; display:none; place-items:center; background:rgba(0,0,0,.54); border-radius:12px; }
+    .panel{ width:min(580px,92%); background:#070d18; border:1px solid #2b3647; border-radius:14px; padding:14px; }
     .btnrow{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
+    input,button{ background:#0c1422; color:#e6edf3; border:1px solid #2d3849; border-radius:10px; padding:8px 10px; font:inherit; font-size:12px; }
+    button:hover{ border-color:#4c6992; }
   </style>
-  
+
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614" crossorigin="anonymous"></script>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-   
-   <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Game",
-  "name": "Galactica",
-  "url": "https://surewhynot.app/galactica",
-  "operatingSystem": "Any",
-  "creator": {
-    "@type": "Person",
-    "name": "Ced"
-  }
-}
-</script>
-   
 </head>
-
 <body>
-<div class="wrap">
-  <header>
-    <div class="row">
-      <h1 style="margin:0;font-weight:700;font-size:14px;">Galactica</h1>
-<h2 class="muted" style="margin:0;font-size:12px;font-weight:normal;">
-  Move: ← → / A D • Missile: Space • Toggle Auto-fire: F • Restart: R • Level: N/P • Touch: drag ship
-</h2>
-<p class="muted" style="margin:2px 0 0 0;font-size:12px;max-width:760px;">
-  Classic fixed shooter with 51 levels (0–50), upgrades, missiles, auto-fire, score/time/kills, and 3-hit ship health.
-</p>
-    </div>
+<div class="page">
+  <div id="site-header"></div>
+  <main>
+    <div class="game-wrap">
+      <header class="game-head">
+        <div>
+          <h1 class="h2" style="margin:0">Galactica</h1>
+          <p class="muted" style="margin:4px 0 0 0;font-size:12px;max-width:760px;">Move: A/D or arrows • Shoot: J • Missile: K/Space • Autofire: F • Restart: R • Next/Prev level: N/P. Difficulty scales from level 0-50 in 10-level tiers.</p>
+        </div>
+        <div class="row">
+          <label class="muted" for="levelInput">Level</label>
+          <input id="levelInput" type="number" min="0" max="50" value="0" />
+          <button id="goBtn">Go</button>
+          <button id="resetBestBtn">Reset Best</button>
+        </div>
+      </header>
 
-    <div class="row">
-      <label class="muted" for="levelInput">Level</label>
-      <input id="levelInput" type="number" min="0" max="50" step="1" value="0" />
-      <button id="goBtn">Go</button>
-      <button id="resetBestBtn" title="Clears best stats for this level only">Reset Best</button>
-    </div>
-  </header>
+      <div class="card">
+        <div style="position:relative">
+          <canvas id="game" width="920" height="560"></canvas>
+          <div id="overlay" class="overlay"><div class="panel"><div id="overlayTitle" class="h2" style="margin:0"></div><div id="overlayBody" class="muted" style="margin-top:8px;line-height:1.6"></div><div class="btnrow"><button id="nextBtn">Next</button><button id="retryBtn">Retry</button><button id="closeBtn">Close</button></div></div></div>
+        </div>
 
-  <div class="card">
-
-   <div style="position:relative;">
-    <canvas id="game" width="900" height="540"></canvas>
-
-      <div id="overlay" class="overlay">
-        <div class="panel">
-          <div class="h1" id="overlayTitle">Level Complete</div>
-          <div class="muted" id="overlayBody" style="margin-top:8px; line-height:1.6;"></div>
-          <div class="btnrow">
-            <button id="nextBtn">Next (N)</button>
-            <button id="retryBtn">Retry (R)</button>
-            <button id="closeBtn">Close</button>
-          </div>
+        <div class="hud">
+          <div class="row"><div>Level: <b id="lvlLabel">0</b></div><div class="muted" id="tierLabel">Tier</div><div>Ships: <b id="livesLabel">3</b></div><div>Hull: <b id="hpLabel">3</b></div><div>Weapon: <b id="wpnLabel">1</b></div><div>Missiles: <b id="mslLabel">0</b></div><div>Escaped: <b id="escLabel">0</b></div></div>
+          <div class="row"><div>Score: <b id="scoreLabel">0</b></div><div>Kills: <b id="killsLabel">0</b></div><div>Time: <b id="timeLabel">0.0s</b></div><div class="muted">Best: <b id="bestLabel">—</b></div><div>Status: <b id="status">Ready</b></div></div>
         </div>
       </div>
     </div>
-
-    <div class="hud">
-      <div class="row">
-        <div>Level: <b id="lvlLabel">0</b></div>
-        <div class="muted" id="tierLabel">—</div>
-        <div>HP: <b id="hpLabel">3</b></div>
-        <div>Weapon: <b id="wpnLabel">1</b></div>
-        <div>Missiles: <b id="mslLabel">0</b></div>
-        <div>Auto-fire: <b id="afLabel">ON</b></div>
-      </div>
-
-      <div class="row">
-        <div>Score: <b id="scoreLabel">0</b></div>
-        <div>Kills: <b id="killsLabel">0</b></div>
-        <div>Time: <b id="timeLabel">0.0s</b></div>
-        <div class="muted">Best: <b id="bestLabel">—</b></div>
-      </div>
-
-      <div class="row">
-        <div>Status: <b id="status">Ready</b></div>
-      </div>
-    </div>
-  </div>
+  </main>
+  <div id="site-footer"></div>
 </div>
-
 <script>
 "use strict";
+const c = document.getElementById("game"), g = c.getContext("2d", {alpha:false});
+const W=c.width,H=c.height; const clamp=(v,l,h)=>Math.max(l,Math.min(h,v));
+const el=(id)=>document.getElementById(id);
+const statusEl=el("status"), lvlLabel=el("lvlLabel"), tierLabel=el("tierLabel"), hpLabel=el("hpLabel"), livesLabel=el("livesLabel"), wpnLabel=el("wpnLabel"), mslLabel=el("mslLabel"), escLabel=el("escLabel"), scoreLabel=el("scoreLabel"), killsLabel=el("killsLabel"), timeLabel=el("timeLabel"), bestLabel=el("bestLabel");
+const overlay=el("overlay"), overlayTitle=el("overlayTitle"), overlayBody=el("overlayBody");
+let level=0, lives=3, hp=3, weapon=1, missiles=2, autoFire=true, score=0, kills=0, escapes=0, waveOver=false;
+let running=false,startMs=0,lastT=0, swDir=1, dropTimer=0, fireTimer=0, diveTimer=0;
+let bullets=[], enemyBullets=[], missilesFx=[], particles=[], enemies=[];
+const keys={left:false,right:false};
+const player={x:W/2,y:H-70,speed:340,invuln:0,fireCd:0,missileCd:0};
+const stars=Array.from({length:120},()=>({x:Math.random()*W,y:Math.random()*H,z:Math.random(),s:1+Math.random()*2}));
 
-const c = document.getElementById("game");
-const g = c.getContext("2d", { alpha:false });
-
-const lvlLabel = document.getElementById("lvlLabel");
-const tierLabel = document.getElementById("tierLabel");
-const hpLabel = document.getElementById("hpLabel");
-const wpnLabel = document.getElementById("wpnLabel");
-const mslLabel = document.getElementById("mslLabel");
-const afLabel = document.getElementById("afLabel");
-const scoreLabel = document.getElementById("scoreLabel");
-const killsLabel = document.getElementById("killsLabel");
-const timeLabel = document.getElementById("timeLabel");
-const bestLabel = document.getElementById("bestLabel");
-const statusEl = document.getElementById("status");
-
-const levelInput = document.getElementById("levelInput");
-const goBtn = document.getElementById("goBtn");
-const resetBestBtn = document.getElementById("resetBestBtn");
-
-const overlay = document.getElementById("overlay");
-const overlayTitle = document.getElementById("overlayTitle");
-const overlayBody = document.getElementById("overlayBody");
-const nextBtn = document.getElementById("nextBtn");
-const retryBtn = document.getElementById("retryBtn");
-const closeBtn = document.getElementById("closeBtn");
-
-const W = c.width, H = c.height;
-
-const SUB = ["Low","Medium","Average","Hard","Insane"];
-function categoryName(lv){
-  if (lv <= 9) return "Easiest";
-  if (lv <= 19) return "Easy";
-  if (lv <= 29) return "Medium";
-  if (lv <= 39) return "Hard";
-  if (lv <= 49) return "Insane";
-  return "You will not survive";
+const tierNames=["Easy","Intermediate","Hard","Expert","You Will Not Survive","Legend"];
+function params(lv){ const band=Math.min(5,Math.floor(lv/10)); const within=lv%10;
+  return {
+    band, within,
+    cols:6+Math.min(4,Math.floor(lv/10))+Math.floor(within/4),
+    rows:3+Math.min(4,Math.floor(lv/12)),
+    speed:24+lv*0.9,
+    dropEvery:Math.max(0.35,1.35-lv*0.015),
+    dropSize:12+Math.floor(lv/5),
+    bulletSpeed:185+lv*2.2,
+    fireEvery:Math.max(0.16,1.0-lv*0.013),
+    diveEvery:Math.max(0.35,2.4-lv*0.03),
+    maxEscapes:Math.max(2,6-Math.floor(lv/12)),
+    bonusLifeEvery:10
+  };
 }
-function subName(lv){
-  if (lv === 50) return "";
-  return SUB[Math.floor((lv % 10) / 2)];
-}
+function showOverlay(t,html){overlayTitle.textContent=t;overlayBody.innerHTML=html;overlay.style.display="grid";}
+function hideOverlay(){overlay.style.display="none";}
+function startTimer(){ if(!running){running=true; startMs=performance.now();}}
+function elapsed(){return running?Math.max(0,performance.now()-startMs):0;}
 
-// local best per level (per browser)
-function bestKey(lv){ return "swyn_galactica_best_v1_" + lv; }
-function loadBest(lv){
-  try{
-    const raw = localStorage.getItem(bestKey(lv));
-    if (!raw) return null;
-    const o = JSON.parse(raw);
-    if (!o || typeof o.score!=="number" || typeof o.ms!=="number" || typeof o.kills!=="number") return null;
-    return o;
-  } catch { return null; }
-}
-function saveBest(lv, score, ms, kills){
-  const cur = loadBest(lv);
-  const better = (!cur) || (score > cur.score) || (score === cur.score && ms < cur.ms);
-  if (!better) return false;
-  try{
-    localStorage.setItem(bestKey(lv), JSON.stringify({score, ms, kills}));
-    return true;
-  } catch { return false; }
-}
-function fmtBest(o){
-  if (!o) return "—";
-  return `${o.score} pts • ${(o.ms/1000).toFixed(1)}s • ${o.kills} kills`;
+function bestKey(lv){return `swn:galactica:v3:${lv}`;}
+function loadBest(lv){ try{return JSON.parse(localStorage.getItem(bestKey(lv))||"null");}catch{return null;} }
+function saveBest(lv,s,t,k){ const cur=loadBest(lv); const cand={score:s,time:t,kills:k}; const better=!cur||cand.score>cur.score||(cand.score===cur.score&&cand.time<cur.time); if(better) localStorage.setItem(bestKey(lv),JSON.stringify(cand)); return better; }
+function fmtBest(b){ return b?`${b.score} pts • ${b.kills} kills • ${(b.time/1000).toFixed(1)}s`:"—"; }
+
+function spawnLevel(){
+  const p=params(level); enemies=[]; bullets=[]; enemyBullets=[]; missilesFx=[]; particles=[]; waveOver=false; escapes=0;
+  player.x=W/2; player.invuln=0.8; player.fireCd=0; player.missileCd=0;
+  weapon=clamp(1+Math.floor(level/8),1,5); missiles=clamp(2+Math.floor(level/7),2,10); hp=3;
+  const mx=80, span=W-mx*2, sy=48;
+  for(let r=0;r<p.rows;r++) for(let col=0;col<p.cols;col++){
+    const x=mx+col*(span/Math.max(1,p.cols-1)); const y=75+r*sy;
+    const type=(r===0&&level>25)?2:(r<2&&level>12)?1:0;
+    enemies.push({x,y,w:28,h:20,type,hp:type===2?3:type===1?2:1,alive:true,dive:false,vx:(Math.random()*2-1)*30,phase:Math.random()*6.28});
+  }
+  swDir=1; dropTimer=0; fireTimer=0; diveTimer=0;
 }
 
-// visuals
-function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
-function lerp(a,b,t){ return a + (b-a)*t; }
+function setLevel(lv){ level=clamp(lv|0,0,50); el("levelInput").value=String(level); running=false; startMs=0; if(level===0){score=0;kills=0;lives=3;} spawnLevel(); statusEl.textContent="Ready"; bestLabel.textContent=fmtBest(loadBest(level)); syncHud(); hideOverlay(); }
+function syncHud(){ const p=params(level); lvlLabel.textContent=String(level); tierLabel.textContent=`${tierNames[p.band]} (${p.within}/9)`; hpLabel.textContent=String(hp); livesLabel.textContent=String(lives); wpnLabel.textContent=String(weapon); mslLabel.textContent=String(missiles); escLabel.textContent=`${escapes}/${p.maxEscapes}`; scoreLabel.textContent=String(score); killsLabel.textContent=String(kills); timeLabel.textContent=`${(elapsed()/1000).toFixed(1)}s`; }
 
-let level = 0;
+function fireGun(){ if(player.fireCd>0)return; startTimer(); const y=player.y-10; const add=(x,vx=0)=>bullets.push({x,y,vx,vy:-540,w:3,h:11,dmg:1});
+  if(weapon===1)add(player.x); else if(weapon===2){add(player.x-8);add(player.x+8);} else if(weapon===3){add(player.x);add(player.x-10,-120);add(player.x+10,120);} else if(weapon===4){add(player.x-11);add(player.x);add(player.x+11);add(player.x-16,-130);add(player.x+16,130);} else {add(player.x-12);add(player.x-6);add(player.x+6);add(player.x+12);add(player.x,-40);} player.fireCd=Math.max(.06,.19-weapon*.02); }
+function fireMissile(){ if(missiles<=0||player.missileCd>0)return; missiles--; startTimer(); missilesFx.push({x:player.x,y:player.y-14,vy:-320,power:2.8}); player.missileCd=.52; }
+function hitEnemy(e,d){ e.hp-=d; if(e.hp<=0){e.alive=false;kills++;score+=20+e.type*15; for(let i=0;i<14;i++) particles.push({x:e.x,y:e.y,vx:(Math.random()*2-1)*140,vy:(Math.random()*2-1)*140,t:0,life:.45+Math.random()*0.25}); }}
 
-let keys = { left:false, right:false };
-let lastT = 0;
-let startMs = 0;
-let running = false;
+function loseShip(){ lives--; if(lives>=0){ hp=3; player.x=W/2; player.invuln=1.1; if(lives>=0){showOverlay("Ship Destroyed",`You lost a ship. <b>${Math.max(0,lives)}</b> spare ships left.<br>Press Close to continue.`); statusEl.textContent="Ship destroyed";} }
+  if(lives<0){ statusEl.textContent="Game over"; showOverlay("Game Over",`Final score: <b>${score}</b><br>Kills: <b>${kills}</b><br>Time: <b>${(elapsed()/1000).toFixed(1)}s`); }}
 
-let stars = [];
-function initStars(){
-  stars = [];
-  for (let i=0;i<140;i++){
-    stars.push({
-      x: Math.random()*W,
-      y: Math.random()*H,
-      z: Math.random()*1,
-      s: 0.5 + Math.random()*1.8
-    });
+function update(dt){ if(overlay.style.display==="grid") return;
+  const p=params(level);
+  if((keys.left||keys.right)&&!running)startTimer();
+  player.fireCd=Math.max(0,player.fireCd-dt); player.missileCd=Math.max(0,player.missileCd-dt); player.invuln=Math.max(0,player.invuln-dt);
+  if(keys.left)player.x-=player.speed*dt; if(keys.right)player.x+=player.speed*dt; player.x=clamp(player.x,28,W-28);
+  if(autoFire) fireGun();
+
+  const alive=enemies.filter(e=>e.alive);
+  const edge=alive.some(e=>e.x>W-45||e.x<45);
+  for(const e of alive){ if(!e.dive){ e.x+=swDir*(p.speed+(e.type*20))*dt; e.y+=Math.sin(performance.now()*0.002+e.phase)*(10+e.type*3)*dt; }}
+  if(edge){ swDir*=-1; for(const e of alive) if(!e.dive) e.y+=p.dropSize; }
+  dropTimer+=dt; fireTimer+=dt; diveTimer+=dt;
+  if(diveTimer>p.diveEvery && alive.length){ diveTimer=0; const pick=alive[(Math.random()*alive.length)|0]; if(!pick.dive){ pick.dive=true; pick.vx=(player.x<pick.x?-1:1)*(85+Math.random()*90); }}
+  for(const e of alive){ if(e.dive){ e.y+=(150+level*3)*dt; e.x+=e.vx*dt; if(e.y>H+24){ e.alive=false; escapes++; score=Math.max(0,score-18);} } }
+  if(fireTimer>p.fireEvery && alive.length){ fireTimer=0; const shooters=alive.filter(e=>!e.dive).sort((a,b)=>b.y-a.y).slice(0,Math.min(10,alive.length)); const s=shooters[(Math.random()*shooters.length)|0]; if(s) enemyBullets.push({x:s.x,y:s.y+12,vy:p.bulletSpeed}); }
+
+  for(const b of bullets){ b.x+=b.vx*dt; b.y+=b.vy*dt; } bullets=bullets.filter(b=>b.y>-30&&b.x>-20&&b.x<W+20);
+  for(const m of missilesFx){ m.y+=m.vy*dt; } missilesFx=missilesFx.filter(m=>m.y>-40);
+  for(const eb of enemyBullets){ eb.y+=eb.vy*dt; } enemyBullets=enemyBullets.filter(b=>b.y<H+30);
+
+  for(const b of bullets){ for(const e of enemies){ if(!e.alive)continue; if(Math.abs(b.x-e.x)<e.w*.5 && Math.abs(b.y-e.y)<e.h*.5){ b.y=-999; hitEnemy(e,b.dmg); break; } } }
+  for(const m of missilesFx){ for(const e of enemies){ if(!e.alive)continue; if(Math.abs(m.x-e.x)<28 && Math.abs(m.y-e.y)<26){ m.y=-999; for(const t of enemies){ if(!t.alive)continue; if(Math.hypot(t.x-e.x,t.y-e.y)<64) hitEnemy(t,m.power); } break; } } }
+
+  if(player.invuln<=0){
+    for(const eb of enemyBullets){ if(Math.abs(eb.x-player.x)<16&&Math.abs(eb.y-player.y)<18){ eb.y=9999; hp--; player.invuln=.7; if(hp<=0)loseShip(); break; } }
+    for(const e of enemies){ if(e.alive&&Math.abs(e.x-player.x)<20&&Math.abs(e.y-player.y)<20){ e.alive=false; hp--; player.invuln=.8; if(hp<=0)loseShip(); break; } }
   }
-}
-initStars();
 
-const player = {
-  x: W/2, y: H-56,
-  w: 26, h: 22,
-  hp: 3,
-  vx: 0,
-  weapon: 1,          // 1..4
-  missiles: 0,        // ammo
-  missileCd: 0,       // seconds
-  fireCd: 0,          // seconds
-  invuln: 0           // seconds
-};
+  particles=particles.filter(p=>{p.t+=dt; p.x+=p.vx*dt; p.y+=p.vy*dt; return p.t<p.life;});
+  if(escapes>p.maxEscapes){ statusEl.textContent="Too many escaped"; loseShip(); escapes=0; }
 
-let bullets = [];
-let missiles = [];
-let enemies = [];
-let enemyBullets = [];
-let particles = [];
-
-let score = 0;
-let kills = 0;
-let waveClear = false;
-
-let autoFire = true;
-
-// Level parameters (kept beatable; level 50 still winnable)
-function levelParams(lv){
-  const cat =
-    (lv <= 9) ? 0 :
-    (lv <= 19) ? 1 :
-    (lv <= 29) ? 2 :
-    (lv <= 39) ? 3 :
-    (lv <= 49) ? 4 : 5;
-
-  const sub = (lv === 50) ? 4 : Math.floor((lv % 10) / 2);
-
-  const cols = clamp(6 + cat + (sub>=2?1:0), 6, 10);
-  const rows = clamp(3 + Math.floor((lv)/10), 3, 7);
-
-  const count = cols * rows;
-
-  const enemySpeed = lerp(18, 55, (lv/50));     // px/s sideways base
-  const dropEvery = lerp(1.4, 0.65, (lv/50));   // seconds between drops
-  const dropSize = lerp(12, 26, (lv/50));       // px drop amount
-  const fireRate = lerp(1.10, 0.35, (lv/50));   // avg seconds per enemy shot event (global-ish)
-  const bulletSpeed = lerp(190, 290, (lv/50));  // enemy bullet speed
-
-  const upgradeEvery = 8; // levels to award upgrade on completion
-
-  return { cat, sub, cols, rows, count, enemySpeed, dropEvery, dropSize, fireRate, bulletSpeed, upgradeEvery };
+  const remaining=enemies.filter(e=>e.alive).length;
+  if(!waveOver && remaining===0){ waveOver=true; score+=140+level*9; const upd=saveBest(level,score,elapsed(),kills); bestLabel.textContent=fmtBest(loadBest(level)); statusEl.textContent="Level cleared";
+    showOverlay("Level Complete",`Level <b>${level}</b> cleared.<br>Score: <b>${score}</b> • Kills: <b>${kills}</b><br>Escapes: <b>${escapes}</b><br>${upd?"New local best saved.":"Local best unchanged."}`);
+  }
+  syncHud();
 }
 
-function resetRunState(){
-  bullets = [];
-  missiles = [];
-  enemyBullets = [];
-  particles = [];
-  waveClear = false;
+function draw(){
+  g.fillStyle="#04060a"; g.fillRect(0,0,W,H);
+  for(const s of stars){ s.y+=(25+s.z*70)*0.016; if(s.y>H){s.y=-2;s.x=Math.random()*W;} g.fillStyle=`rgba(205,220,255,${0.2+s.z*0.7})`; g.fillRect(s.x,s.y,s.s,s.s); }
+  const neb=g.createRadialGradient(W*.2,H*.28,20,W*.2,H*.28,330); neb.addColorStop(0,"rgba(95,120,255,.2)"); neb.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=neb; g.fillRect(0,0,W,H);
 
-  score = 0;
-  kills = 0;
+  for(const e of enemies){ if(!e.alive)continue; const x=e.x,y=e.y; const grad=g.createLinearGradient(x-16,y-12,x+16,y+12); if(e.type===2){grad.addColorStop(0,"#ffc2c2");grad.addColorStop(1,"#7d1f1f");} else if(e.type===1){grad.addColorStop(0,"#ffe3aa");grad.addColorStop(1,"#765116");} else {grad.addColorStop(0,"#b2f3ff");grad.addColorStop(1,"#286294");}
+    g.fillStyle=grad; g.beginPath(); g.moveTo(x,y-12); g.lineTo(x-14,y-2); g.lineTo(x-19,y+9); g.lineTo(x-6,y+6); g.lineTo(x+6,y+6); g.lineTo(x+19,y+9); g.lineTo(x+14,y-2); g.closePath(); g.fill(); g.fillStyle="rgba(15,24,32,.75)"; g.fillRect(x-5,y-4,10,5);
+  }
 
-  player.x = W/2;
-  player.vx = 0;
-  player.hp = 3;
-  player.invuln = 0;
-  player.fireCd = 0;
-  player.missileCd = 0;
-  player.weapon = 1;
-  player.missiles = 0;
+  g.fillStyle="rgba(255,130,130,.9)"; for(const eb of enemyBullets){ g.fillRect(eb.x-2,eb.y-6,4,10);} g.fillStyle="rgba(180,230,255,.95)"; for(const b of bullets){g.fillRect(b.x-2,b.y-8,4,12);} g.fillStyle="rgba(215,255,180,.95)"; for(const m of missilesFx){g.fillRect(m.x-3,m.y-10,6,16);}
 
-  running = false;
-  startMs = 0;
+  const px=player.x,py=player.y; const glow=g.createRadialGradient(px,py,6,px,py,44); glow.addColorStop(0,"rgba(120,220,255,.25)"); glow.addColorStop(1,"rgba(0,0,0,0)"); g.fillStyle=glow; g.fillRect(px-60,py-60,120,120);
+  const ship=g.createLinearGradient(px-20,py-18,px+18,py+18); ship.addColorStop(0,"#eef9ff"); ship.addColorStop(1,"#4f88ac"); g.fillStyle=ship;
+  g.beginPath(); g.moveTo(px,py-22); g.lineTo(px-11,py-4); g.lineTo(px-24,py+12); g.lineTo(px-8,py+8); g.lineTo(px-4,py+18); g.lineTo(px+4,py+18); g.lineTo(px+8,py+8); g.lineTo(px+24,py+12); g.lineTo(px+11,py-4); g.closePath(); g.fill();
+  g.fillStyle="rgba(29,62,90,.8)"; g.beginPath(); g.ellipse(px,py+2,5,8,0,0,6.28); g.fill(); if(player.invuln>0){ g.strokeStyle="rgba(255,255,255,.45)"; g.strokeRect(px-22,py-24,44,46); }
+
+  for(const p of particles){ const a=1-p.t/p.life; g.fillStyle=`rgba(255,190,90,${a*.8})`; g.fillRect(p.x,p.y,2,2); }
+  g.fillStyle="rgba(255,255,255,.68)"; g.font="12px ui-monospace,monospace"; g.fillText(`Level ${level} • ${tierNames[Math.min(5,Math.floor(level/10))]}`,10,18);
 }
 
-function startTimer(){
-  if (!running){
-    running = true;
-    startMs = performance.now();
-  }
-}
-function elapsedMs(){
-  return running ? Math.max(0, performance.now() - startMs) : 0;
-}
+function loop(t){ const dt=Math.min(.033,(t-lastT)/1000||0); lastT=t; update(dt); draw(); requestAnimationFrame(loop); }
 
-function spawnEnemiesForLevel(lv){
-  enemies = [];
-  const p = levelParams(lv);
+addEventListener("keydown",(e)=>{const k=e.key.toLowerCase(); if(k==="arrowleft"||k==="a"){keys.left=true;e.preventDefault();} if(k==="arrowright"||k==="d"){keys.right=true;e.preventDefault();} if(k==="j")fireGun(); if(k===" "||k==="k") {fireMissile(); e.preventDefault();} if(k==="f")autoFire=!autoFire; if(k==="r")setLevel(level); if(k==="n")setLevel(Math.min(50,level+1)); if(k==="p")setLevel(Math.max(0,level-1));});
+addEventListener("keyup",(e)=>{const k=e.key.toLowerCase(); if(k==="arrowleft"||k==="a")keys.left=false; if(k==="arrowright"||k==="d")keys.right=false;});
 
-  const marginX = 70;
-  const spanX = W - marginX*2;
-  const spacingX = spanX / (p.cols-1);
-  const top = 70;
-  const spacingY = 44;
+c.style.touchAction="none"; c.addEventListener("pointermove",(e)=>{if(!(e.buttons&1))return; const r=c.getBoundingClientRect(); player.x=clamp((e.clientX-r.left)*(W/r.width),24,W-24);}); c.addEventListener("pointerdown",()=>startTimer());
 
-  for (let r=0;r<p.rows;r++){
-    for (let col=0; col<p.cols; col++){
-      const x = marginX + col*spacingX;
-      const y = top + r*spacingY;
-      // tougher types appear later
-      const t = (lv >= 30 && r >= 1) ? 2 : (lv >= 20 && r >= 2) ? 1 : 0;
-      enemies.push({
-        x, y, w: 26, h: 18,
-        hp: (t===2 ? 2 : 1),
-        type: t, // 0 basic, 1 fast, 2 armored
-        phase: Math.random()*6.28,
-        alive:true
-      });
-    }
-  }
+el("goBtn").addEventListener("click",()=>setLevel(Number(el("levelInput").value)||0));
+el("resetBestBtn").addEventListener("click",()=>{localStorage.removeItem(bestKey(level)); bestLabel.textContent="—";});
+el("nextBtn").addEventListener("click",()=>setLevel(Math.min(50,level+1)));
+el("retryBtn").addEventListener("click",()=>setLevel(level));
+el("closeBtn").addEventListener("click",hideOverlay);
 
-  return p;
-}
+setInterval(()=>{ timeLabel.textContent=`${(elapsed()/1000).toFixed(1)}s`; },100);
+setLevel(0); requestAnimationFrame(loop);
 
-let curParams = levelParams(0);
-let swarmDir = 1;
-let dropTimer = 0;
-let fireTimer = 0;
-
-function setLevel(lv){
-  level = clamp(lv|0, 0, 50);
-  levelInput.value = String(level);
-
-  lvlLabel.textContent = String(level);
-  const cat = categoryName(level);
-  const sub = subName(level);
-  tierLabel.textContent = (level === 50) ? `• ${cat}` : `• ${cat} • ${sub}`;
-
-  resetRunState();
-  curParams = spawnEnemiesForLevel(level);
-  swarmDir = 1;
-  dropTimer = 0;
-  fireTimer = 0;
-
-  bestLabel.textContent = fmtBest(loadBest(level));
-
-  statusEl.textContent = "Ready";
-  syncHUD();
-  hideOverlay();
-  draw(0);
-}
-
-function syncHUD(){
-  hpLabel.textContent = String(player.hp);
-  wpnLabel.textContent = String(player.weapon);
-  mslLabel.textContent = String(player.missiles);
-  afLabel.textContent = autoFire ? "ON" : "OFF";
-  scoreLabel.textContent = String(score);
-  killsLabel.textContent = String(kills);
-  timeLabel.textContent = (elapsedMs()/1000).toFixed(1) + "s";
-}
-
-function addParticles(x,y, n, kind){
-  for (let i=0;i<n;i++){
-    const a = Math.random()*Math.PI*2;
-    const sp = (kind==="boom" ? 60 : 30) + Math.random()*120;
-    particles.push({
-      x,y,
-      vx: Math.cos(a)*sp,
-      vy: Math.sin(a)*sp,
-      life: (kind==="boom" ? 0.55 : 0.35) + Math.random()*0.25,
-      t: 0,
-      kind
-    });
-  }
-}
-
-function rectHit(a,b){
-  return !(a.x+a.w<b.x || a.x>b.x+b.w || a.y+a.h<b.y || a.y>b.y+b.h);
-}
-
-function shoot(){
-  if (player.fireCd > 0) return;
-  startTimer();
-
-  const baseY = player.y - 8;
-
-  // weapon patterns (kept minimal but “upgrade-feel”)
-  if (player.weapon === 1){
-    bullets.push({ x: player.x, y: baseY, vx:0, vy:-520, w:3, h:10, dmg:1 });
-  } else if (player.weapon === 2){
-    bullets.push({ x: player.x-6, y: baseY, vx:0, vy:-520, w:3, h:10, dmg:1 });
-    bullets.push({ x: player.x+6, y: baseY, vx:0, vy:-520, w:3, h:10, dmg:1 });
-  } else if (player.weapon === 3){
-    bullets.push({ x: player.x, y: baseY, vx:0, vy:-520, w:3, h:10, dmg:1 });
-    bullets.push({ x: player.x, y: baseY, vx:-110, vy:-500, w:3, h:10, dmg:1 });
-    bullets.push({ x: player.x, y: baseY, vx:110, vy:-500, w:3, h:10, dmg:1 });
-  } else {
-    bullets.push({ x: player.x-8, y: baseY, vx:-60, vy:-520, w:3, h:10, dmg:1 });
-    bullets.push({ x: player.x+8, y: baseY, vx:60,  vy:-520, w:3, h:10, dmg:1 });
-    bullets.push({ x: player.x,   y: baseY, vx:0,   vy:-560, w:3, h:12, dmg:1 });
-    bullets.push({ x: player.x,   y: baseY, vx:0,   vy:-420, w:3, h:10, dmg:1 });
-  }
-
-  player.fireCd = 0.10; // rate limit
-}
-
-function fireMissile(){
-  if (player.missiles <= 0) return;
-  if (player.missileCd > 0) return;
-  startTimer();
-
-  player.missiles--;
-  player.missileCd = 0.9;
-
-  missiles.push({
-    x: player.x, y: player.y-10,
-    vx: 0, vy: -420,
-    w: 6, h: 14,
-    life: 2.5
-  });
-}
-
-function enemyShootEvent(dt){
-  // global event decides how many enemies fire
-  fireTimer += dt;
-  if (fireTimer < curParams.fireRate) return;
-  fireTimer = 0;
-
-  // pick a few bottom-most enemies per column
-  const cols = new Map();
-  for (const e of enemies){
-    if (!e.alive) continue;
-    const key = Math.round(e.x/10);
-    const cur = cols.get(key);
-    if (!cur || e.y > cur.y) cols.set(key, e);
-  }
-  const shooters = Array.from(cols.values());
-  if (!shooters.length) return;
-
-  // number of shots increases with level but capped
-  const shots = clamp(1 + Math.floor(level/12), 1, 4);
-
-  for (let i=0;i<shots;i++){
-    const s = shooters[Math.floor(Math.random()*shooters.length)];
-    enemyBullets.push({
-      x: s.x, y: s.y + 10,
-      vx: (Math.random()-0.5) * (level>=30 ? 55 : 25),
-      vy: curParams.bulletSpeed + Math.random()*40,
-      w: 3, h: 10
-    });
-  }
-}
-
-function updateSwarm(dt){
-  // sideways + periodic drop like classic
-  dropTimer += dt;
-
-  let minX = 1e9, maxX = -1e9;
-  for (const e of enemies){
-    if (!e.alive) continue;
-    minX = Math.min(minX, e.x);
-    maxX = Math.max(maxX, e.x);
-  }
-  if (minX === 1e9) return;
-
-  const edgePad = 40;
-  const hitEdge = (maxX > W-edgePad && swarmDir>0) || (minX < edgePad && swarmDir<0);
-
-  const vx = curParams.enemySpeed * swarmDir;
-  for (const e of enemies){
-    if (!e.alive) continue;
-    e.x += vx * dt;
-
-    // “real-ish” motion: slight hover/sine for later tiers
-    const wob = (level >= 20 ? 6 : 3) * Math.sin(performance.now()/500 + e.phase);
-    e.y += wob * dt * 0.9;
-  }
-
-  if (hitEdge || dropTimer >= curParams.dropEvery){
-    dropTimer = 0;
-    swarmDir *= -1;
-    for (const e of enemies){
-      if (!e.alive) continue;
-      e.y += curParams.dropSize;
-    }
-  }
-}
-
-function update(dt){
-  // timers
-  if (player.fireCd > 0) player.fireCd = Math.max(0, player.fireCd - dt);
-  if (player.missileCd > 0) player.missileCd = Math.max(0, player.missileCd - dt);
-  if (player.invuln > 0) player.invuln = Math.max(0, player.invuln - dt);
-
-  // move player
-  const accel = 1900;
-  const maxV = 520;
-
-  let ax = 0;
-  if (keys.left) ax -= accel;
-  if (keys.right) ax += accel;
-
-  player.vx += ax * dt;
-  player.vx *= Math.pow(0.0008, dt); // friction-ish
-  player.vx = clamp(player.vx, -maxV, maxV);
-  player.x += player.vx * dt;
-  player.x = clamp(player.x, 28, W-28);
-
-  // autofire
-  if (autoFire) shoot();
-
-  // update swarm & enemy fire
-  updateSwarm(dt);
-  enemyShootEvent(dt);
-
-  // bullets
-  for (const b of bullets){
-    b.x += b.vx*dt;
-    b.y += b.vy*dt;
-  }
-  bullets = bullets.filter(b => b.y > -40 && b.x>-40 && b.x<W+40);
-
-  // missiles (explode)
-  for (const m of missiles){
-    m.y += m.vy*dt;
-    m.life -= dt;
-    if (m.life <= 0){
-      m.life = 0;
-    }
-  }
-  for (const m of missiles){
-    if (m.life <= 0) continue;
-    // proximity explode if near any alive enemy
-    for (const e of enemies){
-      if (!e.alive) continue;
-      const dx = e.x - m.x, dy = e.y - m.y;
-      if (dx*dx + dy*dy < 32*32){
-        m.life = 0;
-        addParticles(m.x, m.y, 45, "boom");
-
-        // damage in radius
-        for (const ee of enemies){
-          if (!ee.alive) continue;
-          const ddx = ee.x - m.x, ddy = ee.y - m.y;
-          if (ddx*ddx + ddy*ddy < 70*70){
-            ee.hp -= 2;
-            if (ee.hp <= 0){
-              ee.alive = false;
-              kills++;
-              score += 40 + level*2;
-              addParticles(ee.x, ee.y, 18, "boom");
-            }
-          }
-        }
-        break;
-      }
-    }
-  }
-  missiles = missiles.filter(m => m.life > 0 && m.y > -60);
-
-  // enemy bullets
-  for (const eb of enemyBullets){
-    eb.x += eb.vx*dt;
-    eb.y += eb.vy*dt;
-  }
-  enemyBullets = enemyBullets.filter(eb => eb.y < H+40 && eb.x>-40 && eb.x<W+40);
-
-  // particles
-  for (const p of particles){
-    p.t += dt;
-    p.x += p.vx*dt;
-    p.y += p.vy*dt;
-    p.vx *= Math.pow(0.08, dt);
-    p.vy *= Math.pow(0.08, dt);
-  }
-  particles = particles.filter(p => p.t < p.life);
-
-  // bullet hits on enemies
-  for (const b of bullets){
-    const br = { x:b.x-2, y:b.y-6, w:b.w+4, h:b.h+8 };
-    for (const e of enemies){
-      if (!e.alive) continue;
-      const er = { x:e.x - e.w/2, y:e.y - e.h/2, w:e.w, h:e.h };
-      if (rectHit(br, er)){
-        b.y = -9999;
-        e.hp -= b.dmg;
-        addParticles(b.x, b.y, 8, "spark");
-        if (e.hp <= 0){
-          e.alive = false;
-          kills++;
-          score += 20 + level*2 + (e.type===2?25:0);
-          addParticles(e.x, e.y, 18, "boom");
-        }
-        break;
-      }
-    }
-  }
-  bullets = bullets.filter(b => b.y > -200);
-
-  // enemy bullet hits on player (3 hits dead)
-  if (player.invuln <= 0){
-    const pr = { x:player.x - 16, y:player.y - 12, w:32, h:26 };
-    for (const eb of enemyBullets){
-      const er = { x:eb.x-2, y:eb.y-6, w:eb.w+4, h:eb.h+8 };
-      if (rectHit(pr, er)){
-        eb.y = 99999;
-        player.hp -= 1;
-        player.invuln = 0.7;
-        addParticles(player.x, player.y, 18, "spark");
-        if (player.hp <= 0){
-          onDeath();
-        }
-        break;
-      }
-    }
-    enemyBullets = enemyBullets.filter(eb => eb.y < H+200);
-  }
-
-  // enemy reaches bottom = pressure (still winnable)
-  for (const e of enemies){
-    if (!e.alive) continue;
-    if (e.y > H-120 && player.hp > 0){
-      // soft penalty: score bleed if you let them drop too far
-      score = Math.max(0, score - 1);
-      break;
-    }
-  }
-
-  // win check
-  if (!waveClear){
-    let aliveCount = 0;
-    for (const e of enemies) if (e.alive) aliveCount++;
-    if (aliveCount === 0){
-      waveClear = true;
-      onWin();
-    }
-  }
-
-  syncHUD();
-}
-
-function onWin(){
-  const ms = elapsedMs();
-  const t = (ms/1000).toFixed(1);
-
-  // award upgrades by level completion (keeps escalation)
-  const p = levelParams(level);
-  if (level > 0 && (level % p.upgradeEvery === 0)){
-    player.weapon = clamp(player.weapon + 1, 1, 4);
-    player.missiles = clamp(player.missiles + 2, 0, 9);
-  } else {
-    // small steady progression
-    if (level % 3 === 2) player.missiles = clamp(player.missiles + 1, 0, 9);
-    if (level % 5 === 4) player.weapon = clamp(player.weapon + 1, 1, 4);
-  }
-
-  score += 150 + level*10;
-
-  const updated = saveBest(level, score, ms, kills);
-  bestLabel.textContent = fmtBest(loadBest(level));
-
-  statusEl.textContent = `Level passed • ${score} pts • ${kills} kills • ${t}s`;
-
-  showOverlay("Level Complete",
-    `Level <b>${level}</b> passed.<br><br>` +
-    `Score: <b>${score}</b><br>` +
-    `Kills: <b>${kills}</b><br>` +
-    `Time: <b>${t}s</b><br><br>` +
-    (updated ? `<span class="muted">New best saved for this browser.</span>` : `<span class="muted">Best unchanged for this browser.</span>`)
-  );
-}
-
-function onDeath(){
-  const ms = elapsedMs();
-  const t = (ms/1000).toFixed(1);
-  statusEl.textContent = `Game over • ${score} pts • ${kills} kills • ${t}s`;
-  addParticles(player.x, player.y, 60, "boom");
-  showOverlay("Game Over",
-    `Level <b>${level}</b> failed.<br><br>` +
-    `Score: <b>${score}</b><br>` +
-    `Kills: <b>${kills}</b><br>` +
-    `Time: <b>${t}s</b>`
-  );
-}
-
-function draw(dt){
-  // starfield
-  g.fillStyle = "#05070b";
-  g.fillRect(0,0,W,H);
-
-  for (const s of stars){
-    s.y += (30 + s.z*90) * dt;
-    if (s.y > H){ s.y = -2; s.x = Math.random()*W; s.z = Math.random()*1; }
-    const a = 0.25 + s.z*0.65;
-    g.fillStyle = `rgba(200,220,255,${a})`;
-    g.fillRect(s.x, s.y, s.s, s.s);
-  }
-
-  // subtle nebula glow
-  const grd = g.createRadialGradient(W*0.18, H*0.28, 20, W*0.18, H*0.28, 320);
-  grd.addColorStop(0, "rgba(70,120,255,0.18)");
-  grd.addColorStop(1, "rgba(0,0,0,0)");
-  g.fillStyle = grd;
-  g.fillRect(0,0,W,H);
-
-  // enemies
-  for (const e of enemies){
-    if (!e.alive) continue;
-    const x = e.x, y = e.y;
-    const w = e.w, h = e.h;
-
-    // metallic-ish look via gradient
-    const eg = g.createLinearGradient(x-w/2, y-h/2, x+w/2, y+h/2);
-    if (e.type === 2){
-      eg.addColorStop(0, "rgba(255,90,90,0.90)");
-      eg.addColorStop(1, "rgba(120,30,30,0.95)");
-    } else if (e.type === 1){
-      eg.addColorStop(0, "rgba(255,210,120,0.90)");
-      eg.addColorStop(1, "rgba(120,70,20,0.95)");
-    } else {
-      eg.addColorStop(0, "rgba(120,220,255,0.90)");
-      eg.addColorStop(1, "rgba(40,90,140,0.95)");
-    }
-
-    g.fillStyle = eg;
-    g.beginPath();
-    g.roundRect(x-w/2, y-h/2, w, h, 4);
-    g.fill();
-
-    // glow edge
-    g.strokeStyle = "rgba(255,255,255,0.22)";
-    g.strokeRect(x-w/2+0.5, y-h/2+0.5, w-1, h-1);
-
-    // hp pip for armored
-    if (e.hp > 1){
-      g.fillStyle = "rgba(255,255,255,0.6)";
-      g.fillRect(x-6, y+h/2+5, 12, 2);
-    }
-  }
-
-  // enemy bullets
-  for (const eb of enemyBullets){
-    g.fillStyle = "rgba(255,120,120,0.9)";
-    g.fillRect(eb.x-1.5, eb.y-6, 3, 10);
-    g.fillStyle = "rgba(255,60,60,0.25)";
-    g.fillRect(eb.x-6, eb.y-10, 12, 18);
-  }
-
-  // missiles
-  for (const m of missiles){
-    g.fillStyle = "rgba(220,255,170,0.95)";
-    g.fillRect(m.x-2.5, m.y-8, 5, 14);
-    g.fillStyle = "rgba(120,255,190,0.25)";
-    g.fillRect(m.x-8, m.y-16, 16, 28);
-  }
-
-  // bullets
-  for (const b of bullets){
-    g.fillStyle = "rgba(160,220,255,0.95)";
-    g.fillRect(b.x-1.5, b.y-8, 3, 12);
-    g.fillStyle = "rgba(80,180,255,0.25)";
-    g.fillRect(b.x-6, b.y-14, 12, 24);
-  }
-
-  // player
-  const px = player.x, py = player.y;
-  const glow = g.createRadialGradient(px, py, 6, px, py, 46);
-  glow.addColorStop(0, "rgba(80,200,255,0.18)");
-  glow.addColorStop(1, "rgba(0,0,0,0)");
-  g.fillStyle = glow;
-  g.fillRect(px-60, py-60, 120, 120);
-
-  // ship body
-  const pg = g.createLinearGradient(px-18, py-18, px+18, py+18);
-  pg.addColorStop(0, "rgba(230,245,255,0.95)");
-  pg.addColorStop(1, "rgba(90,150,190,0.92)");
-  g.fillStyle = pg;
-
-  g.beginPath();
-  g.moveTo(px, py-18);
-  g.lineTo(px-16, py+14);
-  g.lineTo(px+16, py+14);
-  g.closePath();
-  g.fill();
-
-  // cockpit
-  g.fillStyle = "rgba(40,90,140,0.75)";
-  g.beginPath();
-  g.ellipse(px, py+2, 5, 8, 0, 0, Math.PI*2);
-  g.fill();
-
-  // invuln flash
-  if (player.invuln > 0){
-    g.strokeStyle = "rgba(255,255,255,0.35)";
-    g.strokeRect(px-22, py-22, 44, 44);
-  }
-
-  // particles
-  for (const p of particles){
-    const t = p.t / p.life;
-    const a = 1 - t;
-    if (p.kind === "boom"){
-      g.fillStyle = `rgba(255,200,120,${0.55*a})`;
-      g.fillRect(p.x, p.y, 2.2, 2.2);
-      g.fillStyle = `rgba(255,80,80,${0.22*a})`;
-      g.fillRect(p.x-2, p.y-2, 6, 6);
-    } else {
-      g.fillStyle = `rgba(160,220,255,${0.55*a})`;
-      g.fillRect(p.x, p.y, 1.8, 1.8);
-    }
-  }
-
-  // top bar text
-  g.fillStyle = "rgba(255,255,255,0.65)";
-  g.font = "12px ui-monospace, Menlo, Consolas, monospace";
-  g.fillText(`Level ${level} • ${categoryName(level)}${level===50?"":" • "+subName(level)}`, 12, 18);
-}
-
-function loop(t){
-  const dt = Math.min(0.033, (t - lastT) / 1000 || 0);
-  lastT = t;
-
-  if (overlay.style.display !== "grid"){
-    update(dt);
-  }
-
-  draw(dt);
-
-  requestAnimationFrame(loop);
-}
-
-// overlay helpers
-function showOverlay(title, html){
-  overlayTitle.textContent = title;
-  overlayBody.innerHTML = html;
-  overlay.style.display = "grid";
-}
-function hideOverlay(){ overlay.style.display = "none"; }
-
-// input
-addEventListener("keydown", (e)=>{
-  const k = e.key.toLowerCase();
-  if (k==="arrowleft" || k==="a") { e.preventDefault(); keys.left = true; startTimer(); }
-  else if (k==="arrowright" || k==="d") { e.preventDefault(); keys.right = true; startTimer(); }
-  else if (k===" ") { e.preventDefault(); fireMissile(); }
-  else if (k==="f") { e.preventDefault(); autoFire = !autoFire; syncHUD(); }
-  else if (k==="r") { e.preventDefault(); setLevel(level); }
-  else if (k==="n") { e.preventDefault(); setLevel(Math.min(50, level+1)); }
-  else if (k==="p") { e.preventDefault(); setLevel(Math.max(0, level-1)); }
-});
-
-addEventListener("keyup", (e)=>{
-  const k = e.key.toLowerCase();
-  if (k==="arrowleft" || k==="a") keys.left = false;
-  else if (k==="arrowright" || k==="d") keys.right = false;
-});
-
-// touch: drag ship left/right
-(() => {
-  c.style.touchAction = "none";
-  let active = false;
-  let offsetX = 0;
-
-  c.addEventListener("pointerdown", (e)=>{
-    active = true;
-    startTimer();
-    const rect = c.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (W / rect.width);
-    offsetX = player.x - x;
-    c.setPointerCapture(e.pointerId);
-  });
-
-  c.addEventListener("pointermove", (e)=>{
-    if (!active) return;
-    const rect = c.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (W / rect.width);
-    player.x = clamp(x + offsetX, 28, W-28);
-  });
-
-  c.addEventListener("pointerup", (e)=>{
-    active = false;
-    try { c.releasePointerCapture(e.pointerId); } catch {}
-  });
-
-  // quick tap top-right area = missile
-  c.addEventListener("pointerdown", (e)=>{
-    const rect = c.getBoundingClientRect();
-    const x = (e.clientX - rect.left) * (W / rect.width);
-    const y = (e.clientY - rect.top) * (H / rect.height);
-    if (x > W*0.82 && y < H*0.22) fireMissile();
-  });
+(async function loadPartials(){
+  const [h,f]=await Promise.all([fetch('/partials/header.html'), fetch('/partials/footer.html')]);
+  document.getElementById('site-header').innerHTML=await h.text();
+  document.getElementById('site-footer').innerHTML=await f.text();
 })();
-
-// UI buttons
-function gotoLevelFromInput(){
-  const n = Number(levelInput.value);
-  if (!Number.isFinite(n)) return;
-  setLevel(n|0);
-}
-goBtn.addEventListener("click", gotoLevelFromInput);
-levelInput.addEventListener("keydown", (e)=>{ if (e.key==="Enter") gotoLevelFromInput(); });
-
-resetBestBtn.addEventListener("click", ()=>{
-  try { localStorage.removeItem(bestKey(level)); } catch {}
-  bestLabel.textContent = "—";
-});
-
-nextBtn.addEventListener("click", ()=> setLevel(Math.min(50, level+1)));
-retryBtn.addEventListener("click", ()=> setLevel(level));
-closeBtn.addEventListener("click", hideOverlay);
-
-// tick time UI
-setInterval(()=>{
-  timeLabel.textContent = (elapsedMs()/1000).toFixed(1) + "s";
-}, 100);
-
-// init
-setLevel(0);
-requestAnimationFrame(loop);
 </script>
-
 </body>
 </html>
