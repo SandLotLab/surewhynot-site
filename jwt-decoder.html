@@ -241,17 +241,18 @@
           </div>
 
         </section>
-
         <section class="card">
           <div class="pad">
 
-            <h2 class="h2" style="margin:0 0 8px 0;">Decode JWTs Safely in Your Browser</h2>
-            <p class="muted" style="margin:0 0 12px 0;line-height:1.6;">
+            <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
               This free online JWT decoder lets you inspect token header and payload claims instantly, including exp/iat/nbf checks and common structure validation. All decoding runs locally in your browser — no uploads and no server-side processing. Use it to debug authentication flows, verify what your app is actually receiving, and quickly export decoded sections for incident response or logging.
             </p>
 
-            <h3 class="h3" style="margin:14px 0 8px 0;">Common Use Cases</h3>
-            <ul class="muted" style="margin:0 0 12px 18px;line-height:1.7;">
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+            <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
               <li>Inspect header and payload claims during OAuth/OpenID debugging</li>
               <li>Check token expiration (exp), issued-at (iat), and not-before (nbf)</li>
               <li>Confirm issuer (iss), audience (aud), subject (sub), and scopes/roles</li>
@@ -259,21 +260,25 @@
               <li>Optionally verify HS256/384/512 signatures when you have the shared secret</li>
             </ul>
 
-            <h3 class="h3" style="margin:14px 0 8px 0;">How It Works</h3>
-            <p class="muted" style="margin:0 0 12px 0;line-height:1.6;">
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
               JWTs are three base64url-encoded parts: header, payload, and signature. This tool decodes the header and payload by base64url decoding and JSON parsing, then evaluates time-based claims (exp/iat/nbf) against your local clock. Signature verification is optional: when you provide a shared secret for HS* algorithms, the tool computes the expected HMAC and compares it to the token signature — all locally in the browser.
             </p>
+
+            <div class="hr"></div>
 
             <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
 
             <h4 class="h4" style="margin:10px 0 6px 0;">Does this JWT decoder upload my token?</h4>
-            <p class="muted" style="margin:0 0 10px 0;line-height:1.6;">No. Decoding and optional verification run locally in your browser.</p>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">No. Decoding and optional verification run locally in your browser.</p>
 
             <h4 class="h4" style="margin:10px 0 6px 0;">Does decoding a JWT mean the signature is valid?</h4>
-            <p class="muted" style="margin:0 0 10px 0;line-height:1.6;">No. Decoding only reveals the contents. Signature validity requires verification (HS* verify is available when you provide the secret).</p>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">No. Decoding only reveals the contents. Signature validity requires verification (HS* verify is available when you provide the secret).</p>
 
             <h4 class="h4" style="margin:10px 0 6px 0;">Why do exp/iat/nbf checks show as invalid?</h4>
-            <p class="muted" style="margin:0;line-height:1.6;">Most issues come from clock skew, tokens being used too early (nbf), or expired tokens (exp). Confirm your system time and token issuance settings.</p>
+            <p class="muted" style="margin:0; line-height:1.6;">Most issues come from clock skew, tokens being used too early (nbf), or expired tokens (exp). Confirm your system time and token issuance settings.</p>
 
           </div>
         </section>

@@ -285,15 +285,15 @@
         <section class="card">
           <div class="pad">
 
-            <h2 style="margin-top:0;">Free Online Log Explorer (Local-Only)</h2>
-            <p>
-              This free online log explorer lets you parse, search, filter, and aggregate logs directly in your browser. Paste text or drop
-              <span class="kbd">.log</span>/<span class="kbd">.txt</span>/<span class="kbd">.ndjson</span> files to inspect events fast without uploading data to a server.
-              It’s built for debugging production incidents, analyzing application output, and exploring structured or semi-structured logs with simple query syntax.
+            <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+              This free online log explorer lets you parse, search, filter, and aggregate logs directly in your browser. Paste text or drop <span class="kbd">.log</span>/<span class="kbd">.txt</span>/<span class="kbd">.ndjson</span> files to inspect events fast without uploading data to a server. It’s built for debugging production incidents, analyzing application output, and exploring structured or semi-structured logs with simple query syntax.
             </p>
 
-            <h3>Common Use Cases</h3>
-            <ul>
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+            <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
               <li>Search logs with text queries, <span class="kbd">field:value</span>, and AND/OR conditions</li>
               <li>Filter events by time range and severity (error/warn/info/debug)</li>
               <li>Review NDJSON / JSON lines from services, proxies, and cloud platforms</li>
@@ -301,24 +301,25 @@
               <li>Export filtered results to JSON or CSV for tickets, reports, or follow-up analysis</li>
             </ul>
 
-            <h3>How It Works</h3>
-            <p>
-              Parsing and filtering run client-side. The tool streams file reads, tokenizes common formats (NDJSON, key=value, syslog-ish),
-              and normalizes fields like <span class="kbd">time</span>, <span class="kbd">level</span>, <span class="kbd">source</span>, and <span class="kbd">message</span>.
-              Queries support free text plus simple field matching. Results are sorted with recent events first, and aggregates (counts + buckets)
-              are computed from the filtered set. Because everything executes in your browser, your log data stays on your machine.
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
+              Parsing and filtering run client-side. The tool streams file reads, tokenizes common formats (NDJSON, key=value, syslog-ish), and normalizes fields like <span class="kbd">time</span>, <span class="kbd">level</span>, <span class="kbd">source</span>, and <span class="kbd">message</span>. Queries support free text plus simple field matching. Results are sorted with recent events first, and aggregates (counts + buckets) are computed from the filtered set. Because everything executes in your browser, your log data stays on your machine.
             </p>
 
-            <h3>Frequently Asked Questions</h3>
+            <div class="hr"></div>
 
-            <h4>Does this tool upload my logs anywhere?</h4>
-            <p>No. Parsing, searching, and exporting all happen locally in your browser.</p>
+            <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
 
-            <h4>What formats does it support?</h4>
-            <p>It parses NDJSON/JSON lines, key=value logs, and common “syslog-like” lines, and still lets you search raw text when fields aren’t present.</p>
+            <h4 class="h4" style="margin:10px 0 6px 0;">Does this tool upload my logs anywhere?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">No. Parsing, searching, and exporting all happen locally in your browser.</p>
 
-            <h4>How do I search specific fields?</h4>
-            <p>Use <span class="kbd">field:value</span> terms (for example <span class="kbd">level:error</span> or <span class="kbd">source:nginx</span>) combined with AND/OR.</p>
+            <h4 class="h4" style="margin:10px 0 6px 0;">What formats does it support?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">It parses NDJSON/JSON lines, key=value logs, and common “syslog-like” lines, and still lets you search raw text when fields aren’t present.</p>
+
+            <h4 class="h4" style="margin:10px 0 6px 0;">How do I search specific fields?</h4>
+            <p class="muted" style="margin:0; line-height:1.6;">Use <span class="kbd">field:value</span> terms (for example <span class="kbd">level:error</span> or <span class="kbd">source:nginx</span>) combined with AND/OR.</p>
 
           </div>
         </section>
