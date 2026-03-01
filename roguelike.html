@@ -1,800 +1,224 @@
 <!doctype html>
 <html lang="en">
 <head>
-
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Roguelike | surewhynot.app</title>
-
-  <!-- SEO -->
-  <meta name="description" content="Top-down browser roguelike with 25 guaranteed-beatable levels (0–24). Procedural maps, enemy scaling, and local best-score tracking." />
+  <title>Roguelike Dungeon - Free Browser Game (Levels 0-50) | SureWhyNot</title>
+  <meta name="description" content="Play a browser roguelike dungeon crawler with 51 levels (0-50), procedural maps, guaranteed solvable exits, enemy scaling, extra lives, weapon upgrades, and local best run tracking." />
+  <meta name="keywords" content="roguelike browser game, dungeon crawler html5, free online roguelike, procedural dungeon game" />
   <meta name="robots" content="index,follow" />
   <link rel="canonical" href="https://surewhynot.app/roguelike" />
-  <meta property="og:title" content="Roguelike | surewhynot.app" />
-  <meta property="og:description" content="25 beatable procedural levels (0–24). Enemy scaling. Touch swipe controls. Best moves and time saved locally." />
   <meta property="og:type" content="website" />
+  <meta property="og:title" content="Roguelike Dungeon - Free Browser Game (Levels 0-50)" />
+  <meta property="og:description" content="51 levels, procedural maps, upgrades, and guaranteed-beatable paths in a lightweight browser roguelike." />
   <meta property="og:url" content="https://surewhynot.app/roguelike" />
 
-  <!-- Google AdSense -->
-  <script async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614"
-    crossorigin="anonymous"></script>
+  <script type="application/ld+json">{
+    "@context":"https://schema.org",
+    "@type":"Game",
+    "name":"Roguelike Dungeon",
+    "url":"https://surewhynot.app/roguelike",
+    "description":"Procedural browser roguelike with 51 levels and local score tracking.",
+    "genre":"Roguelike",
+    "operatingSystem":"Web"
+  }</script>
 
+  <link rel="stylesheet" href="/assets/site.css" />
   <style>
     :root { color-scheme: dark; }
-    body{
-      margin:0; min-height:100vh; display:grid; place-items:center;
-      background:#0b0f14; color:#e6edf3;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New", monospace;
-    }
-    .wrap{ width:min(1020px,96vw); }
-    header{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; padding:10px 0; flex-wrap:wrap; }
-    .card{
-      border:1px solid #1f2630; background:#0f1620; border-radius:14px; padding:14px;
-      box-shadow:0 10px 30px rgba(0,0,0,.35);
-    }
-    canvas{
-      width:100%; height:auto; display:block; border-radius:12px; border:1px solid #1f2630; background:#070a0e;
-    }
-    .hud{
-      display:flex; justify-content:space-between; gap:12px; margin-top:8px;
-      font-size:12px; opacity:.88; flex-wrap:wrap; align-items:center;
-    }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    input{
-      background:#0b0f14; color:#e6edf3; border:1px solid #1f2630; border-radius:10px;
-      padding:6px 10px; font:inherit; font-size:12px; width:88px;
-    }
-    .muted{ opacity:.65; }
-    .overlay{
-      position:absolute; inset:0; display:none; place-items:center;
-      background:rgba(0,0,0,.55); border-radius:12px;
-    }
-    .panel{
-      width:min(560px, 92%); border:1px solid #1f2630; background:#0b0f14; border-radius:14px;
-      padding:14px; box-shadow:0 10px 30px rgba(0,0,0,.45);
-    }
-    .h1{ font-weight:700; font-size:14px; }
+    body{ margin:0; background:#070b11; color:#e6edf3; }
+    .game-wrap{ width:min(1040px,96vw); margin:14px auto 24px; }
+    .game-head{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:10px; }
+    .card{ border:1px solid #1f2630; background:#101725; border-radius:14px; padding:14px; box-shadow:0 14px 26px rgba(0,0,0,.35); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .muted{ opacity:.72; }
+    canvas{ width:100%; height:auto; border-radius:12px; border:1px solid #1f2630; display:block; background:#060a10; }
+    .hud{ margin-top:10px; display:grid; gap:7px; font-size:12px; }
+    .overlay{ position:absolute; inset:0; display:none; place-items:center; background:rgba(0,0,0,.54); border-radius:12px; }
+    .panel{ width:min(580px,92%); background:#090f19; border:1px solid #2b3647; border-radius:14px; padding:14px; }
     .btnrow{ display:flex; gap:10px; margin-top:10px; flex-wrap:wrap; }
-    button{
-      cursor:pointer; background:#0f1620; color:#e6edf3; border:1px solid #1f2630; border-radius:12px;
-      padding:8px 10px; font:inherit; font-size:12px;
-    }
-    button:hover{ border-color:#2a3a50; }
+    input,button{ background:#0c1422; color:#e6edf3; border:1px solid #2d3849; border-radius:10px; padding:8px 10px; font:inherit; font-size:12px; }
+    button:hover{ border-color:#4c6992; }
   </style>
 
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7167291111213614" crossorigin="anonymous"></script>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
   <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <link rel="manifest" href="/site.webmanifest">
-
-  <script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "Game",
-  "name": "Roguelike",
-  "url": "https://surewhynot.app/roguelike",
-  "description": "Top-down browser roguelike with 25 guaranteed-beatable procedural levels (0–24).",
-  "operatingSystem": "Any",
-  "creator": {
-    "@type": "Person",
-    "name": "Ced"
-  }
-}
-</script>
-
 </head>
-
 <body>
-<div class="wrap">
-  <header>
-    <div class="row">
-      <h1 style="margin:0;font-weight:700;font-size:14px;">Roguelike</h1>
-      <h2 class="muted" style="margin:0;font-size:12px;font-weight:normal;">WASD/Arrows • Swipe on canvas • R retry • N next • P prev</h2>
-      <p class="muted" style="margin:2px 0 0 0;font-size:12px;max-width:760px;">
-        25 procedural maps (0–24). Enemies get meaner. Best moves/time saved locally per level.
-      </p>
+<div class="page">
+<div id="site-header"></div>
+<main>
+<div class="game-wrap">
+  <header class="game-head">
+    <div>
+      <h1 class="h2" style="margin:0">Roguelike Dungeon</h1>
+      <p class="muted" style="margin:4px 0 0 0;font-size:12px;max-width:760px;">Move: WASD/Arrows • Strike: Space (adjacent) • Bolt: J • Restart: R • Next/Prev level: N/P. Levels 0-50 with escalating tiers and guaranteed solvable exits.</p>
     </div>
-
-    <div class="row">
-      <label class="muted" for="levelInput">Level</label>
-      <input id="levelInput" type="number" min="0" max="24" step="1" value="0" />
-      <button id="goBtn">Go</button>
-      <button id="resetBestBtn" title="Clears best stats for this level only">Reset Best</button>
-    </div>
+    <div class="row"><label class="muted" for="levelInput">Level</label><input id="levelInput" type="number" min="0" max="50" value="0" /><button id="goBtn">Go</button><button id="resetBestBtn">Reset Best</button></div>
   </header>
 
   <div class="card">
-    <div style="position:relative;">
-      <canvas id="game" width="768" height="512"></canvas>
-
-      <div id="overlay" class="overlay">
-        <div class="panel">
-          <div class="h1" id="overlayTitle">Level Complete</div>
-          <div class="muted" id="overlayBody" style="margin-top:8px; line-height:1.6;"></div>
-          <div class="btnrow">
-            <button id="nextBtn">Next (N)</button>
-            <button id="retryBtn">Retry (R)</button>
-            <button id="closeBtn">Close</button>
-          </div>
-        </div>
-      </div>
+    <div style="position:relative">
+      <canvas id="game" width="832" height="544"></canvas>
+      <div id="overlay" class="overlay"><div class="panel"><div id="overlayTitle" class="h2" style="margin:0"></div><div id="overlayBody" class="muted" style="margin-top:8px;line-height:1.6"></div><div class="btnrow"><button id="nextBtn">Next</button><button id="retryBtn">Retry</button><button id="closeBtn">Close</button></div></div></div>
     </div>
-
     <div class="hud">
-      <div class="row">
-        <div>Level: <b id="lvlLabel">0</b></div>
-        <div class="muted" id="tierLabel">—</div>
-        <div>Enemies: <b id="enemyLabel">0</b></div>
-        <div class="muted">Goal: reach green</div>
-      </div>
-
-      <div class="row">
-        <div>Moves (run): <b id="movesRun">0</b></div>
-        <div>Time (run): <b id="timeRun">0.0s</b></div>
-        <div class="muted">Best: <b id="bestLabel">—</b></div>
-      </div>
-
-      <div class="row">
-        <div>Status: <b id="status">Ready</b></div>
-      </div>
+      <div class="row"><div>Level: <b id="lvlLabel">0</b></div><div class="muted" id="tierLabel">Tier</div><div>Lives: <b id="livesLabel">2</b></div><div>HP: <b id="hpLabel">4</b></div><div>Atk: <b id="atkLabel">1</b></div><div>Bolts: <b id="boltLabel">0</b></div><div>Enemies: <b id="enemyLabel">0</b></div></div>
+      <div class="row"><div>Moves: <b id="movesLabel">0</b></div><div>Time: <b id="timeLabel">0.0s</b></div><div>Clears: <b id="clearLabel">0</b></div><div class="muted">Best: <b id="bestLabel">—</b></div><div>Status: <b id="status">Ready</b></div></div>
     </div>
-
-    <ins class="adsbygoogle"
-         style="display:block;margin-top:12px"
-         data-ad-client="ca-pub-7167291111213614"
-         data-ad-slot="auto"
-         data-ad-format="auto"
-         data-full-width-responsive="true"></ins>
-    <script>(adsbygoogle=window.adsbygoogle||[]).push({});</script>
   </div>
 </div>
-
+</main>
+<div id="site-footer"></div>
+</div>
 <script>
 "use strict";
+const cvs=document.getElementById('game'), ctx=cvs.getContext('2d',{alpha:false}); const TILE=16, W=cvs.width/TILE|0, H=cvs.height/TILE|0;
+const $=(id)=>document.getElementById(id), clamp=(v,l,h)=>Math.max(l,Math.min(h,v));
+const statusEl=$("status"), lvlLabel=$("lvlLabel"), tierLabel=$("tierLabel"), livesLabel=$("livesLabel"), hpLabel=$("hpLabel"), atkLabel=$("atkLabel"), boltLabel=$("boltLabel"), enemyLabel=$("enemyLabel"), movesLabel=$("movesLabel"), timeLabel=$("timeLabel"), clearLabel=$("clearLabel"), bestLabel=$("bestLabel");
+const overlay=$("overlay"), overlayTitle=$("overlayTitle"), overlayBody=$("overlayBody");
 
-/* GUARANTEE:
-   Every level is BEATABLE:
-   - Generate map
-   - Place player + exit
-   - Compute a shortest path (player->exit)
-   - Place enemies so that along that path, enemies cannot reach any tile fast enough to catch,
-     given this level's enemy speed (steps per player move) + a tier-tuned safety margin.
-   This guarantees at least one winning strategy: follow the safe path.
-*/
+let level=0, map=[], player={x:1,y:1,hp:4,atk:1,bolts:0}, exit={x:0,y:0}, enemies=[], items=[];
+let lives=2, cleared=0, moves=0, running=false, startMs=0, won=false, alive=true;
+const WALL=0,FLOOR=1;
+const tierNames=["Easy","Intermediate","Hard","Expert","You Will Not Survive","Legend"];
 
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d", { alpha:false });
-
-const statusEl   = document.getElementById("status");
-const lvlLabel   = document.getElementById("lvlLabel");
-const tierLabel  = document.getElementById("tierLabel");
-const enemyLabel = document.getElementById("enemyLabel");
-const movesRunEl = document.getElementById("movesRun");
-const timeRunEl  = document.getElementById("timeRun");
-const bestLabel  = document.getElementById("bestLabel");
-const levelInput = document.getElementById("levelInput");
-const goBtn      = document.getElementById("goBtn");
-const resetBestBtn = document.getElementById("resetBestBtn");
-
-const overlay = document.getElementById("overlay");
-const overlayTitle = document.getElementById("overlayTitle");
-const overlayBody = document.getElementById("overlayBody");
-const nextBtn = document.getElementById("nextBtn");
-const retryBtn = document.getElementById("retryBtn");
-const closeBtn = document.getElementById("closeBtn");
-
-const TILE = 16;
-const W = Math.floor(canvas.width / TILE);
-const H = Math.floor(canvas.height / TILE);
-
-const WALL = 0, FLOOR = 1;
-
-let level = 0;
-let seed, rng;
-let map = [];
-let player = {x:0,y:0};
-let exit = {x:0,y:0};
-let enemies = [];
-let safePath = [];
-
-let alive = true;
-let won = false;
-
-let moves = 0;
-let startMs = 0;
-let running = false;
-
-// ---------- RNG ----------
-function makeSeed() {
-  return "run-" + Math.random().toString(16).slice(2) + "-" + Date.now().toString(16);
-}
-function hash32(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
-}
-function mulberry32(a) {
-  return function() {
-    let t = (a += 0x6d2b79f5);
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+function params(lv){ const tier=Math.min(5,Math.floor(lv/10)); const step=lv%10;
+  return {
+    tier, step,
+    enemyCount: clamp(2+tier*2+Math.floor(step/2),2,16),
+    enemySteps: tier>=3?2:1,
+    minPath: 10+lv,
+    enemyPower: 1+(tier>=2?1:0)+(tier>=4?1:0),
+    potionCount: clamp(2-Math.floor(lv/25),0,2),
+    boltDrops: 1+Math.floor(lv/12)
   };
 }
-function randi(min, maxIncl) { return Math.floor(rng() * (maxIncl - min + 1)) + min; }
-function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
-// ---------- Level naming (25 levels: 0..24) ----------
-const SUB = ["Low","Medium","Average","Hard","Insane"];
+function rngFor(s){ let a=2166136261>>>0; for(let i=0;i<s.length;i++){a^=s.charCodeAt(i);a=Math.imul(a,16777619);} return ()=>{a+=0x6D2B79F5; let t=a; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return ((t^t>>>14)>>>0)/4294967296;}; }
+let rnd=Math.random; const randi=(a,b)=>Math.floor(rnd()*(b-a+1))+a;
 
-function categoryName(lv){
-  if (lv <= 4) return "Easiest";
-  if (lv <= 9) return "Easy";
-  if (lv <= 14) return "Medium";
-  if (lv <= 19) return "Hard";
-  return "Insane";
-}
+function showOverlay(t,h){overlayTitle.textContent=t; overlayBody.innerHTML=h; overlay.style.display='grid';}
+function hideOverlay(){overlay.style.display='none';}
+function startTimer(){if(!running){running=true; startMs=performance.now();}}
+function elapsed(){return running?Math.max(0,performance.now()-startMs):0;}
 
-function subName(lv){
-  return SUB[lv % 5];
-}
+function bestKey(lv){return `swn:rogue:v3:${lv}`;}
+function loadBest(lv){try{return JSON.parse(localStorage.getItem(bestKey(lv))||"null");}catch{return null;}}
+function saveBest(lv,m,t,c){const cur=loadBest(lv), cand={moves:m,time:t,clears:c}; const better=!cur||cand.clears>cur.clears||(cand.clears===cur.clears&&cand.moves<cur.moves)||(cand.clears===cur.clears&&cand.moves===cur.moves&&cand.time<cur.time); if(better)localStorage.setItem(bestKey(lv),JSON.stringify(cand)); return better;}
+function fmtBest(b){return b?`${b.clears} clears • ${b.moves} moves • ${(b.time/1000).toFixed(1)}s`:"—";}
 
-// Difficulty params (still beatable)
-function paramsForLevel(lv){
-  const cat =
-    (lv <= 4) ? 0 :
-    (lv <= 9) ? 1 :
-    (lv <= 14) ? 2 :
-    (lv <= 19) ? 3 : 4;
-
-  // enemy speed capped at 2
-  const enemySteps = (cat <= 2) ? 1 : 2;
-
-  const sub = lv % 5; // 0..4
-  const baseEnemies = [1,2,3,4,6][cat];
-  const enemyCount = clamp(baseEnemies + sub + Math.floor(lv/12), 1, 12);
-
-  const minPath = clamp(10 + lv, 10, 42);
-
-  const safetyMargin = [6,5,4,3,2][cat];
-
-  // map complexity (kept moderate for performance)
-  const roomAttempts = 28 + lv;                 // 28..52
-  const maxRooms = clamp(12 + Math.floor(lv * 0.35), 12, 26);
-
-  return { enemySteps, enemyCount, minPath, safetyMargin, roomAttempts, maxRooms };
-}
-
-// ---------- Map gen (rooms + corridors) ----------
-function makeMap(w, h, roomAttempts, maxRooms) {
-  const g = Array.from({length:h}, () => Array.from({length:w}, () => WALL));
-  const rooms = [];
-
-  for (let i = 0; i < roomAttempts && rooms.length < maxRooms; i++) {
-    const rw = randi(4, 12);
-    const rh = randi(4, 10);
-    const rx = randi(1, w - rw - 2);
-    const ry = randi(1, h - rh - 2);
-
-    const room = { x: rx, y: ry, w: rw, h: rh, cx: rx + (rw >> 1), cy: ry + (rh >> 1) };
-
-    let ok = true;
-    for (const r of rooms) {
-      const pad = 1;
-      if (room.x < r.x + r.w + pad &&
-          room.x + room.w + pad > r.x &&
-          room.y < r.y + r.h + pad &&
-          room.y + room.h + pad > r.y) {
-        ok = false; break;
-      }
-    }
-    if (!ok) continue;
-
-    carveRoom(g, room);
-    if (rooms.length) connectRooms(g, rooms[rooms.length - 1], room);
+function makeMap(){
+  map=Array.from({length:H},()=>Array.from({length:W},()=>WALL));
+  const rooms=[]; const tries=40+level;
+  for(let i=0;i<tries && rooms.length<24;i++){
+    const rw=randi(4,11), rh=randi(4,9), rx=randi(1,W-rw-2), ry=randi(1,H-rh-2);
+    const room={x:rx,y:ry,w:rw,h:rh,cx:rx+(rw>>1),cy:ry+(rh>>1)};
+    let ok=true; for(const r of rooms){ if(room.x<r.x+r.w+1&&room.x+room.w+1>r.x&&room.y<r.y+r.h+1&&room.y+room.h+1>r.y){ok=false;break;} }
+    if(!ok)continue;
+    for(let y=room.y;y<room.y+room.h;y++) for(let x=room.x;x<room.x+room.w;x++) map[y][x]=FLOOR;
+    if(rooms.length){ const a=rooms[rooms.length-1], b=room; let x=a.cx,y=a.cy; while(x!==b.cx){x+=x<b.cx?1:-1; map[y][x]=FLOOR;} while(y!==b.cy){y+=y<b.cy?1:-1; map[y][x]=FLOOR;} }
     rooms.push(room);
   }
-
-  if (!rooms.length) carveRoom(g, {x:2,y:2,w:w-4,h:h-4});
-  return g;
+  if(!rooms.length){ for(let y=2;y<H-2;y++)for(let x=2;x<W-2;x++) map[y][x]=FLOOR; }
 }
-
-function carveRoom(g, r){
-  for (let y=r.y; y<r.y+r.h; y++)
-    for (let x=r.x; x<r.x+r.w; x++)
-      g[y][x]=FLOOR;
+function isFloor(x,y){return x>=0&&y>=0&&x<W&&y<H&&map[y][x]===FLOOR;}
+function bfs(start){ const dist=Array(W*H).fill(-1), par=Array(W*H).fill(-1), q=[start]; dist[start.y*W+start.x]=0;
+  for(let qi=0;qi<q.length;qi++){ const {x,y}=q[qi]; for(const [nx,ny] of [[x+1,y],[x-1,y],[x,y+1],[x,y-1]]){ if(!isFloor(nx,ny))continue; const i=ny*W+nx; if(dist[i]!==-1)continue; dist[i]=dist[y*W+x]+1; par[i]=y*W+x; q.push({x:nx,y:ny}); }}
+  return {dist,par};
 }
+function pathFrom(par,s,g){ const out=[]; const si=s.y*W+s.x; let cur=g.y*W+g.x; if(par[cur]===-1&&cur!==si)return null; while(cur!==-1){ out.push({x:cur%W,y:(cur/W)|0}); if(cur===si)break; cur=par[cur]; } return out.reverse(); }
 
-function connectRooms(g, a, b){
-  let x=a.cx, y=a.cy;
-  const tx=b.cx, ty=b.cy;
+function genLevel(){ const p=params(level); let ok=false;
+  for(let attempt=0;attempt<180&&!ok;attempt++){
+    makeMap(); const floors=[]; for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++) if(isFloor(x,y))floors.push({x,y}); if(floors.length<20)continue;
+    player.x=floors[randi(0,floors.length-1)].x; player.y=floors[randi(0,floors.length-1)].y;
+    const {dist,par}=bfs(player); const far=floors.filter(f=>dist[f.y*W+f.x]>=p.minPath); if(!far.length)continue;
+    exit=far[randi(0,far.length-1)]; const path=pathFrom(par,player,exit); if(!path||path.length<p.minPath)continue;
 
-  if (rng()<0.5){
-    while (x!==tx){ x += x<tx?1:-1; g[y][x]=FLOOR; }
-    while (y!==ty){ y += y<ty?1:-1; g[y][x]=FLOOR; }
-  } else {
-    while (y!==ty){ y += y<ty?1:-1; g[y][x]=FLOOR; }
-    while (x!==tx){ x += x<tx?1:-1; g[y][x]=FLOOR; }
-  }
-}
-
-function isFloor(x,y){ return x>=0 && y>=0 && x<W && y<H && map[y][x]===FLOOR; }
-
-// ---------- BFS utilities ----------
-function bfsWithParents(start){
-  const dist = new Int16Array(W*H);
-  dist.fill(-1);
-  const parent = new Int32Array(W*H);
-  parent.fill(-1);
-
-  const qx = new Int16Array(W*H);
-  const qy = new Int16Array(W*H);
-  let qs=0, qe=0;
-
-  dist[start.y*W + start.x] = 0;
-  qx[qe]=start.x; qy[qe]=start.y; qe++;
-
-  while (qs<qe){
-    const x=qx[qs], y=qy[qs]; qs++;
-    const d=dist[y*W + x];
-
-    const nbr = [[x+1,y],[x-1,y],[x,y+1],[x,y-1]];
-    for (const [nx,ny] of nbr){
-      if (!isFloor(nx,ny)) continue;
-      const idx=ny*W + nx;
-      if (dist[idx]!==-1) continue;
-      dist[idx]=d+1;
-      parent[idx]=y*W + x;
-      qx[qe]=nx; qy[qe]=ny; qe++;
-    }
-  }
-  return {dist, parent};
-}
-
-function reconstructPath(parent, start, goal){
-  const path = [];
-  const startIdx = start.y*W + start.x;
-  let cur = goal.y*W + goal.x;
-  if (parent[cur] === -1 && cur !== startIdx) return null;
-  while (cur !== -1){
-    const x = cur % W;
-    const y = (cur / W) | 0;
-    path.push({x,y});
-    if (cur === startIdx) break;
-    cur = parent[cur];
-  }
-  path.reverse();
-  return path;
-}
-
-function bfsDistance(start){
-  const {dist} = bfsWithParents(start);
-  return dist;
-}
-
-// ---------- Placement helpers ----------
-function placeOnFloor(){
-  for (let i=0;i<20000;i++){
-    const x=randi(1,W-2), y=randi(1,H-2);
-    if (isFloor(x,y)) return {x,y};
-  }
-  map[2][2]=FLOOR; return {x:2,y:2};
-}
-function manhattan(a,b){ return Math.abs(a.x-b.x)+Math.abs(a.y-b.y); }
-function samePos(a,b){ return a.x===b.x && a.y===b.y; }
-
-function pickExitWithMinPath(pl, minPath){
-  const {dist, parent} = bfsWithParents(pl);
-  for (let i=0;i<30000;i++){
-    const ex = placeOnFloor();
-    const d = dist[ex.y*W + ex.x];
-    if (d >= minPath) {
-      const path = reconstructPath(parent, pl, ex);
-      if (path && path.length-1 === d) return {ex, path};
-    }
-  }
-  return null;
-}
-
-function safeAgainstAllEnemies(path, enemyStarts, enemySteps, safetyMargin){
-  for (const e of enemyStarts){
-    const distE = bfsDistance(e);
-    for (let k=0; k<path.length; k++){
-      const t = path[k];
-      const dE = distE[t.y*W + t.x];
-      if (dE === -1) continue;
-      const enemyBudget = k * enemySteps + safetyMargin;
-      if (dE <= enemyBudget) return false;
-    }
-  }
-  return true;
-}
-
-function spawnEnemiesBeatable(path, playerStart, exitPos, enemyCount, enemySteps, safetyMargin){
-  const enemies = [];
-  let tries = 0;
-
-  while (enemies.length < enemyCount && tries < 20000){
-    tries++;
-    const e = placeOnFloor();
-
-    if (samePos(e, playerStart) || samePos(e, exitPos)) continue;
-    if (manhattan(e, playerStart) < 8) continue;
-    if (manhattan(e, exitPos) < 6) continue;
-
-    let onPath = false;
-    for (let i=0; i<path.length; i++){
-      if (path[i].x===e.x && path[i].y===e.y) { onPath=true; break; }
-    }
-    if (onPath) continue;
-
-    let clash=false;
-    for (const x of enemies){ if (samePos(x,e)) { clash=true; break; } }
-    if (clash) continue;
-
-    const test = enemies.concat([e]);
-    if (!safeAgainstAllEnemies(path, test, enemySteps, safetyMargin)) continue;
-
-    enemies.push(e);
-  }
-
-  if (enemies.length === 0 && enemyCount > 0){
-    for (let i=0; i<12000; i++){
-      const e = placeOnFloor();
-      if (samePos(e, playerStart) || samePos(e, exitPos)) continue;
-      if (manhattan(e, playerStart) < 10) continue;
-      if (manhattan(e, exitPos) < 8) continue;
-
-      let onPath = false;
-      for (let j=0; j<path.length; j++){
-        if (path[j].x===e.x && path[j].y===e.y) { onPath=true; break; }
-      }
-      if (onPath) continue;
-
-      if (safeAgainstAllEnemies(path, [e], enemySteps, safetyMargin)){
-        enemies.push(e);
-        break;
+    enemies=[]; items=[];
+    for(let i=0;i<p.enemyCount;i++){
+      let placed=false;
+      for(let k=0;k<300&&!placed;k++){
+        const t=floors[randi(0,floors.length-1)];
+        const nearSafe=path.some(pp=>Math.abs(pp.x-t.x)+Math.abs(pp.y-t.y)<(6-Math.min(4,Math.floor(level/12))));
+        if(nearSafe|| (Math.abs(t.x-player.x)+Math.abs(t.y-player.y)<7) || (Math.abs(t.x-exit.x)+Math.abs(t.y-exit.y)<5)) continue;
+        enemies.push({x:t.x,y:t.y,hp:1+(level>18?1:0),elite:level>34&&Math.random()<0.22}); placed=true;
       }
     }
+
+    for(let i=0;i<p.potionCount;i++){ const t=floors[randi(0,floors.length-1)]; items.push({x:t.x,y:t.y,type:'potion'}); }
+    for(let i=0;i<p.boltDrops;i++){ const t=floors[randi(0,floors.length-1)]; items.push({x:t.x,y:t.y,type:'bolt'}); }
+    if(level%6===5){ const t=floors[randi(0,floors.length-1)]; items.push({x:t.x,y:t.y,type:'forge'}); }
+    ok=true;
   }
-
-  return enemies;
+  if(!ok){ makeMap(); player.x=2;player.y=2; exit={x:W-3,y:H-3}; enemies=[];items=[]; }
+  alive=true; won=false; moves=0;
 }
 
-// ---------- Build a BEATABLE level ----------
-function buildBeatableLevel(lv){
-  const p = paramsForLevel(lv);
+function resetRun(){ running=false; startMs=0; if(level===0){lives=2;cleared=0; player={x:1,y:1,hp:4,atk:1,bolts:2};} player.hp=4+Math.floor(level/20); player.atk=1+Math.floor(level/15); player.bolts=2+Math.floor(level/10); genLevel(); statusEl.textContent='Ready'; bestLabel.textContent=fmtBest(loadBest(level)); syncHud(); hideOverlay(); draw(); }
+function setLevel(lv){ level=clamp(lv|0,0,50); $("levelInput").value=String(level); resetRun(); }
+function syncHud(){ const p=params(level); lvlLabel.textContent=String(level); tierLabel.textContent=`${tierNames[p.tier]} (${p.step}/9)`; livesLabel.textContent=String(Math.max(0,lives)); hpLabel.textContent=String(player.hp); atkLabel.textContent=String(player.atk); boltLabel.textContent=String(player.bolts); enemyLabel.textContent=String(enemies.length); movesLabel.textContent=String(moves); clearLabel.textContent=String(cleared); timeLabel.textContent=`${(elapsed()/1000).toFixed(1)}s`; }
 
-  for (let attempt=0; attempt<60; attempt++){
-    map = makeMap(W, H, p.roomAttempts, p.maxRooms);
-
-    const pl = placeOnFloor();
-    const pick = pickExitWithMinPath(pl, p.minPath);
-    if (!pick) continue;
-
-    const ex = pick.ex;
-    const path = pick.path;
-
-    const ens = spawnEnemiesBeatable(path, pl, ex, p.enemyCount, p.enemySteps, p.safetyMargin);
-
-    if (p.enemyCount > 0 && ens.length === 0) continue;
-    if (!safeAgainstAllEnemies(path, ens, p.enemySteps, p.safetyMargin)) continue;
-
-    player = pl;
-    exit = ex;
-    enemies = ens;
-    safePath = path;
-    return true;
-  }
-
-  // fallback open arena
-  map = Array.from({length:H}, ()=>Array.from({length:W}, ()=>FLOOR));
-  for (let y=0;y<H;y++){ map[y][0]=WALL; map[y][W-1]=WALL; }
-  for (let x=0;x<W;x++){ map[0][x]=WALL; map[H-1][x]=WALL; }
-
-  player = {x:2,y:2};
-  exit = {x:W-3,y:H-3};
-
-  const path = [];
-  for (let x=2;x<=W-3;x++) path.push({x,y:2});
-  for (let y=3;y<=H-3;y++) path.push({x:W-3,y});
-
-  const p2 = paramsForLevel(lv);
-  enemies = spawnEnemiesBeatable(path, player, exit, p2.enemyCount, p2.enemySteps, p2.safetyMargin);
-  safePath = path;
-  return true;
+function consumeTile(){
+  const i=items.findIndex(it=>it.x===player.x&&it.y===player.y); if(i<0)return;
+  const item=items[i]; items.splice(i,1);
+  if(item.type==='potion') player.hp=Math.min(7,player.hp+2);
+  else if(item.type==='bolt') player.bolts=Math.min(12,player.bolts+2);
+  else if(item.type==='forge') player.atk=Math.min(5,player.atk+1);
 }
-
-// ---------- Best stats (localStorage) ----------
-function bestKey(lv){ return "swyn_roguelike_best_v3_" + lv; }
-
-function loadBest(lv){
-  try{
-    const raw = localStorage.getItem(bestKey(lv));
-    if (!raw) return null;
-    const obj = JSON.parse(raw);
-    if (!obj || typeof obj.moves!=="number" || typeof obj.ms!=="number") return null;
-    return obj;
-  } catch { return null; }
-}
-
-function saveBest(lv, ms, moves){
-  const cur = loadBest(lv);
-  const better = (!cur) || (ms < cur.ms) || (ms === cur.ms && moves < cur.moves);
-  if (!better) return false;
-  try{
-    localStorage.setItem(bestKey(lv), JSON.stringify({ms, moves}));
-    return true;
-  } catch { return false; }
-}
-
-function formatBest(obj){
-  if (!obj) return "—";
-  return `${obj.moves} moves • ${(obj.ms/1000).toFixed(1)}s`;
-}
-
-// ---------- Game ----------
-function setLevel(lv){
-  level = clamp(lv|0, 0, 24);
-  levelInput.value = String(level);
-
-  seed = makeSeed();
-  rng = mulberry32(hash32(seed));
-
-  alive = true; won = false;
-  moves = 0; running = false; startMs = 0;
-
-  buildBeatableLevel(level);
-
-  lvlLabel.textContent = String(level);
-  const cat = categoryName(level);
-  const sub = subName(level);
-  tierLabel.textContent = `• ${cat} • ${sub}`;
-
-  enemyLabel.textContent = String(enemies.length);
-
-  movesRunEl.textContent = "0";
-  timeRunEl.textContent = "0.0s";
-  bestLabel.textContent = formatBest(loadBest(level));
-
-  statusEl.textContent = "Ready";
-  hideOverlay();
-  draw();
-}
-
-function nowMs(){ return performance.now(); }
-function startTimerIfNeeded(){ if (!running){ running=true; startMs=nowMs(); } }
-function elapsedMs(){ return running ? Math.max(0, nowMs()-startMs) : 0; }
-
-function tryMove(dx,dy){
-  if (!alive || won) return;
-
-  const nx = clamp(player.x + dx, 0, W-1);
-  const ny = clamp(player.y + dy, 0, H-1);
-  if (!isFloor(nx,ny)) return;
-
-  startTimerIfNeeded();
-
-  player.x = nx; player.y = ny;
-  moves++;
-  movesRunEl.textContent = String(moves);
-  timeRunEl.textContent = (elapsedMs()/1000).toFixed(1) + "s";
-
-  if (player.x===exit.x && player.y===exit.y){
-    won = true;
-    onWin();
-    draw();
-    return;
-  }
-
-  enemyTurn();
-  checkLose();
-  timeRunEl.textContent = (elapsedMs()/1000).toFixed(1) + "s";
-  draw();
-}
-
-function checkLose(){
-  for (const e of enemies){
-    if (e.x===player.x && e.y===player.y){
-      alive = false;
-      statusEl.textContent = `Dead • ${moves} moves • ${(elapsedMs()/1000).toFixed(1)}s`;
-      showOverlay("You died",
-        `Level <b>${level}</b> failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b>`);
-      return;
-    }
-  }
-}
-
-function onWin(){
-  const ms = elapsedMs();
-  const t = (ms/1000).toFixed(1);
-
-  const updated = saveBest(level, ms, moves);
-  bestLabel.textContent = formatBest(loadBest(level));
-
-  statusEl.textContent = `Level passed • ${moves} moves • ${t}s`;
-
-  const msg = [
-    `Level <b>${level}</b> passed.`,
-    `Run: <b>${moves}</b> moves • <b>${t}s</b>`,
-    updated ? `<span class="muted">New best saved for this browser.</span>` : `<span class="muted">Best unchanged for this browser.</span>`
-  ].join("<br><br>");
-
-  showOverlay("Level Complete", msg);
-}
+function strike(){ startTimer(); const near=enemies.find(e=>Math.abs(e.x-player.x)+Math.abs(e.y-player.y)===1); if(!near)return false; near.hp-=player.atk; if(near.hp<=0) enemies=enemies.filter(e=>e!==near); return true; }
+function fireBolt(){ if(player.bolts<=0)return false; startTimer(); player.bolts--; let target=null, best=1e9; for(const e of enemies){ const d=Math.abs(e.x-player.x)+Math.abs(e.y-player.y); if(d<best){best=d;target=e;} } if(target&&best<=7){target.hp-=2+Math.floor(player.atk/2); if(target.hp<=0) enemies=enemies.filter(e=>e!==target);} return true; }
 
 function enemyTurn(){
-  const { enemySteps } = paramsForLevel(level);
-
-  for (let step=0; step<enemySteps; step++){
-    const distToPlayer = bfsDistance(player);
-
-    for (const e of enemies){
-      if (e.x===player.x && e.y===player.y) continue;
-
-      const options = [
-        {x:e.x+1,y:e.y},{x:e.x-1,y:e.y},{x:e.x,y:e.y+1},{x:e.x,y:e.y-1}
-      ].filter(p => isFloor(p.x,p.y));
-
-      let best = null, bestD = 1e9;
-      for (const p of options){
-        const d = distToPlayer[p.y*W + p.x];
-        if (d === -1) continue;
-        if (d < bestD){ bestD=d; best=p; }
-      }
-      if (!best && options.length) best = options[randi(0, options.length-1)];
-      if (best){ e.x=best.x; e.y=best.y; }
-    }
-
-    for (const e of enemies){
-      if (e.x===player.x && e.y===player.y){
-        alive = false;
-        statusEl.textContent = `Dead • ${moves} moves • ${(elapsedMs()/1000).toFixed(1)}s`;
-        showOverlay("You died",
-          `Level <b>${level}</b> failed.<br><br>Run: <b>${moves}</b> moves • <b>${(elapsedMs()/1000).toFixed(1)}s</b>`);
-        return;
-      }
+  if(!alive||won) return;
+  const p=params(level); const {dist}=bfs(player);
+  for(let s=0;s<p.enemySteps;s++){
+    for(const e of enemies){
+      const opts=[[e.x+1,e.y],[e.x-1,e.y],[e.x,e.y+1],[e.x,e.y-1]].filter(([x,y])=>isFloor(x,y));
+      let best=null,bestD=1e9; for(const [x,y] of opts){ const d=dist[y*W+x]; if(d!==-1&&d<bestD){bestD=d; best={x,y};}}
+      if(best){e.x=best.x;e.y=best.y;}
+      if(e.x===player.x&&e.y===player.y){ player.hp-=p.enemyPower+(e.elite?1:0); if(player.hp<=0){lives--; if(lives<0){alive=false; statusEl.textContent='Dead'; showOverlay('Run Failed',`You were defeated on level <b>${level}</b>.<br>Clears: <b>${cleared}</b> • Moves: <b>${moves}</b>`); return;} player.hp=4+Math.floor(level/20); player.x=2;player.y=2; statusEl.textContent='Lost a life'; showOverlay('You Died',`You lost a life. Remaining: <b>${Math.max(0,lives)}</b>.<br>Press Close to continue.`); return; } }
     }
   }
 }
 
-// ---------- Render ----------
+function attemptMove(dx,dy){ if(!alive||won||overlay.style.display==='grid')return; const nx=player.x+dx, ny=player.y+dy; if(!isFloor(nx,ny))return; startTimer(); player.x=nx; player.y=ny; moves++; consumeTile(); if(player.x===exit.x&&player.y===exit.y){ won=true; cleared++; statusEl.textContent='Level cleared'; const updated=saveBest(level,moves,elapsed(),cleared); bestLabel.textContent=fmtBest(loadBest(level)); showOverlay('Level Complete',`Level <b>${level}</b> complete.<br>Clears this run: <b>${cleared}</b><br>Moves: <b>${moves}</b> • Time: <b>${(elapsed()/1000).toFixed(1)}s</b><br>${updated?'New local best saved.':'Local best unchanged.'}`); }
+  if(!won) enemyTurn(); syncHud(); draw();
+}
+
 function draw(){
-  ctx.fillStyle = "#000";
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  for (let y=0;y<H;y++){
-    for (let x=0;x<W;x++){
-      ctx.fillStyle = (map[y][x]===WALL) ? "#0a0f16" : "#121b26";
-      ctx.fillRect(x*TILE, y*TILE, TILE, TILE);
-    }
-  }
-
-  ctx.fillStyle = "#39d98a";
-  ctx.fillRect(exit.x*TILE+4, exit.y*TILE+4, TILE-8, TILE-8);
-
-  ctx.fillStyle = "#ff4d4d";
-  for (const e of enemies){
-    ctx.fillRect(e.x*TILE+4, e.y*TILE+4, TILE-8, TILE-8);
-  }
-
-  ctx.fillStyle = "#e6edf3";
-  ctx.fillRect(player.x*TILE+3, player.y*TILE+3, TILE-6, TILE-6);
-
-  ctx.fillStyle = "rgba(255,255,255,0.72)";
-  ctx.font = "12px ui-monospace, Menlo, Consolas, monospace";
-  ctx.fillText(`Moves: ${moves}`, 10, 16);
-  ctx.fillText(`Enemies: ${enemies.length}`, 10, 32);
-  ctx.fillText(`Goal: reach green`, 10, 48);
-
-  if (!alive){
-    ctx.fillStyle = "rgba(255,77,77,0.85)";
-    ctx.fillText(`DEAD`, 10, 64);
-  } else if (won){
-    ctx.fillStyle = "rgba(57,217,138,0.85)";
-    ctx.fillText(`WIN`, 10, 64);
-  }
+  ctx.fillStyle='#05070b'; ctx.fillRect(0,0,cvs.width,cvs.height);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){ ctx.fillStyle=map[y]?.[x]===WALL?'#0b111a':'#172230'; ctx.fillRect(x*TILE,y*TILE,TILE,TILE); }
+  for(const it of items){ if(it.type==='potion')ctx.fillStyle='#39d98a'; else if(it.type==='bolt')ctx.fillStyle='#ffd166'; else ctx.fillStyle='#7aa2ff'; ctx.fillRect(it.x*TILE+4,it.y*TILE+4,8,8); }
+  ctx.fillStyle='#41ff93'; ctx.fillRect(exit.x*TILE+3,exit.y*TILE+3,10,10);
+  for(const e of enemies){ const x=e.x*TILE+8,y=e.y*TILE+8; const grad=ctx.createRadialGradient(x,y,2,x,y,8); grad.addColorStop(0,e.elite?'#ffdd80':'#ffb6b6'); grad.addColorStop(1,e.elite?'#8a4f00':'#6e1d1d'); ctx.fillStyle=grad; ctx.beginPath(); ctx.moveTo(x,y-7); ctx.lineTo(x-7,y); ctx.lineTo(x,y+7); ctx.lineTo(x+7,y); ctx.closePath(); ctx.fill(); }
+  const px=player.x*TILE+8,py=player.y*TILE+8; const pg=ctx.createLinearGradient(px-7,py-7,px+7,py+7); pg.addColorStop(0,'#f0f8ff'); pg.addColorStop(1,'#5f8fb5'); ctx.fillStyle=pg; ctx.beginPath(); ctx.moveTo(px,py-8); ctx.lineTo(px-8,py+4); ctx.lineTo(px,py+8); ctx.lineTo(px+8,py+4); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.72)'; ctx.font='12px ui-monospace,monospace'; ctx.fillText(`Level ${level} • ${tierNames[Math.min(5,Math.floor(level/10))]}`,8,16);
 }
 
-// ---------- Overlay ----------
-function showOverlay(title, html){
-  overlayTitle.textContent = title;
-  overlayBody.innerHTML = html;
-  overlay.style.display = "grid";
-}
-function hideOverlay(){ overlay.style.display = "none"; }
+addEventListener('keydown',(e)=>{ const k=e.key.toLowerCase(); if(k==='w'||k==='arrowup'){e.preventDefault();attemptMove(0,-1);} else if(k==='s'||k==='arrowdown'){e.preventDefault();attemptMove(0,1);} else if(k==='a'||k==='arrowleft'){e.preventDefault();attemptMove(-1,0);} else if(k==='d'||k==='arrowright'){e.preventDefault();attemptMove(1,0);} else if(k===' '){e.preventDefault(); if(strike()){enemyTurn(); syncHud(); draw();}} else if(k==='j'){ if(fireBolt()){enemyTurn(); syncHud(); draw();} } else if(k==='r'){setLevel(level);} else if(k==='n'){setLevel(Math.min(50,level+1));} else if(k==='p'){setLevel(Math.max(0,level-1));} });
 
-// ---------- UI / Keys ----------
-function gotoLevelFromInput(){
-  const n = Number(levelInput.value);
-  if (!Number.isFinite(n)) return;
-  setLevel(n|0);
-}
-goBtn.addEventListener("click", gotoLevelFromInput);
-levelInput.addEventListener("keydown", (e)=>{ if (e.key==="Enter") gotoLevelFromInput(); });
+// touch swipe
+(()=>{ const el=cvs; el.style.touchAction='none'; let sx=0,sy=0,active=false; el.addEventListener('pointerdown',(e)=>{sx=e.clientX; sy=e.clientY; active=true;}); addEventListener('pointerup',(e)=>{ if(!active)return; active=false; const dx=e.clientX-sx, dy=e.clientY-sy; if(Math.abs(dx)<18 && Math.abs(dy)<18){ strike(); enemyTurn(); syncHud(); draw(); return;} if(Math.abs(dx)>Math.abs(dy)){attemptMove(dx>0?1:-1,0);} else attemptMove(0,dy>0?1:-1);});})();
 
-resetBestBtn.addEventListener("click", ()=>{
-  try { localStorage.removeItem(bestKey(level)); } catch {}
-  bestLabel.textContent = "—";
-});
-
-nextBtn.addEventListener("click", ()=> setLevel(Math.min(24, level+1)));
-retryBtn.addEventListener("click", ()=> setLevel(level));
-closeBtn.addEventListener("click", hideOverlay);
-
-addEventListener("keydown", (e)=>{
-  const k = e.key.toLowerCase();
-
-  if (k==="n"){ e.preventDefault(); setLevel(Math.min(24, level+1)); return; }
-  if (k==="p"){ e.preventDefault(); setLevel(Math.max(0, level-1)); return; }
-  if (k==="r"){ e.preventDefault(); setLevel(level); return; }
-
-  const ae = document.activeElement;
-  if (ae && (ae.tagName==="INPUT" || ae.tagName==="TEXTAREA")) return;
-
-  if (k==="arrowup" || k==="w"){ e.preventDefault(); tryMove(0,-1); }
-  else if (k==="arrowdown" || k==="s"){ e.preventDefault(); tryMove(0,1); }
-  else if (k==="arrowleft" || k==="a"){ e.preventDefault(); tryMove(-1,0); }
-  else if (k==="arrowright" || k==="d"){ e.preventDefault(); tryMove(1,0); }
-});
-
-// update timer display
-setInterval(()=>{
-  if (running && alive && !won){
-    timeRunEl.textContent = (elapsedMs()/1000).toFixed(1) + "s";
-  }
-}, 100);
-
-// ---------- Touch swipe (tablet/phone) ----------
-(() => {
-  const el = canvas;
-  el.style.touchAction = "none";
-
-  let sx = 0, sy = 0, active = false;
-
-  const THRESH = 22;
-  const DOMINANCE = 1.2;
-
-  function onStart(x,y){ sx=x; sy=y; active=true; }
-  function onEnd(x,y){
-    if (!active) return;
-    active=false;
-
-    const dx = x - sx;
-    const dy = y - sy;
-    const adx = Math.abs(dx);
-    const ady = Math.abs(dy);
-
-    if (adx < THRESH && ady < THRESH) return;
-
-    if (adx > ady * DOMINANCE){
-      if (dx > 0) tryMove(1,0); else tryMove(-1,0);
-    } else if (ady > adx * DOMINANCE){
-      if (dy > 0) tryMove(0,1); else tryMove(0,-1);
-    }
-  }
-
-  el.addEventListener("touchstart", (e)=>{
-    const t=e.changedTouches[0];
-    onStart(t.clientX, t.clientY);
-  }, {passive:true});
-
-  el.addEventListener("touchend", (e)=>{
-    const t=e.changedTouches[0];
-    onEnd(t.clientX, t.clientY);
-  }, {passive:true});
-
-  el.addEventListener("mousedown", (e)=> onStart(e.clientX, e.clientY));
-  addEventListener("mouseup", (e)=> onEnd(e.clientX, e.clientY));
-})();
-
+$("goBtn").addEventListener('click',()=>setLevel(Number($("levelInput").value)||0));
+$("resetBestBtn").addEventListener('click',()=>{localStorage.removeItem(bestKey(level)); bestLabel.textContent='—';});
+$("nextBtn").addEventListener('click',()=>setLevel(Math.min(50,level+1)));
+$("retryBtn").addEventListener('click',()=>setLevel(level));
+$("closeBtn").addEventListener('click',hideOverlay);
+setInterval(()=>{timeLabel.textContent=`${(elapsed()/1000).toFixed(1)}s`;},100);
 setLevel(0);
-</script>
 
+(async function loadPartials(){
+  const [h,f]=await Promise.all([fetch('/partials/header.html'), fetch('/partials/footer.html')]);
+  document.getElementById('site-header').innerHTML=await h.text();
+  document.getElementById('site-footer').innerHTML=await f.text();
+})();
+</script>
 </body>
 </html>
