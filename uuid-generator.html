@@ -214,13 +214,15 @@ tbody#rows .actions .pill {
         <section class="card">
           <div class="pad">
 
-            <h2 style="margin-top:0;">Generate and Validate UUIDs Locally</h2>
-            <p>
+            <h2 class="h2" style="margin:0 0 8px 0;">About this tool</h2>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
               This free online UUID generator helps you create and validate UUIDs (v4, v5, and v7) directly in your browser. Use it to bulk-generate identifiers, verify format, and export results without sending data to a server. It’s built for developers who need fast, predictable UUIDs for databases, APIs, logs, tests, and distributed systems.
             </p>
 
-            <h3>Common Use Cases</h3>
-            <ul>
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">Common use cases</h3>
+            <ul class="muted" style="margin:0 0 12px 18px; line-height:1.7;">
               <li>Generate UUID v4 values for primary keys, request IDs, and correlation IDs</li>
               <li>Create time-ordered UUID v7 identifiers for better index locality and sorting</li>
               <li>Produce deterministic UUID v5 values from a namespace + name</li>
@@ -228,21 +230,25 @@ tbody#rows .actions .pill {
               <li>Bulk-generate IDs for fixtures, test data, migrations, or seed scripts</li>
             </ul>
 
-            <h3>How It Works</h3>
-            <p>
+            <div class="hr"></div>
+
+            <h3 class="h3" style="margin:14px 0 8px 0;">How it works</h3>
+            <p class="muted" style="margin:0 0 12px 0; line-height:1.6;">
               Generation happens client-side in your browser. For v4, the tool uses secure randomness (when available) to produce RFC-style UUIDs. For v5, it derives a deterministic UUID from a namespace UUID and a name string so the same input produces the same output. For v7, it creates time-ordered UUIDs that sort roughly by creation time. The validator checks structure and version/variant fields so you can quickly confirm an ID is well-formed.
             </p>
 
-            <h3>Frequently Asked Questions</h3>
+            <div class="hr"></div>
 
-            <h4>Does this UUID generator upload my data?</h4>
-            <p>No. Generation and validation run locally in your browser.</p>
+            <h3 class="h3" style="margin:14px 0 8px 0;">FAQ</h3>
 
-            <h4>Which UUID version should I use?</h4>
-            <p>Use v4 for general random IDs, v5 for deterministic IDs based on inputs, and v7 when you want time-ordered UUIDs that sort better in databases.</p>
+            <h4 class="h4" style="margin:10px 0 6px 0;">Does this UUID generator upload my data?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">No. Generation and validation run locally in your browser.</p>
 
-            <h4>Can I bulk-generate and export UUIDs?</h4>
-            <p>Yes. Generate multiple UUIDs, search/sort the list, then copy or export to TXT/CSV for use in scripts or datasets.</p>
+            <h4 class="h4" style="margin:10px 0 6px 0;">Which UUID version should I use?</h4>
+            <p class="muted" style="margin:0 0 10px 0; line-height:1.6;">Use v4 for general random IDs, v5 for deterministic IDs based on inputs, and v7 when you want time-ordered UUIDs that sort better in databases.</p>
+
+            <h4 class="h4" style="margin:10px 0 6px 0;">Can I bulk-generate and export UUIDs?</h4>
+            <p class="muted" style="margin:0; line-height:1.6;">Yes. Generate multiple UUIDs, search/sort the list, then copy or export to TXT/CSV for use in scripts or datasets.</p>
 
           </div>
         </section>
